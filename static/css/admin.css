@@ -1,0 +1,119 @@
+.pimcore-search-button {
+    background: url(/pimcore/static/img/icon/magnifier.png) left center no-repeat !important;
+}
+.search-results-filter{
+    background: url(/pimcore/static/img/icon/magnifier_zoom_in.png) left center no-repeat !important;
+}
+
+.pimcore-search-form{
+    width: 400px;
+    overflow:hidden;
+}
+
+.pimcore-search-form .x-panel-btns{
+   margin:0;
+   padding:0;
+
+}
+
+.pimcore-search-form  .x-form-element{
+    margin: 3px 0 0 0;
+}
+.pimcore-search-form form{
+    float:left;
+}
+
+.pimcore-search-form .x-panel-body{
+    background: none;
+}
+
+.pimcore-search-form .x-panel-bwrap{
+     width: 400px;
+    overflow:hidden;
+    margin:0 0 0 20px;
+}
+.pimcore-search-form div{
+    float:left;
+}
+
+.pimcore-search-field{
+    float:left;
+}
+
+.pimcore-search-submit{
+    float: left;
+    margin:3px 0 0 0;
+}
+
+.pimcore-search-result{
+    cursor:pointer;
+    text-decoration: underline;
+}
+
+
+/* PLUGIN SETTINGS */
+
+
+
+    #message{
+       font-size:12px;
+       font-family: tahoma,arial,helvetica,sans-serif;
+       width: 600px;
+    }
+
+    #page{
+        padding: 10px;
+    }
+    #page .description{
+        font-size: 10px;
+        color:#666666;
+    }
+
+    #page .mandatory_hint{
+        margin-top: 20px;
+        font-size: 10px;
+    }
+
+    #page .error {
+        color: #ff0000;
+    }
+
+    .exForm{
+		padding: 20px 20px 20px 0px;
+	}
+	.x-tag {
+		color: #666666;
+		background-repeat: no-repeat;
+		background-position:  2px center;
+		padding-left: 17px !important;
+		*text-indent: 17px !important;
+
+    }
+    .lucenesearch .x-superboxselect li{
+        float:none;
+    }
+
+    .lucenesearch .x-superboxselect-item-close{
+        background:url("/pimcore/static/js/lib/ext-plugins/SuperBoxSelect/close.png") no-repeat scroll left 0 transparent;
+    }
+    .lucenesearch .x-superboxselect-btn-clear{
+        display:none;
+    }
+    .lucenesearch .x-superboxselect-btn-expand{
+        display:none;
+    }
+
+
+	#f2Form .x-superboxselect-item-focus {
+		color: #fff;
+	}
+
+.lucenesearch .x-superboxselect-item{
+    background: #f2f1f1;
+    border: 1px solid #ccc;
+}
+
+.lucenesearch .x-superboxselect-item-focus{
+    background: #8d8e94;
+    border: 1px solid #8d8e94;
+}

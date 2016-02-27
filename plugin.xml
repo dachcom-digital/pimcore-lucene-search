@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<zend-config>
+  <plugin>
+    <pluginName>LuceneSearch</pluginName>
+    <pluginNiceName>LuceneSearch Search Module</pluginNiceName>
+    <pluginIcon>/plugins/LuceneSearch/static/img/search-logo.png</pluginIcon>
+    <pluginDescription>Search module for website with a php website crawler</pluginDescription>
+    <pluginVersion>2.0.0</pluginVersion>
+    <pluginIframeSrc>/plugin/LuceneSearch/admin_Plugin/settings</pluginIframeSrc>
+    <pluginClassName>\LuceneSearch\Plugin</pluginClassName>
+    <pluginIncludePaths>
+      <path>/LuceneSearch/lib</path>
+      <path>/LuceneSearch/models</path>
+    </pluginIncludePaths>
+
+    <pluginNamespaces>
+      <namespace>LuceneSearch</namespace>
+      <namespace>PDF2Text</namespace>
+    </pluginNamespaces>
+    <pluginJsPaths/>
+    <pluginCssPaths/>
+  </plugin>
+</zend-config>

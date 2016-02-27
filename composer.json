@@ -1,0 +1,26 @@
+{
+  "name": "dachcom-digital/pimcore-lucene-search",
+  "type": "pimcore-plugin",
+  "license": "GPL-3.0+",
+  "description": "Pimcore 4.0 Website Search (powered by Zend_Search_Lucene)",
+  "keywords": ["pimcore", "search", "lucene"],
+  "homepage": "https://github.com/dachcom-digital/pimcore-lucene-search",
+  "authors": [
+    {
+      "name": "Bernhard Rusch",
+      "homepage": "http://www.pimcore.org/",
+      "role": "Developer"
+    }, {
+      "name": "Thomas Keil",
+      "homepage": "http://www.weblizards.de",
+      "role": "Developer"
+    }, {
+      "name": "Stefan Hagspiel",
+      "homepage": "http://www.dachcom-digital.ch",
+      "role": "Developer"
+      }
+  ],
+  "require": {
+    "pimcore/installer-plugin": ">=1"
+  }
+}
