@@ -40,8 +40,10 @@ class FrontendCrawlCommand extends AbstractCommand
 
             $indexDir = \LuceneSearch\Plugin::getFrontendSearchIndex();
 
+            $this->output->writeln("<comment>rm -Rf ". str_replace('/index','/tmpindex', $indexDir) ."</comment>");
+
             //TODO nix specific
-            exec("rm -Rf ".str_replace("/index","/tmpindex", $indexDir) ." " . $indexDir);
+            exec("rm -Rf ".str_replace("/index","/tmpindex", $indexDir) );
 
             $urls = Configuration::get('frontend.urls');
             $validLinkRegexes =  Configuration::get('frontend.validLinkRegexes');
@@ -59,8 +61,12 @@ class FrontendCrawlCommand extends AbstractCommand
             \Logger::log("LuceneSearch_Plugin: replacing old index ...", \Zend_Log::DEBUG);
 
             //TODO nix specific
-            exec("rm -Rf ".$indexDir);
-            exec("mv ".str_replace("/index","/tmpindex",$indexDir)." ".$indexDir);
+            exec("rm -Rf " . $indexDir);
+            $tmpIndex = str_replace("/index", "/tmpindex", $indexDir);
+            exec("cp -R " . substr($tmpIndex, 0, -1) . " " . substr($indexDir, 0, -1));
+
+            $this->output->writeln("<comment>rm -Rf ". $indexDir ."</comment>");
+            $this->output->writeln("<comment>cp -R ". substr($tmpIndex, 0, -1) . " " . substr($indexDir, 0, -1) ."</comment>");
 
             \Logger::log("Search_PluginPhp: replaced old index", \Zend_Log::DEBUG);
             \Logger::log("Search_PluginPhp: Finished crawl", \Zend_Log::DEBUG);
