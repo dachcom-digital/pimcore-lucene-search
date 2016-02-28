@@ -272,11 +272,11 @@ class Crawler
                     if ($doc instanceof \Zend_Search_Lucene_Document)
                     {
                         $this->index->addDocument($doc);
-                        \Logger::debug(get_class($this) . ': Added to lucene index db entry id [ $id ] ', \Zend_Log::DEBUG);
+                        \Logger::debug(get_class($this) . ': Added to lucene index db entry id [ ' . $id . ' ] ', \Zend_Log::DEBUG);
                     }
                     else
                     {
-                        \Logger::error(get_class($this) . ': could not unserialize lucene document from db row [ $id ] ', \Zend_Log::DEBUG);
+                        \Logger::error(get_class($this) . ': could not unserialize lucene document from db row [ ' . $id . ' ] ', \Zend_Log::DEBUG);
                         \Logger::error(get_class($this) . ': string length: ' . strlen($row['content']));
                     }
 
@@ -424,14 +424,14 @@ class Crawler
 
                             if ($rowTodo['count'] > 0 or $rowDone['count'] > 0 or $rowNoIndex['count'] > 0)
                             {
-                                \Logger::log(get_class($this) . ' Redirected to uri [ $nextLink ] - which has already been processed',\ Zend_Log::DEBUG);
+                                \Logger::log(get_class($this) . ' Redirected to uri [ ' . $nextLink. ' ] - which has already been processed',\ Zend_Log::DEBUG);
                             }
                             else
                             {
                                 try
                                 {
                                     $success = $this->parse($nextLink, $response, $client->getUri()->getHost(), $client->getCookieJar(), $depth);
-                                    \Logger::log(get_class($this) . ': parsed  [ $nextLink ] ', \Zend_Log::DEBUG);
+                                    \Logger::log(get_class($this) . ': parsed  [ ' . $nextLink. ' ] ', \Zend_Log::DEBUG);
                                 }
                                 catch (\Exception $e)
                                 {
@@ -440,25 +440,25 @@ class Crawler
 
                             }
                         } else {
-                            \Logger::log('We were redirected to an invalid Link [ $nextLink]', \Zend_Log::DEBUG);
+                            \Logger::log('We were redirected to an invalid Link [ ' . $nextLink. ' ]', \Zend_Log::DEBUG);
                         }
 
 
                     } else
                     {
-                        \Logger::log(get_class($this) . ': Error parsing  [ $nextLink ] ', \Zend_Log::ERR);
+                        \Logger::log(get_class($this) . ': Error parsing  [ ' . $nextLink . ' ] ', \Zend_Log::ERR);
                     }
 
 
                 } catch (\Zend_Uri_Exception $e)
                 {
-                    \Logger::log(get_class($this) . ': Invalid URI  [ $nextLink ] ', \Zend_Log::ERR);
+                    \Logger::log(get_class($this) . ': Invalid URI  [ ' . $nextLink. ' ] ', \Zend_Log::ERR);
 
                 }
 
             } else
             {
-                \Logger::alert(get_class($this) . ': Stopping with uri [ $nextLink ] because maximum link depth of [ $depth ] has been reached.');
+                \Logger::alert(get_class($this) . ': Stopping with uri [ ' . $nextLink . ' ] because maximum link depth of [ ' . $depth . ' ] has been reached.');
             }
 
             //get next from DB
@@ -513,7 +513,7 @@ class Crawler
 
         if (strpos(strtolower($link), $testString) !== FALSE)
         {
-            \Logger::debug(get_class($this) . ': Detected insane link [ $link ], stopping here.');
+            \Logger::debug(get_class($this) . ': Detected insane link [ ' . $link. ' ], stopping here.');
             return null;
         }
 
@@ -640,12 +640,12 @@ class Crawler
             }
             else
             {
-                \Logger::log(get_class($this) . ' Cannot parse mime type [ $mimeType ] provided by link [ $link ] ' . \Zend_Log::ERR);
+                \Logger::log(get_class($this) . ' Cannot parse mime type [ ' . $mimeType. ' ] provided by link [ ' . $link . ' ] ' . \Zend_Log::ERR);
             }
         }
         else
         {
-            \Logger::log(get_class($this) . ' Could not determine content type of [ $link ] ' . \Zend_Log::ERR);
+            \Logger::log(get_class($this) . ' Could not determine content type of [ ' . $link. ' ] ' . \Zend_Log::ERR);
         }
 
         return $success;
@@ -695,7 +695,7 @@ class Crawler
         if ($canonicalLink and $canonicalLink!=$link)
         {
             $this->processFoundLink($canonicalLink, $protocol, $host, $link, $depth, $cookieJar);
-            \Logger::debug(get_class($this) . ': Stopping to parse html at [ $link ], processing canonical link [ $canonicalLink ] instead');
+            \Logger::debug(get_class($this) . ': Stopping to parse html at [ ' . $link . ' ], processing canonical link [ $canonicalLink ] instead');
             return true;
         }
 
@@ -709,7 +709,7 @@ class Crawler
         {
             //no links to follow
             $links = array();
-            \Logger::debug(get_class($this) . ': not following links on [ $link ] because it has robots nofollow');
+            \Logger::debug(get_class($this) . ': not following links on [ ' . $link . ' ] because it has robots nofollow');
         }
 
         if (!in_array('noindex', $robotsMeta))
@@ -752,12 +752,12 @@ class Crawler
             }
 
             $this->addHtmlToIndex($html, $link, $this->getLanguageFromResponse($response), $this->getEncodingFromResponse($response), $host);
-            \Logger::info(get_class($this) . ': Added to indexer stack [ $link ]');
+            \Logger::info(get_class($this) . ': Added to indexer stack [ ' . $link. ' ]');
         }
         else
         {
             $this->addNoIndexPage($link);
-            \Logger::debug(get_class($this) . ': not indexing [ $link ] because it has robots noindex');
+            \Logger::debug(get_class($this) . ': not indexing [ ' . $link. ' ] because it has robots noindex');
         }
 
         if (count($links) > 0)
@@ -766,7 +766,7 @@ class Crawler
                 $this->processFoundLink($foundLink, $protocol, $host, $link, $depth, $cookieJar);
             }
         } else {
-            \Logger::debug(get_class($this) . ': No links found on page at [ $link ] ');
+            \Logger::debug(get_class($this) . ': No links found on page at [ ' . $link . ' ] ');
         }
 
         //TODO: for now we always return true - as success ... are there any unsuccessful states?
@@ -802,7 +802,7 @@ class Crawler
                     {
                         if ($this->db->insert('plugin_lucenesearch_frontend_crawler_todo', array('id' => md5($foundLink), 'uri' => $foundLink, 'depth' => ($depth + 1), 'cookiejar' => serialize($cookieJar))))
                         {
-                            \Logger::log(get_class($this) . ': Added link [ $foundLink ] to fetch list', \Zend_Log::DEBUG);
+                            \Logger::log(get_class($this) . ': Added link [ ' . $foundLink. ' ] to fetch list', \Zend_Log::DEBUG);
                         }
 
                     } catch (\Exception $e) {
@@ -861,7 +861,7 @@ class Crawler
     protected function parsePdf($link, $response)
     {
         $this->addPdfToIndex($link, $this->getLanguageFromResponse($response));
-        \Logger::log(get_class($this) . ': Added pdf to index [ $link ]', \Zend_Log::INFO);
+        \Logger::log(get_class($this) . ': Added pdf to index [ ' . $link . ' ]', \Zend_Log::INFO);
     }
 
 
@@ -991,7 +991,7 @@ class Crawler
         try
         {
             $this->db->insert('plugin_lucenesearch_frontend_crawler_noindex', array('id' => md5($url), 'uri' => $url));
-            \Logger::log('Plugin_LuceneSearch: Adding [ $url ] to noindex pages', \Zend_Log::DEBUG);
+            \Logger::log('Plugin_LuceneSearch: Adding [ ' . $url. ' ] to noindex pages', \Zend_Log::DEBUG);
 
         }
         catch (\Exception $e)
