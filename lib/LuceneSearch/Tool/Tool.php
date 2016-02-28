@@ -4,6 +4,14 @@ namespace LuceneSearch\Tool;
 
 class Tool {
 
+    public static function getCrawlerQuery() {
+
+        $queryFile = PIMCORE_PLUGINS_PATH . '/LuceneSearch/db/query.sql';
+
+        return file_get_contents( $queryFile );
+
+    }
+
     public static function generateSitemap()
     {
         $sitemapDir = PIMCORE_WEBSITE_PATH . "/var/search/sitemap";

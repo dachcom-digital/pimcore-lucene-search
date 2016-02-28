@@ -12,12 +12,16 @@
       <path>/LuceneSearch/lib</path>
       <path>/LuceneSearch/models</path>
     </pluginIncludePaths>
-
     <pluginNamespaces>
       <namespace>LuceneSearch</namespace>
       <namespace>PDF2Text</namespace>
     </pluginNamespaces>
-    <pluginJsPaths/>
-    <pluginCssPaths/>
+      <pluginJsPaths-extjs6>
+          <path>/plugins/LuceneSearch/static/js/backend/startup.js</path>
+          <path>/plugins/LuceneSearch/static/js/backend/settings.js</path>
+    </pluginJsPaths-extjs6>
+    <pluginCssPaths-extjs6>
+          <path>/plugins/LuceneSearch/static/css/admin.css</path>
+    </pluginCssPaths-extjs6>
   </plugin>
 </zend-config>

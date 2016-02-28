@@ -75,21 +75,19 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
                 if (!self::frontendConfigComplete())
                 {
-                    $message .= " -------------------------------------------- ";
                     $message .= 'ERROR:' . self::getTranslate()->_('lucenesearch_frontend_config_incomplete');
                 }
                 else
                 {
                     if (Configuration::get("frontend.crawler.forceStart"))
                     {
-                        $message .= "------------------------------------------- ";
                         $message .= self::getTranslate()->_("lucenesearch_frontend_crawler") . ": ";
-                        $message .= self::getTranslate()->_("searchPhp_rrontend_crawler_start_on_next_maintenance");
+                        $message .= self::getTranslate()->_("lucenesearch_frontend_crawler_start_on_next_maintenance");
                     }
                 }
 
-                $message .= " -------------------------------------------- ";
             }
+
             return $message;
         }
 
@@ -119,17 +117,17 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     /**
      *
      * @param string $language
-     * @return string path to the translation file relative to plugin direcory
+     * @return string path to the translation file relative to plugin directory
      */
     public static function getTranslationFile($language)
     {
         if (is_file(PIMCORE_PLUGINS_PATH . "/LuceneSearch/static/texts/" . $language . ".csv"))
         {
-            return PIMCORE_PLUGINS_PATH . "/LuceneSearch/static/texts/" . $language . ".csv";
+            return "/LuceneSearch/static/texts/" . $language . ".csv";
         }
         else
         {
-            return PIMCORE_PLUGINS_PATH . "/LuceneSearch/static/texts/en.csv";
+            return "/LuceneSearch/static/texts/en.csv";
         }
     }
 
@@ -211,11 +209,11 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
         if ($success)
         {
-            return self::getTranslate()->_("uninstalled_successfully");
+            return self::getTranslate()->_("lucenesearch_uninstalled_successfully");
         }
         else
         {
-            return self::getTranslate()->_("uninstall_failed");
+            return self::getTranslate()->_("lucenesearch_uninstall_failed");
         }
 
     }
@@ -238,7 +236,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
         self::$_translate = new \Zend_Translate(
             'csv',
-            self::getTranslationFile($lang),
+            PIMCORE_PLUGINS_PATH .self::getTranslationFile($lang),
             $lang,
             array('delimiter' => ',')
         );
