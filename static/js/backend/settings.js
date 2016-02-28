@@ -5,12 +5,16 @@ pimcore.plugin.luceneSearch.settings = Class.create({
 
     task : null,
 
+    loadMask : null,
+
     initialize: function () {
 
         this.getData();
     },
 
     getTabPanel: function () {
+
+        this.loadMask = pimcore.globalmanager.get("loadingmask");
 
         if (!this.panel) {
 
@@ -68,6 +72,8 @@ pimcore.plugin.luceneSearch.settings = Class.create({
             });
 
             this.panel.add(this.container);
+
+            var luceneSearchCrawlerLoadingMask = null;
 
             this.statusLayout = Ext.create('Ext.form.Panel', {
 
@@ -137,13 +143,9 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                             {
                                 click: function(button, event)
                                 {
-                                    luceneSearchCrawlerLoadingMask = new Ext.LoadMask(Ext.get('LSstatusFormPanel'), {
-                                        id:'crawler-stop-mask',
-                                        msg: t('lucenesearch_please_wait')
-                                    });
+                                    var _self = this;
 
-                                    luceneSearchCrawlerLoadingMask.show();
-
+                                    _self.loadMask.show();
                                     button.setDisabled(true);
 
                                     Ext.Ajax.request({
@@ -173,7 +175,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                             } else {
 
                                                 button.setDisabled(false);
-                                                luceneSearchCrawlerLoadingMask.hide();
+                                                _self.loadMask.hide();
                                             }
 
                                             Ext.Ajax.request({
@@ -184,14 +186,14 @@ pimcore.plugin.luceneSearch.settings = Class.create({
 
                                                     var res = Ext.decode(transport.responseText);
                                                     Ext.getCmp('stateMessage').setValue(res.message);
-                                                    luceneSearchCrawlerLoadingMask.hide();
+                                                    _self.loadMask.hide();
 
                                                 }
                                             });
                                         }
                                     });
 
-                                }
+                                }.bind(this)
                             }
 
                             }

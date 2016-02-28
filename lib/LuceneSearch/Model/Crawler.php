@@ -201,7 +201,6 @@ class Crawler
 
     }
 
-
     /**
      * @param int $delay
      * @return array|FALSE
@@ -226,7 +225,6 @@ class Crawler
         }
 
     }
-
 
     /**
      * @param bool $final
@@ -284,9 +282,12 @@ class Crawler
 
                     $idsDone[] = $id;
                 }
-                try {
+                try
+                {
                     $this->db->delete('plugin_lucenesearch_indexer_todo', 'id in (' . implode(',', $idsDone) . ')');
-                } catch (\Exception $e) {
+                }
+                catch (\Exception $e)
+                {
                     \Logger::warn(get_class($this), ' Could not delete plugin_lucenesearch_indexer_todo - maybe forcing crawler stop right now?');
                 }
 
@@ -306,7 +307,6 @@ class Crawler
             \Logger::log(get_class($this) . ': Closed frontend index references',\Zend_Log::DEBUG);
         }
     }
-
 
     /**
      * @return void
@@ -361,7 +361,7 @@ class Crawler
 
             if ($depth <= $this->maxLinkDepth)
             {
-                \Logger::debug(get_class($this) . ': Link depth [ $depth ]');
+                \Logger::debug(get_class($this) . ': Link depth [ ' . $depth . ' ]');
 
                 try
                 {
@@ -378,7 +378,7 @@ class Crawler
 
                     } catch (\Zend_Http_Client_Adapter_Exception $e)
                     {
-                        \Logger::log(get_class($this) . ': Could not get response for Link [ $nextLink ] ', \Zend_Log::ERR);
+                        \Logger::log(get_class($this) . ': Could not get response for Link [ ' . $nextLink . ' ] ', \Zend_Log::ERR);
                     }
 
                     if ($response instanceof \Zend_Http_Response and ($response->isSuccessful() or $response->isRedirect()))
@@ -399,7 +399,8 @@ class Crawler
                             {
                                 $rowTodo = $this->db->fetchRow('SELECT count(*) as count from plugin_lucenesearch_frontend_crawler_todo WHERE id ="' . md5($nextLink) . '"');
                             }
-                            catch (\Exception $e) {
+                            catch (\Exception $e)
+                            {
                                 \Logger::log(get_class($this) . ': could not fetch from plugin_lucenesearch_contents_temp', \Zend_Log::DEBUG);
                             }
 
@@ -407,7 +408,8 @@ class Crawler
                             {
                                 $rowDone = $this->db->fetchRow('SELECT count(*) as count from plugin_lucenesearch_contents_temp WHERE id ="' . md5($nextLink) . '"');
                             }
-                            catch (\Exception $e) {
+                            catch (\Exception $e)
+                            {
                                 \Logger::log(get_class($this) . ': could not fetch from plugin_lucenesearch_contents_temp', \Zend_Log::DEBUG);
                             }
 

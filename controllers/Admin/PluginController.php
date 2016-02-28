@@ -1,8 +1,11 @@
 <?php
 
 use Pimcore\Controller\Action\Admin;
+
 use LuceneSearch\Plugin;
+use LuceneSearch\Tool;
 use LuceneSearch\Model\Configuration;
+
 
 class LuceneSearch_Admin_PluginController extends Admin {
 
@@ -54,14 +57,14 @@ class LuceneSearch_Admin_PluginController extends Admin {
     {
         $frontendButtonDisabled = false;
 
-        if(Plugin::frontendCrawlerRunning() || Plugin::frontendCrawlerScheduledForStart() or !Plugin::frontendConfigComplete())
+        if(Plugin::frontendCrawlerRunning() || Plugin::frontendCrawlerScheduledForStart() || !Plugin::frontendConfigComplete())
         {
             $frontendButtonDisabled = true;   
         }
 
         $frontendStopButtonDisabled = false;
 
-        if(!Plugin::frontendConfigComplete() || !Plugin::frontendCrawlerRunning() or Plugin::frontendCrawlerStopLocked() )
+        if(!Plugin::frontendConfigComplete() || !Plugin::frontendCrawlerRunning() || Plugin::frontendCrawlerStopLocked() )
         {
             $frontendStopButtonDisabled = true;
         }
@@ -78,12 +81,14 @@ class LuceneSearch_Admin_PluginController extends Admin {
     public function stopFrontendCrawlerAction()
     {
         $playNice = true;
+
         if($this->_getParam('force'))
         {
-            $playNice=false;
+            $playNice = false;
         }
 
-        $success = Plugin::stopFrontendCrawler($playNice,true);
+        $success = Tool\Executer::stopCrawler($playNice, true);
+
         $this->_helper->json(array('success' => $success));
     }
 
@@ -96,7 +101,7 @@ class LuceneSearch_Admin_PluginController extends Admin {
     public function getFrontendUrlsAction() {
 
         $urls = Configuration::get('frontend.urls');
-        $urlArray = \LuceneSearch\Tool\ConfigParser::parseValues($urls, 'url');
+        $urlArray = Tool\ConfigParser::parseValues($urls, 'url');
 
         $this->_helper->json($urlArray);
     }
