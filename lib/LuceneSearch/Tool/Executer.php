@@ -9,7 +9,6 @@ class Executer {
 
     public static function runCrawler()
     {
-
         $running = Configuration::get('frontend.crawler.running');
 
         if( $running === TRUE)
@@ -118,7 +117,7 @@ class Executer {
         $db->query('DROP TABLE IF EXISTS `plugin_lucenesearch_frontend_crawler_todo`;');
         $db->query('DROP TABLE IF EXISTS `plugin_lucenesearch_indexer_todo`;');
 
-        \Logger::debug('LuceneSearch: forcing frontend crawler stop - dropped tables');
+        \Logger::debug('LuceneSearch: forcing frontend crawler stop - dropped tables.');
 
         $pidFiles = array('maintainance_crawler-indexer');
         for ($i = 1; $i <= $maxThreads; $i++) {
@@ -156,7 +155,7 @@ class Executer {
 
                 if (is_file($file) and !unlink($file))
                 {
-                    \Logger::emerg('LuceneSearch_Plugin: : Trying to force stop crawler, but cannot delete [ $file ]');
+                    \Logger::emerg('LuceneSearch_Plugin: : Trying to force stop crawler, but cannot delete [ '. $file. ' ]');
                 }
 
                 if (!is_file($file))
