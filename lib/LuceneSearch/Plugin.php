@@ -17,7 +17,6 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     public function __construct($jsPaths = null, $cssPaths = null, $alternateIndexDir = null)
     {
         parent::__construct($jsPaths, $cssPaths);
-
     }
 
     public function init()
@@ -34,7 +33,6 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
             $application->add(new \LuceneSearch\Console\Command\FrontendCrawlCommand());
 
         });
-
     }
 
     /**
@@ -92,7 +90,6 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
         return FALSE;
     }
-
 
     /**
      *  indicates whether this plugins is currently installed
@@ -363,7 +360,6 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         }
     }
 
-
     /**
      *
      * @param string $queryStr
@@ -387,16 +383,16 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     /**
      *  finds similar terms
      * @param string $queryStr
-     * @param Zend_Search_Lucene_Interface $index
-     * @param integer $prefixLength optionally specify prefix lengh, default 0
+     * @param \Zend_Search_Lucene_Interface $index
+     * @param integer $prefixLength optionally specify prefix length, default 0
      * @param float $similarity optionally specify similarity, default 0.5
      * @return string[] $similarSearchTerms
      */
-    public static function fuzzyFindTerms($queryStr, $index, $prefixLengh = 0, $similarity = 0.5)
+    public static function fuzzyFindTerms($queryStr, $index, $prefixLength = 0, $similarity = 0.5)
     {
         if ($index != null)
         {
-            \Zend_Search_Lucene_Search_Query_Fuzzy::setDefaultPrefixLength($prefixLengh);
+            \Zend_Search_Lucene_Search_Query_Fuzzy::setDefaultPrefixLength($prefixLength);
             $term = new \Zend_Search_Lucene_Index_Term($queryStr);
             $fuzzyQuery = new \Zend_Search_Lucene_Search_Query_Fuzzy($term, $similarity);
 
@@ -406,6 +402,5 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
             return $terms;
         }
     }
-
 }
 

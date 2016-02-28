@@ -95,6 +95,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                         hideLabel: !this.getValue('frontend.enabled'),
                         hidden: !this.getValue('frontend.enabled'),
                         columns:2,
+                        bodyStyle: 'background-color: #fff;',
                         bodyBorder:false,
                         border: false,
                         frame:false,
@@ -104,6 +105,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                             hideLabel: true,
                             text: t('lucenesearch_start_crawler'),
                             id: 'startFrontendCrawler',
+                            iconCls: 'pimcore_icon_apply',
                             disabled: !this.getCrawlerState('canStart'),
                             listeners:
                             {
@@ -138,6 +140,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                             hideLabel: true,
                             text: t('lucenesearch_stop_crawler'),
                             id: 'stopFrontendCrawler',
+                            iconCls: 'pimcore_icon_cancel',
                             disabled: !this.getCrawlerState('canStop'),
                             listeners:
                             {

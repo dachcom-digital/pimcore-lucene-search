@@ -23,7 +23,6 @@ class Crawler
      */
     protected $validLinkRegexes;
 
-
     /**
      * @var string[]
      */
@@ -57,7 +56,7 @@ class Crawler
     protected $readyToCrawl;
 
     /**
-     * @var Zend_Db_Adapter_Abstract
+     * @var \Zend_Db_Adapter_Abstract
      */
     protected $db;
 
@@ -156,10 +155,11 @@ class Crawler
                 \Logger::log(get_class($this) . ': Could not get response for Link [ ' . $url .' ] ', \Zend_Log::ERR);
             }
 
-            if ($response instanceof \Zend_Http_Response && ($response->isSuccessful() || $response->isRedirect())) {
-
+            if ($response instanceof \Zend_Http_Response && ($response->isSuccessful() || $response->isRedirect()))
+            {
                 //we don't use port - crawler ist limited to standard port 80
                 $client->getUri()->setPort(null);
+
                 //update url - maybe we were redirected
                 $url = $client->getUri(true);
                 $url = $this->removeOutputFilterParameters($url);
@@ -215,7 +215,6 @@ class Crawler
         {
             $rows = $this->db->fetchAll('SELECT * FROM plugin_lucenesearch_indexer_todo ORDER BY id', array());
             return $rows;
-
         }
         catch (\Exception $e)
         {
@@ -299,7 +298,6 @@ class Crawler
         $this->index->optimize();
 
         //clean up
-
         if (is_object($this->index) and $this->index instanceof \Zend_Search_Lucene_Proxy)
         {
             $this->index->removeReference();
@@ -313,7 +311,6 @@ class Crawler
      */
     public function continueWithFoundLinks()
     {
-
         //reset DB in case this is executed in a forked child process
         $this->db = \Pimcore\Db::reset();
 
@@ -494,7 +491,6 @@ class Crawler
 
     }
 
-
     /**
      * This function absolutizes and formats the found link
      * @param string $foundLink found link can be relative or absolute
@@ -547,8 +543,8 @@ class Crawler
                 $foundLink = $link . $foundLink;
             }
         }
-        else if ($foundLink[0] == '&') {
-
+        else if ($foundLink[0] == '&')
+        {
             $foundLink = $link . $foundLink;
         }
         else if ($foundLink[0] == '#') {
@@ -567,26 +563,34 @@ class Crawler
                                             and strpos($foundLink, 'news:') !== 0
         )
         {
-
             \Logger::debug('relative link:' . $foundLink);
             $foundLink = $link . $foundLink;
-        } else if (strpos($foundLink, 'https://') === 0 or strpos($foundLink, 'http://') === 0) {
+        }
+        else if (strpos($foundLink, 'https://') === 0 or strpos($foundLink, 'http://') === 0)
+        {
             //absolute link -> strtolower host
-            try {
+            try
+            {
                 $uri = \Zend_Uri_Http::fromString($foundLink);
                 $foundLink = str_ireplace($uri->getHost(), strtolower($uri->getHost()), $foundLink);
-            } catch (\Zend_Uri_Exception $e) {
+            }
+            catch (\Zend_Uri_Exception $e)
+            {
             }
         }
+
+        //remove trailing slash to prevent double entries
+        $foundLink = rtrim($foundLink, '/');
+
         return $foundLink;
     }
 
     /**
      * @param  string $link
      * @param  \Zend_Http_Response $response
-     * @param string $host
-     * @param \Zend_Http_CookieJar $cookieJar
-     * @param integer $depth
+     * @param  string $host
+     * @param  \Zend_Http_CookieJar $cookieJar
+     * @param  integer $depth
      * @return boolean
      */
     protected function parse($link, $response, $host, $cookieJar, $depth)
@@ -658,7 +662,6 @@ class Crawler
      */
     protected function checkForCanonical($html)
     {
-
         include_once 'simple_html_dom.php';
 
         if ($source = str_get_html($html))
@@ -714,7 +717,6 @@ class Crawler
 
         if (!in_array('noindex', $robotsMeta))
         {
-
             //now limit to search content area if indicators are set and found in this document
             if (!empty($this->searchStartIndicator))
             {
@@ -730,7 +732,8 @@ class Crawler
                 $htmlHead = array();
                 preg_match_all('@(<head[^>]*?>.*?</head>)@si', $html, $htmlHead);
                 $head = $top[0] . '<head></head>';
-                if (is_array($htmlHead[0])) {
+                if (is_array($htmlHead[0]))
+                {
                     $head = $top[0] . $htmlHead[0][0];
                 }
 
@@ -742,8 +745,10 @@ class Crawler
                 preg_match_all('%' . $this->searchStartIndicator . '(.*?)' . $this->searchEndIndicator . '%si', $minified, $htmlSnippets);
 
                 $html = $head;
-                if (is_array($htmlSnippets[0])) {
-                    foreach ($htmlSnippets[0] as $snippet) {
+                if (is_array($htmlSnippets[0]))
+                {
+                    foreach ($htmlSnippets[0] as $snippet)
+                    {
                         $html .= ' ' . $snippet;
                     }
                 }
@@ -762,10 +767,13 @@ class Crawler
 
         if (count($links) > 0)
         {
-            foreach ($links as $foundLink) {
+            foreach ($links as $foundLink)
+            {
                 $this->processFoundLink($foundLink, $protocol, $host, $link, $depth, $cookieJar);
             }
-        } else {
+        }
+        else
+        {
             \Logger::debug(get_class($this) . ': No links found on page at [ ' . $link . ' ] ');
         }
 
@@ -805,7 +813,9 @@ class Crawler
                             \Logger::log(get_class($this) . ': Added link [ ' . $foundLink. ' ] to fetch list', \Zend_Log::DEBUG);
                         }
 
-                    } catch (\Exception $e) {
+                    }
+                    catch (\Exception $e)
+                    {
 
                     }
                 }
@@ -851,7 +861,6 @@ class Crawler
 
     }
 
-
     /**
      * parsing pdf is an endpoint for the crawler, no further links are extracted, it just indices the pdf content
      * @param  string $link
@@ -867,50 +876,57 @@ class Crawler
 
     /**
      * extract encoding either from HTTP Header or from HTML Attribute
-     * @param  Zend_Http_Response $response
+     * @param  \Zend_Http_Response $response
      * @return string
      */
     protected function getEncodingFromResponse($response)
     {
         //try content-type header
         $contentType = $response->getHeader("Content-Type");
-        if (!empty($contentType)) {
+        if (!empty($contentType))
+        {
             $data = array();
             preg_match('@.*?;\s*charset=(.*)\s*@si', $contentType, $data);
-            if ($data[1]) {
+
+            if ($data[1])
+            {
                 $encoding = trim($data[1]);
-                //logger::log("encoding " . $contentType);
-                //logger::log(get_class($this) . ":found encoding [$encoding] in HTTP header Content-Type", Zend_Log::DEBUG);
             }
         }
-        if (empty($encoding)) {
+        if (empty($encoding))
+        {
             //try html
             $data = array();
             preg_match('@<meta\shttp-equiv="Content-Type"\scontent=".*?;\s+charset=(.*?)"\s\/>@si', $response->getBody(), $data);
-            if ($data[1]) {
+
+            if ($data[1])
+            {
                 $encoding = trim($data[1]);
-                //logger::log("encoding " . $data[0]);
-                //logger::log(get_class($this) . ":found encoding [$encoding] in HTML", Zend_Log::DEBUG);
             }
         }
-        if (empty($encoding)) {
+        if (empty($encoding))
+        {
             //try xhtml
             $data = array();
             preg_match('@<\?xml.*?encoding="(.*?)"\s*\?>@si', $response->getBody(), $data);
-            if ($data[1]) {
+
+            if ($data[1])
+            {
                 $encoding = trim($data[1]);
-                //logger::log(get_class($this) . ":found encoding [$encoding] in XHTML",Zend_Log::DEBUG);
             }
         }
-        if (empty($encoding)) {
+        if (empty($encoding))
+        {
             //try html 5
             $data = array();
             preg_match('@<meta\scharset="(.*?)"\s*>@si', $response->getBody(), $data);
-            if ($data[1]) {
+
+            if ($data[1])
+            {
                 $encoding = trim($data[1]);
-                //logger::log(get_class($this) . ":found encoding [$encoding] in HTML5",Zend_Log::DEBUG);
             }
         }
+
         return $encoding;
     }
 
@@ -920,8 +936,8 @@ class Crawler
      */
     protected function getRobotsMetaInfo($html)
     {
-        //use pimcore_searchphp direction first, robots as fallback
-        preg_match_all('/<[\s]*meta[\s]*name="pimcore_searchphp"?[\s]*content="?([^>"]*)"?[\s]*[\/]?[\s]*>/si', $html, $tags1);
+        //use pimcore_lucenesearch direction first, robots as fallback
+        preg_match_all('/<[\s]*meta[\s]*name="pimcore_lucenesearch"?[\s]*content="?([^>"]*)"?[\s]*[\/]?[\s]*>/si', $html, $tags1);
         preg_match_all('/<[\s]*meta[\s]*name="robots"?[\s]*content="?([^>"]*)"?[\s]*[\/]?[\s]*>/si', $html, $tags2);
         $tags = implode(",", array_merge($tags1[1], $tags2[1]));
         $tokens = array();
@@ -966,7 +982,6 @@ class Crawler
             if ($languages['language'])
             {
                 $l = str_replace(array('_', '-'), '', $languages['language'][0]);
-
             }
         }
         if (empty($l))
@@ -985,34 +1000,30 @@ class Crawler
         return $l;
     }
 
-
     protected function addNoIndexPage($url)
     {
         try
         {
             $this->db->insert('plugin_lucenesearch_frontend_crawler_noindex', array('id' => md5($url), 'uri' => $url));
             \Logger::log('Plugin_LuceneSearch: Adding [ ' . $url. ' ] to noindex pages', \Zend_Log::DEBUG);
-
         }
         catch (\Exception $e)
         {
 
         }
-
-
     }
 
     /**
-     * adds a HTML page to lucene index and mysql table for search result sumaries
+     * adds a HTML page to lucene index and mysql table for search result summaries
      * @param  string $html
      * @param  string $url
      * @param  string $language
+     * @param  string $encoding
+     * @param  string $host
      * @return void
      */
     protected function addHtmlToIndex($html, $url, $language, $encoding, $host)
     {
-        //$this->checkAndPrepareIndex();
-
         try
         {
             $content = $this->getPlainTextFromHtml($html);
@@ -1022,6 +1033,7 @@ class Crawler
             //add h1 to index
             $headlines = array();
             preg_match_all('@(<h1[^>]*?>[ \t\n\r\f]*(.*?)[ \t\n\r\f]*' . '</h1>)@si', $html, $headlines);
+
             if (is_array($headlines[2]))
             {
                 $h1 = '';
@@ -1034,7 +1046,6 @@ class Crawler
                 $field = \Zend_Search_Lucene_Field::Text('h1', $h1, $encoding);
                 $field->boost = 10;
                 $doc->addField($field);
-
             }
 
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('charset', $encoding));
@@ -1049,8 +1060,6 @@ class Crawler
         {
             \Logger::log($e->getMessage(), \Zend_Log::ERR);
         }
-
-
     }
 
     /**
@@ -1061,13 +1070,9 @@ class Crawler
      */
     protected function addPdfToIndex($url, $language)
     {
-        //$this->checkAndPrepareIndex();
-
         //TODO: PDF2Text does not seem to work
 
         /*
-        $this->checkAndPrepareIndex();
-
         $pdf2Text = new PDF2Text();
         $pdf2Text->setFilename($url);
         $pdf2Text->setUnicode(true);
@@ -1082,7 +1087,7 @@ class Crawler
                 'host' =>
             ));
 
-            $doc = new Zend_Search_Lucene_Document();
+            $doc = neplugin_lucenesearch_frontend_crawler_todow Zend_Search_Lucene_Document();
 
             //TODO use propper encoding!
             $doc->addField(Zend_Search_Lucene_Field::Text('body',$text,'utf-8'));
@@ -1166,7 +1171,8 @@ class Crawler
      */
     protected function addEvictOutputFilterParameter($link)
     {
-        if (strpos($link, 'pimcore_outputfilters_disabled=1') === FALSE) {
+        if (strpos($link, 'pimcore_outputfilters_disabled=1') === FALSE)
+        {
             $paramConcat = '?';
 
             if (strpos($link, '?') !== FALSE)
@@ -1188,10 +1194,10 @@ class Crawler
                 return $link . $paramConcat . 'pimcore_outputfilters_disabled=1';
             }
 
-        } else
+        }
+        else
         {
             return $link;
         }
     }
-
 }
