@@ -48,18 +48,24 @@ class Configuration extends Model\AbstractModel
     {
         $cacheKey = 'lucenesearch_configuration_' . $id;
 
-        try {
+        try
+        {
             $configurationEntry = \Zend_Registry::get($cacheKey);
             if (!$configurationEntry) {
                 throw new \Exception('Configuration in registry is null');
             }
-        } catch (\Exception $e) {
-            try {
+        }
+        catch (\Exception $e)
+        {
+            try
+            {
                 $configurationEntry = new self();
                 \Zend_Registry::set($cacheKey, $configurationEntry);
                 $configurationEntry->setId(intval($id));
                 $configurationEntry->getDao()->getById();
-            } catch (\Exception $e) {
+            }
+            catch (\Exception $e)
+            {
                 \Logger::error($e);
                 return null;
             }
@@ -78,7 +84,8 @@ class Configuration extends Model\AbstractModel
         $cacheKey = $key . '~~~';
 
         // check if pimcore already knows the id for this $name, if yes just return it
-        if (array_key_exists($cacheKey, self::$nameIdMappingCache)) {
+        if (array_key_exists($cacheKey, self::$nameIdMappingCache))
+        {
             $entry = self::getById(self::$nameIdMappingCache[$cacheKey]);
 
             if ($returnObject) {
@@ -91,20 +98,25 @@ class Configuration extends Model\AbstractModel
         // create a tmp object to obtain the id
         $configurationEntry = new self();
 
-        try {
+        try
+        {
             $configurationEntry->getDao()->getByKey($key);
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e)
+        {
             \Logger::warn($e);
             return null;
         }
 
         // to have a singleton in a way. like all instances of Element\ElementInterface do also, like Object\AbstractObject
-        if ($configurationEntry->getId() > 0) {
+        if ($configurationEntry->getId() > 0)
+        {
             // add it to the mini-per request cache
             self::$nameIdMappingCache[$cacheKey] = $configurationEntry->getId();
             $entry = self::getById($configurationEntry->getId());
 
-            if ($returnObject) {
+            if ($returnObject)
+            {
                 return $entry;
             }
 
@@ -122,7 +134,8 @@ class Configuration extends Model\AbstractModel
     {
         $configEntry = self::get($key, true);
 
-        if (!$configEntry) {
+        if (!$configEntry)
+        {
             $configEntry = new self();
             $configEntry->setKey($key);
         }
@@ -139,14 +152,21 @@ class Configuration extends Model\AbstractModel
     {
         $config = null;
 
-        if (\Zend_Registry::isRegistered('lucenesearch_plugin_config')) {
+        if (\Zend_Registry::isRegistered('lucenesearch_plugin_config'))
+        {
             $config = \Zend_Registry::get('lucenesearch_plugin_config');
-        } else {
-            try {
+        }
+        else
+        {
+            try
+            {
                 $config = new \Zend_Config_Xml(LUCENESEARCH_CONFIGURATION_FILE);
                 self::setPluginConfig($config);
-            } catch (\Exception $e) {
-                if (is_file(LUCENESEARCH_CONFIGURATION_FILE)) {
+            }
+            catch (\Exception $e)
+            {
+                if (is_file(LUCENESEARCH_CONFIGURATION_FILE))
+                {
                     $m = 'Your plugin_xml.xml located at is invalid, please check and correct it manually!';
                     Tool::exitWithError($m);
                 }

@@ -8,9 +8,6 @@ use LuceneSearch\Model;
 class Dao extends Pimcore\Model\Dao\PhpArrayTable
 {
 
-    /**
-     *
-     */
     public function configure()
     {
         parent::configure();
@@ -27,7 +24,8 @@ class Dao extends Pimcore\Model\Dao\PhpArrayTable
         $routesData = $this->db->fetchAll($this->model->getFilter(), $this->model->getOrder());
 
         $routes = array();
-        foreach ($routesData as $routeData) {
+        foreach ($routesData as $routeData)
+        {
             $routes[] = Model\Configuration::getById($routeData['id']);
         }
 

@@ -209,14 +209,13 @@ class LuceneSearch_FrontendController extends Action
 
         foreach ($suggestions as $suggestion)
         {
-            echo $suggestion . '\r\n';
+            echo $suggestion . "\r\n";
         }
 
     }
 
     public function findAction()
     {
-
         $queryFromRequest = $this->cleanRequestString($_REQUEST['query']);
         $categoryFromRequest = $this->cleanRequestString($_REQUEST['cat']);
 
@@ -258,7 +257,6 @@ class LuceneSearch_FrontendController extends Action
         if (!empty($categories))
         {
             $this->view->availableCategories = $categories;
-
         }
 
         $doFuzzy = $this->_getParam('fuzzy');
@@ -360,9 +358,7 @@ class LuceneSearch_FrontendController extends Action
                     $url = $hit->getDocument()->getField('url');
                     $title = $hit->getDocument()->getField('title');
 
-
                     $searchResult['boost'] = $hit->getDocument()->boost;
-
                     $searchResult['title'] = $title->value;
                     $searchResult['url'] = $url->value;
                     $searchResult['sumary'] = $searcher->getSumaryForUrl($url->value, $queryStr);

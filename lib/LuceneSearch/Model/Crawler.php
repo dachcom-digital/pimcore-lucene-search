@@ -153,7 +153,7 @@ class Crawler
             }
             catch (\Zend_Http_Client_Adapter_Exception $e)
             {
-                \Logger::log(get_class($this) . ': Could not get response for Link [ $url ] ', \Zend_Log::ERR);
+                \Logger::log(get_class($this) . ': Could not get response for Link [ ' . $url .' ] ', \Zend_Log::ERR);
             }
 
             if ($response instanceof \Zend_Http_Response && ($response->isSuccessful() || $response->isRedirect())) {
@@ -166,7 +166,8 @@ class Crawler
 
                 try
                 {
-                    \Logger::log(get_class($this) . ': parsed entry point  [ $url ] ', \Zend_Log::INFO);
+                    $success = $this->parse($url, $response, $client->getUri()->getHost(), $client->getCookieJar(), 0);
+                    \Logger::log(get_class($this) . ': parsed entry point  [ ' . $url .' ] ', \Zend_Log::INFO);
 
                 }
                 catch (\Exception $e)
@@ -174,9 +175,10 @@ class Crawler
                     \Logger::log($e);
                 }
 
-            } else
+            }
+            else
             {
-                \Logger::log(get_class($this) . ': Invalid Respose for URL  [ $url ] ', \Zend_Log::DEBUG);
+                \Logger::log(get_class($this) . ': Invalid Respose for URL  [ ' . $url .' ] ', \Zend_Log::DEBUG);
             }
 
         }
@@ -318,7 +320,7 @@ class Crawler
         try
         {
             $row = $this->db->fetchRow('SELECT * FROM plugin_lucenesearch_frontend_crawler_todo ORDER BY id', array());
-            print_r($row);$nextLink = $row['uri'];
+            $nextLink = $row['uri'];
             $depth = $row['depth'];
             $cookieJar = unserialize($row['cookiejar']);
         }
@@ -348,9 +350,12 @@ class Crawler
 
         while ($nextLink)
         {
-            try {
+            try
+            {
                 $this->db->delete('plugin_lucenesearch_frontend_crawler_todo', 'id = "' . md5($nextLink) . '"');
-            } catch (\Exception $e) {
+            }
+            catch (\Exception $e)
+            {
                 \Logger::warn(get_class($this) . ': Could not delete from plugin_lucenesearch_frontend_crawler_todo - maybe forcing crawler stop right now?');
             }
 
@@ -376,21 +381,22 @@ class Crawler
                         \Logger::log(get_class($this) . ': Could not get response for Link [ $nextLink ] ', \Zend_Log::ERR);
                     }
 
-                    if ($response instanceof \Zend_Http_Response and ($response->isSuccessful() or $response->isRedirect())) {
-
+                    if ($response instanceof \Zend_Http_Response and ($response->isSuccessful() or $response->isRedirect()))
+                    {
                         //we don't use port - crawler ist limited to standard port 80
                         $client->getUri()->setPort(null);
+
                         //update url - maybe we were redirected
                         $nextLink = $client->getUri(true);
                         $nextLink = $this->removeOutputFilterParameters($nextLink);
-
 
                         $valid = $this->validateLink($nextLink);
 
                         if ($valid)
                         {
                             //see if we were redirected to a place we already have in fetch list or done
-                            try {
+                            try
+                            {
                                 $rowTodo = $this->db->fetchRow('SELECT count(*) as count from plugin_lucenesearch_frontend_crawler_todo WHERE id ="' . md5($nextLink) . '"');
                             }
                             catch (\Exception $e) {
@@ -422,10 +428,12 @@ class Crawler
                             {
                                 try
                                 {
+                                    $success = $this->parse($nextLink, $response, $client->getUri()->getHost(), $client->getCookieJar(), $depth);
                                     \Logger::log(get_class($this) . ': parsed  [ $nextLink ] ', \Zend_Log::DEBUG);
                                 }
-                                catch (\Exception $e) {
-                                    \Logger::log($e, Zend_Log::ERR);
+                                catch (\Exception $e)
+                                {
+                                    \Logger::log($e, \Zend_Log::ERR);
                                 }
 
                             }
@@ -463,6 +471,7 @@ class Crawler
             {
                 //wait 2 seconds then try again
                 sleep(2);
+
                 try
                 {
                     $row = $this->db->fetchRow('SELECT * FROM plugin_lucenesearch_frontend_crawler_todo ORDER BY id', array());
@@ -580,7 +589,6 @@ class Crawler
      */
     protected function parse($link, $response, $host, $cookieJar, $depth)
     {
-
         $success = false;
         if (strpos($link, 'https://') !== FALSE)
         {
@@ -690,7 +698,6 @@ class Crawler
         }
 
         //TODO: robots.txt
-
         \Zend_Search_Lucene_Document_Html::setExcludeNoFollowLinks(true);
         $doc = \Zend_Search_Lucene_Document_Html::loadHTML($html, false, 'utf-8');
         $links = $doc->getLinks();
@@ -714,7 +721,6 @@ class Crawler
 
             if ($documentHasDelimiter and !empty($this->searchStartIndicator) and !empty($this->searchEndIndicator))
             {
-
                 //get part before html head starts
                 $top = explode('<head>', $html);
 
@@ -772,7 +778,7 @@ class Crawler
      * @param  string $host
      * @param  string $link
      * @param  integer $depth
-     * @param  Zend_Http_CookieJar $cookieJar
+     * @param  \Zend_Http_CookieJar $cookieJar
      * @return void
      */
     protected function processFoundLink($foundLink, $protocol, $host, $link, $depth, $cookieJar)
@@ -785,14 +791,13 @@ class Crawler
 
             if ($valid and $foundLink != $link and strlen($foundLink) > 0)
             {
-                $rowDone = $this->db->fetchRow('SELECT count(*) as count from plugin_lucenesearch_contents_temp WHERE id ="' . md5($foundLink) . '"');
+                $rowDone = $this->db->fetchRow('SELECT count(*) as count from plugin_lucenesearch_contents_temp WHERE id = "' . md5($foundLink) . '"');
                 $rowNoIndex = $this->db->fetchRow('SELECT count(*) as count from plugin_lucenesearch_frontend_crawler_noindex WHERE id ="' . md5($foundLink) . '"');
 
                 if ($rowDone['count'] == 0 and $rowNoIndex['count'] == 0)
                 {
                     try
                     {
-
                         if ($this->db->insert('plugin_lucenesearch_frontend_crawler_todo', array('id' => md5($foundLink), 'uri' => $foundLink, 'depth' => ($depth + 1), 'cookiejar' => serialize($cookieJar))))
                         {
                             \Logger::log(get_class($this) . ': Added link [ $foundLink ] to fetch list', \Zend_Log::DEBUG);
@@ -986,13 +991,14 @@ class Crawler
             $this->db->insert('plugin_lucenesearch_frontend_crawler_noindex', array('id' => md5($url), 'uri' => $url));
             \Logger::log('Plugin_LuceneSearch: Adding [ $url ] to noindex pages', \Zend_Log::DEBUG);
 
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e)
+        {
 
         }
 
 
     }
-
 
     /**
      * adds a HTML page to lucene index and mysql table for search result sumaries
@@ -1003,7 +1009,6 @@ class Crawler
      */
     protected function addHtmlToIndex($html, $url, $language, $encoding, $host)
     {
-
         //$this->checkAndPrepareIndex();
 
         try

@@ -157,12 +157,12 @@ class LuceneSearch_Admin_PluginController extends Admin {
 
         if (is_numeric($values['frontend.crawler.maxThreads']))
         {
-            Configuration::set('frontend.crawler.maxThreads', $values['frontend.crawler.maxThreads']);
+            Configuration::set('frontend.crawler.maxThreads', (int) $values['frontend.crawler.maxThreads']);
         }
 
         if (is_numeric($values['frontend.crawler.maxLinkDepth']))
         {
-            Configuration::set('frontend.crawler.maxLinkDepth', $values['frontend.crawler.maxLinkDepth']);
+            Configuration::set('frontend.crawler.maxLinkDepth', (int) $values['frontend.crawler.maxLinkDepth']);
         }
         else
         {

@@ -26,7 +26,7 @@ class Install {
         Configuration::set('frontend.invalidLinkRegexes', '@.*\.(js|JS|gif|GIF|jpg|JPG|png|PNG|ico|ICO|eps|jpeg|JPEG|bmp|BMP|css|CSS|sit|wmf|zip|ppt|mpg|xls|gz|rpm|tgz|mov|MOV|exe|mp3|MP3|kmz|gpx|kml|swf|SWF)$@');
         Configuration::set('frontend.categories', array());
         Configuration::set('frontend.ownHostOnly', FALSE);
-        Configuration::set('frontend.crawler.maxThreads', 20);
+        Configuration::set('frontend.crawler.maxThreads', 1);
         Configuration::set('frontend.crawler.maxLinkDepth', 15);
         Configuration::set('frontend.crawler.contentStartIndicator', FALSE);
         Configuration::set('frontend.crawler.contentEndIndicator', FALSE);

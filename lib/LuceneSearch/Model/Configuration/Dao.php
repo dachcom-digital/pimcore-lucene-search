@@ -22,15 +22,19 @@ class Dao extends Model\Dao\PhpArrayTable
      */
     public function getById($id = null)
     {
-        if ($id != null) {
+        if ($id != null)
+        {
             $this->model->setId($id);
         }
 
         $data = $this->db->getById($this->model->getId());
 
-        if (isset($data['id'])) {
+        if (isset($data['id']))
+        {
             $this->assignVariablesToModel($data);
-        } else {
+        }
+        else
+        {
             throw new \Exception('Configuration with id: ' . $this->model->getId() . ' does not exist');
         }
     }
@@ -42,22 +46,29 @@ class Dao extends Model\Dao\PhpArrayTable
      */
     public function getByKey($key = null)
     {
-        if ($key != null) {
+        if ($key != null)
+        {
             $this->model->setKey($key);
         }
 
         $key = $this->model->getKey();
 
-        $data = $this->db->fetchAll(function ($row) use ($key) {
+        $data = $this->db->fetchAll(function ($row) use ($key)
+        {
             if ($row['key'] == $key) {
                 return true;
             }
+
             return false;
+
         });
 
-        if (count($data) && $data[0]['id']) {
+        if (count($data) && $data[0]['id'])
+        {
             $this->assignVariablesToModel($data[0]);
-        } else {
+        }
+        else
+        {
             throw new \Exception('Configuration with key: ' . $this->model->getKey() . ' does not exist');
         }
     }
@@ -68,27 +79,35 @@ class Dao extends Model\Dao\PhpArrayTable
     public function save()
     {
         $ts = time();
-        if (!$this->model->getCreationDate()) {
+        if (!$this->model->getCreationDate())
+        {
             $this->model->setCreationDate($ts);
         }
+
         $this->model->setModificationDate($ts);
 
-        try {
+        try
+        {
             $dataRaw = get_object_vars($this->model);
             $data = [];
             $allowedProperties = ['id','key','data','creationDate','modificationDate'];
 
-            foreach ($dataRaw as $key => $value) {
-                if (in_array($key, $allowedProperties)) {
+            foreach ($dataRaw as $key => $value)
+            {
+                if (in_array($key, $allowedProperties))
+                {
                     $data[$key] = $value;
                 }
             }
             $this->db->insertOrUpdate($data, $this->model->getId());
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e)
+        {
             throw $e;
         }
 
-        if (!$this->model->getId()) {
+        if (!$this->model->getId())
+        {
             $this->model->setId($this->db->getLastInsertId());
         }
     }

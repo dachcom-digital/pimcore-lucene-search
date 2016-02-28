@@ -20,7 +20,8 @@ class Listing extends Model\Listing\JsonListing
      */
     public function getConfigurations()
     {
-        if (is_null($this->configurations)) {
+        if (is_null($this->configurations))
+        {
             $this->load();
         }
 

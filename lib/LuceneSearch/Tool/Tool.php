@@ -50,18 +50,18 @@ class Tool {
                     $fh = fopen($filePath, 'w');
                     fwrite($fh,'<?xml version="1.0" encoding="UTF-8"?>'."\r\n");
                     fwrite($fh,'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
-                    fwrite($fh,'\r\n');
+                    fwrite($fh,"\r\n");
 
                     foreach($data as $row)
                     {
                         $uri = str_replace('&pimcore_outputfilters_disabled=1','',$row['uri']);
                         $uri = str_replace('?pimcore_outputfilters_disabled=1','',$uri);
-                        fwrite($fh,'<url>'.'\r\n');
-                        fwrite($fh,'    <loc>'.htmlspecialchars($uri,ENT_QUOTES).'</loc>'.'\r\n');
-                        fwrite($fh,'</url>'.'\r\n');
+                        fwrite($fh,'<url>' . "\r\n");
+                        fwrite($fh,'    <loc>'.htmlspecialchars($uri,ENT_QUOTES).'</loc>'."\r\n");
+                        fwrite($fh,'</url>' . "\r\n");
                     }
 
-                    fwrite($fh,'</urlset>'.'\r\n');
+                    fwrite($fh,'</urlset>' . "\r\n");
                     fclose($fh);
                 }
 
@@ -70,7 +70,7 @@ class Tool {
                 $fh = fopen($filePath, 'w');
                 fwrite($fh, '<?xml version="1.0" encoding="UTF-8"?>' . "\r\n");
                 fwrite($fh, '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
-                fwrite($fh, '\r\n');
+                fwrite($fh, "\r\n");
 
                 foreach ($hosts as $row)
                 {
@@ -79,12 +79,12 @@ class Tool {
 
                     //first host must be main domain - see hint in plugin settings
                     $currenthost = $hosts[0]['host'];
-                    fwrite($fh, '<sitemap>' . '\r\n');
-                    fwrite($fh, '    <loc>http://' . $currenthost . '/plugin/LuceneSearch/frontend/sitemap/?sitemap=sitemap-' . $name . '.xml' . '</loc>' . '\r\n');
-                    fwrite($fh, '</sitemap>' . '\r\n');
+                    fwrite($fh, '<sitemap>' . "\r\n");
+                    fwrite($fh, '    <loc>http://' . $currenthost . '/plugin/LuceneSearch/frontend/sitemap/?sitemap=sitemap-' . $name . '.xml' . '</loc>' . "\r\n");
+                    fwrite($fh, '</sitemap>' . "\r\n");
                 }
 
-                fwrite($fh, '</sitemapindex>' . '\r\n');
+                fwrite($fh, '</sitemapindex>' . "\r\n");
                 fclose($fh);
 
             } else
