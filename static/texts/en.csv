@@ -1,78 +1,78 @@
-'lucenesearch','Lucene Search'
-'lucenesearch_failed_to_setup_search_config','Failed to setup search config'
-'lucenesearch_installed_already','Search plugin is installed already.'
-'lucenesearch_could_not_create_dir','Could not install Search plugin, could not create directory '
-'lucenesearch_index_dir_not_configured','Could not install Search plugin, index directory is not configured.'
-'lucenesearch_uninstalled_successfully','Successfully uninstalled Search plugin'
-'lucenesearch_settings_save_success','Settings successfully saved.'
-'lucenesearch_settings_save_error','There was an error while storing settings.',
-'lucenesearch_uninstall_failed','Could not uninstall search plugin'
-'lucenesearch_installed_successfully','Search plugin installed successfully. Please reload UI to activate plugin.'
-'lucenesearch_index_warning','Warning: Plugin indexes all documents, objects and assets during installation.<br/>If you already have a lot of content, please disable this functionality in search.xml. The installation might take very long or even fail if there ist too much data to index initially.'
-'lucenesearch_search_index','Location of search index'
-'lucenesearch_search_index_on_install','Index all resources during install'
-'lucenesearch_frontend_settings_urls','Start-URLs for crawler'
-'lucenesearch_frontend_settings_empty_text','Please enter your URL and hit enter'
-'lucenesearch_frontend_allowed','Regexes for valid URIs'
-'lucenesearch_frontend_allowed_empty_text','Please enter Regex incl. start and and delimiter and hit enter'
-'lucenesearch_frontend_forbidden','Regexes for forbidden URIs'
-'lucenesearch_frontend_forbidden_empty_text','Please enter Regex incl. start and and delimiter and hit enter'
-'lucenesearch_frontend_categories_empty_text','Please enter category and and hit enter'
-'lucenesearch_urlfilter','Regexes for valid URIs - separate Regexes with ';''
-'lucenesearch_not_ready_for_install','Plugin is not ready for installation. Please check permissions of plugin and website directories and the /tmp directory. (rwx for php user!)'
-'lucenesearch_search_index_optimization','Search Index Optimization'
-'lucenesearch_search_index_optimization_success','The search index could be optimized successfully.'
-'lucenesearch_search_index_optimization_failure','Search index optimization failed!'
-'lucenesearch_search_query','Search term'
-'lucenesearch_search_frontend_enabled','Frontend aktive'
-'lucenesearch_objectclass...','class ...'
-'lucenesearch_frontend_crawler_running','Website crawler is running!'
-'lucenesearch_frontend_crawler_not_running','Website crawler not running'
-'lucenesearch_backend_crawler_running','Backend crawler is running!'
-'lucenesearch_backend_crawler_not_running','Backend crawler not running'
-'lucenesearch_frontend_crawler_last_started','last start'
-'lucenesearch_frontend_crawler_last_finished','last end'
-'lucenesearch_plugin_description','Hier fehlt noch eine Beschreibung ... '
-'lucenesearch_frontend_content_start_indicator','String specifying content start for search'
-'lucenesearch_frontend_content_end_indicator','String specifying content end for search'
-'lucenesearch_settings','Settings'
-'lucenesearch_settings_save','Save Settings'
-'lucenesearch_frontend_categories','Categories'
-'lucenesearch_frontend_settings','Frontend and Crawler Settings'
-'lucenesearch_frontend_enabled','Frontend search active'
-'lucenesearch_basic','Basic Settings'
-'lucenesearch_backend','Backend'
-'lucenesearch_frontend_ignoreLanguage','Ignore language'
-'lucenesearch_language','Language'
-'lucenesearch_backend_excludeassets','exclude assets'
-'lucenesearch_backend_excludedocuments','exclude documents'
-'lucenesearch_backend_excludeobjects','exclude objects'
-'lucenesearch_frontend_ownhostonly','Only results of the current (Sub-)domain'
-'lucenesearch_subdomains','Subdomain'
-'lucenesearch_start_crawler','Start'
-'lucenesearch_stop_crawler','Stop'
-'lucenesearch_frontend_crawler','Frontend Crawler'
-'lucenesearch_backend_crawler','Backend Crawler'
-'lucenesearch_status','State'
-'lucenesearch_frontend_crawler_start_on_next_maintenance','Forcing crawler start with next maintenance'
-'lucenesearch_frontend_enabled_description','Enable and configure the search frontend if you want to include a full text search on your website'
-'lucenesearch_frontend_ignoreLanguage_description','Check to receive search results from all languages, uncheck to limit search results to the current language only. The current language is retrieved from the registy, the language of any page in the search result index is extracted by the crawler (Content-Language Http header, html tag lang attribute or html meta tag content-language)'
-'lucenesearch_frontend_ownhostonly_description','Check to limt search results to results from the current (sub-)domain only'
-'lucenesearch_frontend_content_indicator_description','You can limit the page content relevant for searching by surrounding it with certain html comments. The crawler will still parse the entire page to find links, but only the specified area wihin your html comments is used when searching for a term'
-'lucenesearch_frontend_categories_description','If search results should be displayed by categories, please enter all valid categories here. The crawler sorts a page into a category if it contains a html meta tag with the name cat'
-'lucenesearch_frontend_settings_urls_description','Specify start URLs for the crawler. Please enter with protocol! e.g. http://www.pimcore.org and enter a starting URL on your main domain first and any subdomains next, because the domain of the first URL will be used as the main domain for sitemap generation'
-'lucenesearch_frontend_allowed_description','Specify PREG regexes with start and end delimiter to define allowed links. e.g. @^http://www\\.pimcore\\.org.*@i'
-'lucenesearch_frontend_forbidden_description','Specify PREG regexes for links which should be ignored by the crawler. The crawler does not even follow these links e.g. @.*www\\.pimcore\\.org\\/community.*@i'
-'lucenesearch_backend_exclude_description','You can exclude objects/assets/documents from being indexed by the backend crawler'
-'lucenesearch_frontend_crawler_maxthreads','Max. Threads'
-'lucenesearch_frontend_crawler_maxthreads_description','If pcntl is enabled in php, the crawler starts several parallel threads to extract links and pages from the target site. '
-'lucenesearch_frontend_mandatory_fields', 'These fields are mandatory for the crawler to work'
-'lucenesearch_frontend_config_incomplete', 'Crawler ist not ready to be started. Please complete crawler configuration below'
-'lucenesearch_frontend_crawler_maxlinkdepth','Maximum link depth'
-'lucenesearch_frontend_crawler_maxlinkdepth_description','To avoid loops produced by relative links on a website, a maximum link depth needs to be set. Please choose the value suited to the website to crawl, the default value is 15'
-'lucenesearch_frontend_crawler_stop_failed_description','The crawler did not respond to the stop command within the last 10 Seconds, do you want to force stop it? Forcing the stop does not guarantee that all child processes have finished. It is advised to wait a couple of minutes before starting the crawler again.'
-'lucenesearch_frontend_crawler_stop_failed','Could not stop crawler'
-'lucenesearch_please_wait','Please wait ...'
-'lucenesearch_frontend_fuzzysearch_description','When checked, a fuzzy search for similar search terms is performed. If no results could be found for the search term entered by the user, similar search terms are presented as suggestions'
-'lucenesearch_frontend_fuzzysearch','Fuzzy Search'
-'lucenesearch_search_suggestions','Search Suggestions'
+"lucenesearch","Lucene Search"
+"lucenesearch_failed_to_setup_search_config","Failed to setup search config"
+"lucenesearch_installed_already","Search plugin is installed already."
+"lucenesearch_could_not_create_dir","Could not install Search plugin, could not create directory "
+"lucenesearch_index_dir_not_configured","Could not install Search plugin, index directory is not configured."
+"lucenesearch_uninstalled_successfully","Successfully uninstalled Search plugin"
+"lucenesearch_settings_save_success","Settings successfully saved."
+"lucenesearch_settings_save_error","There was an error while storing settings.",
+"lucenesearch_uninstall_failed","Could not uninstall search plugin"
+"lucenesearch_installed_successfully","Search plugin installed successfully. Please reload UI to activate plugin."
+"lucenesearch_index_warning","Warning: Plugin indexes all documents, objects and assets during installation.<br/>If you already have a lot of content, please disable this functionality in search.xml. The installation might take very long or even fail if there ist too much data to index initially."
+"lucenesearch_search_index","Location of search index"
+"lucenesearch_search_index_on_install","Index all resources during install"
+"lucenesearch_frontend_settings_urls","Start-URLs for crawler"
+"lucenesearch_frontend_settings_empty_text","Please enter your URL and hit enter"
+"lucenesearch_frontend_allowed","Regexes for valid URIs"
+"lucenesearch_frontend_allowed_empty_text","Please enter Regex incl. start and and delimiter and hit enter"
+"lucenesearch_frontend_forbidden","Regexes for forbidden URIs"
+"lucenesearch_frontend_forbidden_empty_text","Please enter Regex incl. start and and delimiter and hit enter"
+"lucenesearch_frontend_categories_empty_text","Please enter category and and hit enter"
+"lucenesearch_urlfilter","Regexes for valid URIs - separate Regexes with ";""
+"lucenesearch_not_ready_for_install","Plugin is not ready for installation. Please check permissions of plugin and website directories and the /tmp directory. (rwx for php user!)"
+"lucenesearch_search_index_optimization","Search Index Optimization"
+"lucenesearch_search_index_optimization_success","The search index could be optimized successfully."
+"lucenesearch_search_index_optimization_failure","Search index optimization failed!"
+"lucenesearch_search_query","Search term"
+"lucenesearch_search_frontend_enabled","Frontend aktive"
+"lucenesearch_objectclass...","class ..."
+"lucenesearch_frontend_crawler_running","Website crawler is running!"
+"lucenesearch_frontend_crawler_not_running","Website crawler not running"
+"lucenesearch_backend_crawler_running","Backend crawler is running!"
+"lucenesearch_backend_crawler_not_running","Backend crawler not running"
+"lucenesearch_frontend_crawler_last_started","last start"
+"lucenesearch_frontend_crawler_last_finished","last end"
+"lucenesearch_plugin_description","Hier fehlt noch eine Beschreibung ... "
+"lucenesearch_frontend_content_start_indicator","String specifying content start for search"
+"lucenesearch_frontend_content_end_indicator","String specifying content end for search"
+"lucenesearch_settings","Settings"
+"lucenesearch_settings_save","Save Settings"
+"lucenesearch_frontend_categories","Categories"
+"lucenesearch_frontend_settings","Frontend and Crawler Settings"
+"lucenesearch_frontend_enabled","Frontend search active"
+"lucenesearch_basic","Basic Settings"
+"lucenesearch_backend","Backend"
+"lucenesearch_frontend_ignoreLanguage","Ignore language"
+"lucenesearch_language","Language"
+"lucenesearch_backend_excludeassets","exclude assets"
+"lucenesearch_backend_excludedocuments","exclude documents"
+"lucenesearch_backend_excludeobjects","exclude objects"
+"lucenesearch_frontend_ownhostonly","Only results of the current (Sub-)domain"
+"lucenesearch_subdomains","Subdomain"
+"lucenesearch_start_crawler","Start"
+"lucenesearch_stop_crawler","Stop"
+"lucenesearch_frontend_crawler","Frontend Crawler"
+"lucenesearch_backend_crawler","Backend Crawler"
+"lucenesearch_status","State"
+"lucenesearch_frontend_crawler_start_on_next_maintenance","Forcing crawler start with next maintenance"
+"lucenesearch_frontend_enabled_description","Enable and configure the search frontend if you want to include a full text search on your website"
+"lucenesearch_frontend_ignoreLanguage_description","Check to receive search results from all languages, uncheck to limit search results to the current language only. The current language is retrieved from the registy, the language of any page in the search result index is extracted by the crawler (Content-Language Http header, html tag lang attribute or html meta tag content-language)"
+"lucenesearch_frontend_ownhostonly_description","Check to limt search results to results from the current (sub-)domain only"
+"lucenesearch_frontend_content_indicator_description","You can limit the page content relevant for searching by surrounding it with certain html comments. The crawler will still parse the entire page to find links, but only the specified area wihin your html comments is used when searching for a term"
+"lucenesearch_frontend_categories_description","If search results should be displayed by categories, please enter all valid categories here. The crawler sorts a page into a category if it contains a html meta tag with the name cat"
+"lucenesearch_frontend_settings_urls_description","Specify start URLs for the crawler. Please enter with protocol! e.g. http://www.pimcore.org and enter a starting URL on your main domain first and any subdomains next, because the domain of the first URL will be used as the main domain for sitemap generation"
+"lucenesearch_frontend_allowed_description","Specify PREG regexes with start and end delimiter to define allowed links. e.g. @^http://www\\.pimcore\\.org.*@i"
+"lucenesearch_frontend_forbidden_description","Specify PREG regexes for links which should be ignored by the crawler. The crawler does not even follow these links e.g. @.*www\\.pimcore\\.org\\/community.*@i"
+"lucenesearch_backend_exclude_description","You can exclude objects/assets/documents from being indexed by the backend crawler"
+"lucenesearch_frontend_crawler_maxthreads","Max. Threads"
+"lucenesearch_frontend_crawler_maxthreads_description","If pcntl is enabled in php, the crawler starts several parallel threads to extract links and pages from the target site. "
+"lucenesearch_frontend_mandatory_fields", "These fields are mandatory for the crawler to work"
+"lucenesearch_frontend_config_incomplete", "Crawler ist not ready to be started. Please complete crawler configuration below"
+"lucenesearch_frontend_crawler_maxlinkdepth","Maximum link depth"
+"lucenesearch_frontend_crawler_maxlinkdepth_description","To avoid loops produced by relative links on a website, a maximum link depth needs to be set. Please choose the value suited to the website to crawl, the default value is 15"
+"lucenesearch_frontend_crawler_stop_failed_description","The crawler did not respond to the stop command within the last 10 Seconds, do you want to force stop it? Forcing the stop does not guarantee that all child processes have finished. It is advised to wait a couple of minutes before starting the crawler again."
+"lucenesearch_frontend_crawler_stop_failed","Could not stop crawler"
+"lucenesearch_please_wait","Please wait ..."
+"lucenesearch_frontend_fuzzysearch_description","When checked, a fuzzy search for similar search terms is performed. If no results could be found for the search term entered by the user, similar search terms are presented as suggestions"
+"lucenesearch_frontend_fuzzysearch","Fuzzy Search"
+"lucenesearch_search_suggestions","Search Suggestions"

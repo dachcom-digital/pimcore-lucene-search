@@ -533,7 +533,7 @@ class LuceneSearch_FrontendController extends Action
     private function cleanRequestString($requestString)
     {
         $queryFromRequest = strip_tags(urldecode($requestString));
-        $queryFromRequest = str_replace(array('<', '>', ''', ''', '&'), '', $queryFromRequest);
+        $queryFromRequest = str_replace(array('<', '>', '"', "'", '&'), "", $queryFromRequest);
 
         return $queryFromRequest;
 
