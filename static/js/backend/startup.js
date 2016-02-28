@@ -1,12 +1,12 @@
-pimcore.registerNS("pimcore.layout.toolbar");
-pimcore.registerNS("pimcore.plugin.luceneSearch");
+pimcore.registerNS('pimcore.layout.toolbar');
+pimcore.registerNS('pimcore.plugin.luceneSearch');
 
 pimcore.plugin.luceneSearch = Class.create(pimcore.plugin.admin,{
 
     isInitialized : false,
 
     getClassName: function (){
-        return "pimcore.plugin.luceneSearch";
+        return 'pimcore.plugin.luceneSearch';
     },
 
     initialize: function() {
@@ -18,14 +18,14 @@ pimcore.plugin.luceneSearch = Class.create(pimcore.plugin.admin,{
 
     pimcoreReady: function (params, broker) {
 
-        var user = pimcore.globalmanager.get("user");
+        var user = pimcore.globalmanager.get('user');
 
-        if(user.isAllowed("plugins")) {
+        if(user.isAllowed('plugins')) {
 
             var luceneMenu = new Ext.Action({
-                id: "lucenesearch",
+                id: 'lucenesearch',
                 text: t('lucenesearch'),
-                iconCls: "lucenesearch_icon",
+                iconCls: 'lucenesearch_icon',
                 handler:this.openSettings
             });
 
@@ -38,10 +38,10 @@ pimcore.plugin.luceneSearch = Class.create(pimcore.plugin.admin,{
     openSettings : function()
     {
         try {
-            pimcore.globalmanager.get("luceneSearch_settings").activate();
+            pimcore.globalmanager.get('luceneSearch_settings').activate();
         }
         catch (e) {
-            pimcore.globalmanager.add("luceneSearch_settings", new pimcore.plugin.luceneSearch.settings());
+            pimcore.globalmanager.add('luceneSearch_settings', new pimcore.plugin.luceneSearch.settings());
         }
     }
 

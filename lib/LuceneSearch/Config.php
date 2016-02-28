@@ -2,4 +2,4 @@
 
 namespace LuceneSearch;
 
-class_alias("LuceneSearch\\Model\\Configuration", "LuceneSearch\\Config");
+class_alias('LuceneSearch\\Model\\Configuration', 'LuceneSearch\\Config');

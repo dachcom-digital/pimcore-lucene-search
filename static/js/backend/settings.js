@@ -1,4 +1,4 @@
-pimcore.registerNS("pimcore.plugin.luceneSearch.settings");
+pimcore.registerNS('pimcore.plugin.luceneSearch.settings');
 pimcore.plugin.luceneSearch.settings = Class.create({
 
     panel : false,
@@ -16,44 +16,44 @@ pimcore.plugin.luceneSearch.settings = Class.create({
 
             this.panel = Ext.create('Ext.panel.Panel', {
 
-                id: "lucenesearch_settings",
-                title: t("lucenesearch_settings"),
-                iconCls: "lucenesearch_icon_settings",
+                id: 'lucenesearch_settings',
+                title: t('lucenesearch_settings'),
+                iconCls: 'lucenesearch_icon_settings',
                 border: false,
-                layout: "fit",
+                layout: 'fit',
                 closable:true
 
             });
 
-            var tabPanel = Ext.getCmp("pimcore_panel_tabs");
+            var tabPanel = Ext.getCmp('pimcore_panel_tabs');
             tabPanel.add(this.panel);
-            tabPanel.setActiveItem("lucenesearch_settings");
+            tabPanel.setActiveItem('lucenesearch_settings');
 
-            this.panel.on("destroy", function () {
+            this.panel.on('destroy', function () {
 
-                pimcore.globalmanager.remove("lucenesearch_settings");
+                pimcore.globalmanager.remove('lucenesearch_settings');
                 Ext.TaskManager.destroy(this.task);
 
             }.bind(this));
 
             this.categoriesStore = new Ext.data.Store({
                 fields: ['category'],
-                data : this.getValue("frontend.categories")
+                data : this.getValue('frontend.categories')
             });
 
             this.tagStore = new Ext.data.JsonStore({
                 fields: ['url'],
-                data : this.getValue("frontend.urls")
+                data : this.getValue('frontend.urls')
             });
 
             this.allowedStore = new Ext.data.JsonStore({
                 fields: ['regex'],
-                data : this.getValue("frontend.validLinkRegexes")
+                data : this.getValue('frontend.validLinkRegexes')
             });
 
             this.forbiddenStore = new Ext.data.JsonStore({
                 fields: ['regex'],
-                data : this.getValue("frontend.invalidLinkRegexesEditable")
+                data : this.getValue('frontend.invalidLinkRegexesEditable')
 
             });
 
@@ -74,7 +74,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                 id: 'LSstatusFormPanel',
                 border: false,
                 flex: 2,
-                bodyStyle: "background-color: #F7F7F7; padding:5px 10px;",
+                bodyStyle: 'background-color: #F7F7F7; padding:5px 10px;',
                 autoScroll: false,
 
                 items:[
@@ -86,8 +86,8 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                     },
                     {   xtype: 'buttongroup',
                         fieldLabel: t('lucenesearch_frontend_crawler'),
-                        hideLabel: !this.getValue("frontend.enabled"),
-                        hidden: !this.getValue("frontend.enabled"),
+                        hideLabel: !this.getValue('frontend.enabled'),
+                        hidden: !this.getValue('frontend.enabled'),
                         columns:2,
                         bodyBorder:false,
                         border: false,
@@ -106,13 +106,13 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                     button.setDisabled(true);
 
                                     Ext.Ajax.request({
-                                        url: "/plugin/LuceneSearch/admin_Plugin/start-frontend-crawler",
-                                        method: "get",
+                                        url: '/plugin/LuceneSearch/admin_Plugin/start-frontend-crawler',
+                                        method: 'get',
                                         success : function() {
 
                                             Ext.Ajax.request({
-                                                url: "/plugin/LuceneSearch/admin_Plugin/get-state",
-                                                method: "get",
+                                                url: '/plugin/LuceneSearch/admin_Plugin/get-state',
+                                                method: 'get',
                                                 success: function (transport) {
                                                     var res = Ext.decode(transport.responseText);
                                                     Ext.getCmp('stateMessage').setValue(res.message);
@@ -137,8 +137,8 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                             {
                                 click: function(button, event)
                                 {
-                                    luceneSearchCrawlerLoadingMask = new Ext.LoadMask(Ext.get("LSstatusFormPanel"), {
-                                        id:"crawler-stop-mask",
+                                    luceneSearchCrawlerLoadingMask = new Ext.LoadMask(Ext.get('LSstatusFormPanel'), {
+                                        id:'crawler-stop-mask',
                                         msg: t('lucenesearch_please_wait')
                                     });
 
@@ -147,8 +147,8 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                     button.setDisabled(true);
 
                                     Ext.Ajax.request({
-                                        url:"/plugin/LuceneSearch/admin_Plugin/stop-frontend-crawler",
-                                        method: "get",
+                                        url:'/plugin/LuceneSearch/admin_Plugin/stop-frontend-crawler',
+                                        method: 'get',
                                         success: function(transport){
 
                                             var res = Ext.decode(transport.responseText);
@@ -161,10 +161,10 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                                     buttons: Ext.Msg.OKCANCEL,
                                                     icon: Ext.MessageBox.QUESTION,
                                                     fn: function(v,s,o){
-                                                        if(o[0]=="ok"){
+                                                        if(o[0]=='ok'){
                                                             Ext.Ajax.request({
-                                                                url: "/plugin/LuceneSearch/admin_Plugin/stop-frontend-crawler?force=true",
-                                                                method: "get"
+                                                                url: '/plugin/LuceneSearch/admin_Plugin/stop-frontend-crawler?force=true',
+                                                                method: 'get'
                                                             } );
                                                         }
                                                     }
@@ -178,8 +178,8 @@ pimcore.plugin.luceneSearch.settings = Class.create({
 
                                             Ext.Ajax.request({
 
-                                                url: "/plugin/LuceneSearch/admin_Plugin/get-state",
-                                                method: "get",
+                                                url: '/plugin/LuceneSearch/admin_Plugin/get-state',
+                                                method: 'get',
                                                 success: function (transport) {
 
                                                     var res = Ext.decode(transport.responseText);
@@ -215,7 +215,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                     {
                         text: t('lucenesearch_settings_save'),
                         handler: this.save.bind(this),
-                        iconCls: "pimcore_icon_apply"
+                        iconCls: 'pimcore_icon_apply'
                     }
                 ],
                 items: [
@@ -237,9 +237,9 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                             autoHeight:true,
                             boxLabel: t('lucenesearch_frontend_enabled'),
                             name: 'search.frontend.enabled',
-                            checked: this.getValue("frontend.enabled"),
+                            checked: this.getValue('frontend.enabled'),
                             inputValue: '1',
-                                ctCls: "x-form-item",
+                                ctCls: 'x-form-item',
                                 listeners:{
                                     change: function(checkbox, checked) {
                                         if (checked) {
@@ -260,7 +260,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                     collapsible: false,
                     autoHeight:true,
                     labelWidth: 100,
-                    hidden: !this.getValue("frontend.enabled"),
+                    hidden: !this.getValue('frontend.enabled'),
                     defaultType: 'combobox',
                     defaults: {
                         allowBlank:true,
@@ -287,7 +287,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                             autoHeight:true,
                             boxLabel: t('lucenesearch_frontend_ignoreLanguage'),
                             name: 'frontend.ignoreLanguage',
-                            checked: this.getValue("frontend.ignoreLanguage"),
+                            checked: this.getValue('frontend.ignoreLanguage'),
                             inputValue: '1'
                     },
                     {
@@ -301,7 +301,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                         autoHeight:true,
                         boxLabel: t('lucenesearch_search_suggestions'),
                         name: 'frontend.fuzzySearch',
-                        checked: this.getValue("frontend.fuzzySearch"),
+                        checked: this.getValue('frontend.fuzzySearch'),
                         inputValue: '1'
                     },
                     {
@@ -315,7 +315,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                         autoHeight:true,
                         boxLabel: t('lucenesearch_frontend_ownhostonly'),
                         name: 'frontend.ownHostOnly',
-                        checked:this.getValue("frontend.ownHostOnly"),
+                        checked:this.getValue('frontend.ownHostOnly'),
                         inputValue: '1'
                     },
                     {
@@ -329,7 +329,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                         name: 'frontend.crawler.maxThreads',
                         collapsible: false,
                         autoHeight:true,
-                        value:this.getValue("frontend.crawler.maxThreads")
+                        value:this.getValue('frontend.crawler.maxThreads')
                     },
                     {
                         xtype:'displayfield',
@@ -342,7 +342,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                         name: 'frontend.crawler.maxLinkDepth',
                         collapsible: false,
                         autoHeight:true,
-                        value:this.getValue("frontend.crawler.maxLinkDepth")
+                        value:this.getValue('frontend.crawler.maxLinkDepth')
                     },
                     {
                         xtype:'displayfield',
@@ -355,7 +355,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                         name: 'frontend.crawler.contentStartIndicator',
                         collapsible: false,
                         autoHeight:true,
-                        value: this.getValue("frontend.crawler.contentStartIndicator")
+                        value: this.getValue('frontend.crawler.contentStartIndicator')
                     },
                     {
                         xtype:'textfield',
@@ -363,7 +363,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                         name: 'frontend.crawler.contentEndIndicator',
                         collapsible: false,
                         autoHeight:true,
-                        value: this.getValue("frontend.crawler.contentEndIndicator")
+                        value: this.getValue('frontend.crawler.contentEndIndicator')
                     },
                     {
                         xtype:'displayfield',
@@ -377,7 +377,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                         name: 'frontend.categories',
 
                         store: this.categoriesStore,
-                        value : this.getValue("frontend.categories"),
+                        value : this.getValue('frontend.categories'),
                         valueField: 'category',
                         displayField: 'category',
                         stacked : true,
@@ -399,7 +399,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                         fieldLabel: t('lucenesearch_frontend_settings_urls') + ' *',
                         //emptyText: t('lucenesearch_frontend_settings_empty_text'),
                         name: 'frontend.urls',
-                        value: this.getValue("frontend.urls"),
+                        value: this.getValue('frontend.urls'),
                         store: this.tagStore,
                         displayField: 'url',
                         valueField: 'url',
@@ -425,7 +425,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                         store: this.allowedStore,
                         displayField: 'regex',
                         valueField: 'regex',
-                        value: this.getValue("frontend.validLinkRegexes"),
+                        value: this.getValue('frontend.validLinkRegexes'),
                         stacked : true,
                         hideTrigger: true,
                         expand: Ext.emptyFn,
@@ -448,7 +448,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                         store: this.forbiddenStore,
                         displayField: 'regex',
                         valueField: 'regex',
-                        value: this.getValue("frontend.invalidLinkRegexesEditable"),
+                        value: this.getValue('frontend.invalidLinkRegexesEditable'),
                         stacked : true,
                         hideTrigger: true,
                         expand: Ext.emptyFn,
@@ -484,14 +484,14 @@ pimcore.plugin.luceneSearch.settings = Class.create({
     updateCrawlerState : function() {
 
         Ext.Ajax.request({
-            url: "/plugin/LuceneSearch/admin_Plugin/get-state",
-            method: "get",
+            url: '/plugin/LuceneSearch/admin_Plugin/get-state',
+            method: 'get',
             success: function (response) {
 
                 var res = Ext.decode( response.responseText);
                 Ext.getCmp('stateMessage').setValue(res.message);
-                Ext.getCmp("startFrontendCrawler").setDisabled(res.frontendButtonDisabled);
-                Ext.getCmp("stopFrontendCrawler").setDisabled(res.frontendStopButtonDisabled);
+                Ext.getCmp('startFrontendCrawler').setDisabled(res.frontendButtonDisabled);
+                Ext.getCmp('stopFrontendCrawler').setDisabled(res.frontendStopButtonDisabled);
 
             }
         });
@@ -500,15 +500,15 @@ pimcore.plugin.luceneSearch.settings = Class.create({
 
     activate: function () {
 
-        var tabPanel = Ext.getCmp("pimcore_panel_tabs");
-        tabPanel.activate("lucenesearch_settings")
+        var tabPanel = Ext.getCmp('pimcore_panel_tabs');
+        tabPanel.activate('lucenesearch_settings')
 
     },
 
     getData: function () {
 
         Ext.Ajax.request({
-            url: "/plugin/LuceneSearch/admin_plugin/get-settings",
+            url: '/plugin/LuceneSearch/admin_plugin/get-settings',
             success: function (response) {
 
                 this.data = Ext.decode(response.responseText);
@@ -527,7 +527,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
             current = this.data.values[key];
         }
 
-        if (typeof current != "function") {
+        if (typeof current != 'function') {
             return current;
         }
 
@@ -550,8 +550,8 @@ pimcore.plugin.luceneSearch.settings = Class.create({
         var values = this.layout.getForm().getFieldValues();
 
         Ext.Ajax.request({
-            url: "/plugin/LuceneSearch/admin_plugin/set-setting",
-            method: "post",
+            url: '/plugin/LuceneSearch/admin_plugin/set-setting',
+            method: 'post',
             params: {
                 data: Ext.encode(values)
             },
@@ -559,13 +559,13 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                 try {
                     var res = Ext.decode(response.responseText);
                     if (res.success) {
-                        pimcore.helpers.showNotification(t("success"), t("lucenesearch_settings_save_success"), "success");
+                        pimcore.helpers.showNotification(t('success'), t('lucenesearch_settings_save_success'), 'success');
                     } else {
-                        pimcore.helpers.showNotification(t("error"), t("lucenesearch_settings_save_error"),
-                            "error", t(res.message));
+                        pimcore.helpers.showNotification(t('error'), t('lucenesearch_settings_save_error'),
+                            'error', t(res.message));
                     }
                 } catch(e) {
-                    pimcore.helpers.showNotification(t("error"), t("lucenesearch_settings_save_error"), "error");
+                    pimcore.helpers.showNotification(t('error'), t('lucenesearch_settings_save_error'), 'error');
                 }
             }
         });

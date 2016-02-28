@@ -46,12 +46,12 @@ class Configuration extends Model\AbstractModel
      */
     public static function getById($id)
     {
-        $cacheKey = "lucenesearch_configuration_" . $id;
+        $cacheKey = 'lucenesearch_configuration_' . $id;
 
         try {
             $configurationEntry = \Zend_Registry::get($cacheKey);
             if (!$configurationEntry) {
-                throw new \Exception("Configuration in registry is null");
+                throw new \Exception('Configuration in registry is null');
             }
         } catch (\Exception $e) {
             try {
@@ -75,7 +75,7 @@ class Configuration extends Model\AbstractModel
      */
     public static function get($key, $returnObject = false)
     {
-        $cacheKey = $key . "~~~";
+        $cacheKey = $key . '~~~';
 
         // check if pimcore already knows the id for this $name, if yes just return it
         if (array_key_exists($cacheKey, self::$nameIdMappingCache)) {
@@ -139,15 +139,15 @@ class Configuration extends Model\AbstractModel
     {
         $config = null;
 
-        if (\Zend_Registry::isRegistered("lucenesearch_plugin_config")) {
-            $config = \Zend_Registry::get("lucenesearch_plugin_config");
+        if (\Zend_Registry::isRegistered('lucenesearch_plugin_config')) {
+            $config = \Zend_Registry::get('lucenesearch_plugin_config');
         } else {
             try {
                 $config = new \Zend_Config_Xml(LUCENESEARCH_CONFIGURATION_FILE);
                 self::setPluginConfig($config);
             } catch (\Exception $e) {
                 if (is_file(LUCENESEARCH_CONFIGURATION_FILE)) {
-                    $m = "Your plugin_xml.xml located at is invalid, please check and correct it manually!";
+                    $m = 'Your plugin_xml.xml located at is invalid, please check and correct it manually!';
                     Tool::exitWithError($m);
                 }
             }
@@ -163,7 +163,7 @@ class Configuration extends Model\AbstractModel
      */
     public static function setPluginConfig(\Zend_Config $config)
     {
-        \Zend_Registry::set("lucenesearch_plugin_config", $config);
+        \Zend_Registry::set('lucenesearch_plugin_config', $config);
     }
 
     /**

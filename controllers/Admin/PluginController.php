@@ -38,11 +38,11 @@ class LuceneSearch_Admin_PluginController extends Admin {
         }
 
         $response = array(
-            "values" => $valueArray,
-            "crawler" => array(
-                "state" => Plugin::getPluginState(),
-                "canStart" => !$frontendButtonDisabled,
-                "canStop" => !$frontendStopButtonDisabled
+            'values' => $valueArray,
+            'crawler' => array(
+                'state' => Plugin::getPluginState(),
+                'canStart' => !$frontendButtonDisabled,
+                'canStop' => !$frontendStopButtonDisabled
             )
         );
 
@@ -68,9 +68,9 @@ class LuceneSearch_Admin_PluginController extends Admin {
 
         $this->_helper->json(
             array(
-                "message" => Plugin::getPluginState(),
-                "frontendButtonDisabled" => $frontendButtonDisabled,
-                "frontendStopButtonDisabled" => $frontendStopButtonDisabled
+                'message' => Plugin::getPluginState(),
+                'frontendButtonDisabled' => $frontendButtonDisabled,
+                'frontendStopButtonDisabled' => $frontendStopButtonDisabled
             )
         );
     }
@@ -78,106 +78,106 @@ class LuceneSearch_Admin_PluginController extends Admin {
     public function stopFrontendCrawlerAction()
     {
         $playNice = true;
-        if($this->_getParam("force"))
+        if($this->_getParam('force'))
         {
             $playNice=false;
         }
 
         $success = Plugin::stopFrontendCrawler($playNice,true);
-        $this->_helper->json(array("success" => $success));
+        $this->_helper->json(array('success' => $success));
     }
 
     public function startFrontendCrawlerAction()
     {
-        Plugin::forceCrawlerStartOnNextMaintenance("frontend");
-        $this->_helper->json(array("success" => true));
+        Plugin::forceCrawlerStartOnNextMaintenance('frontend');
+        $this->_helper->json(array('success' => true));
     }
 
     public function getFrontendUrlsAction() {
 
-        $urls = Configuration::get("frontend.urls");
-        $urlArray = \LuceneSearch\Tool\ConfigParser::parseValues($urls, "url");
+        $urls = Configuration::get('frontend.urls');
+        $urlArray = \LuceneSearch\Tool\ConfigParser::parseValues($urls, 'url');
 
         $this->_helper->json($urlArray);
     }
 
     public function getFrontendAllowedAction()
     {
-        $urls = Configuration::get("frontend.validLinkRegexes");
-        $urlArray = \LuceneSearch\Tool\ConfigParser::parseValues($urls, "regex");
+        $urls = Configuration::get('frontend.validLinkRegexes');
+        $urlArray = \LuceneSearch\Tool\ConfigParser::parseValues($urls, 'regex');
 
         $this->_helper->json($urlArray);
     }
 
     public function getFrontendForbiddenAction()
     {
-        $urls = Configuration::get("frontend.invalidLinkRegexesEditable");
-        $urlArray = \LuceneSearch\Tool\ConfigParser::parseValues($urls, "regex");
+        $urls = Configuration::get('frontend.invalidLinkRegexesEditable');
+        $urlArray = \LuceneSearch\Tool\ConfigParser::parseValues($urls, 'regex');
 
         $this->_helper->json($urlArray);
     }
 
     public function getFrontendCategoriesAction()
     {
-        $urls = Configuration::get("frontend.categories");
-        $urlArray = \LuceneSearch\Tool\ConfigParser::parseValues($urls, "category");
+        $urls = Configuration::get('frontend.categories');
+        $urlArray = \LuceneSearch\Tool\ConfigParser::parseValues($urls, 'category');
 
         $this->_helper->json($urlArray);
     }
 
     public function setSettingAction()
     {
-        $values = \Zend_Json::decode($this->_getParam("data"));
+        $values = \Zend_Json::decode($this->_getParam('data'));
 
         //general settings
-        Configuration::set("frontend.enabled", FALSE);
+        Configuration::set('frontend.enabled', FALSE);
 
-        if(!Configuration::get("frontend.enabled") && $values["search.frontend.enabled"])
+        if(!Configuration::get('frontend.enabled') && $values['search.frontend.enabled'])
         {
-            Configuration::set("frontend.enabled", TRUE);
+            Configuration::set('frontend.enabled', TRUE);
         }
 
-        Configuration::set("frontend.ignoreLanguage", FALSE);
-        if ($values["frontend.ignoreLanguage"])
+        Configuration::set('frontend.ignoreLanguage', FALSE);
+        if ($values['frontend.ignoreLanguage'])
         {
-            Configuration::set("frontend.ignoreLanguage", TRUE);
+            Configuration::set('frontend.ignoreLanguage', TRUE);
         }
 
-        Configuration::set("frontend.fuzzySearch", FALSE);
-        if ($values["frontend.fuzzySearch"])
+        Configuration::set('frontend.fuzzySearch', FALSE);
+        if ($values['frontend.fuzzySearch'])
         {
-            Configuration::set("frontend.fuzzySearch", TRUE);
+            Configuration::set('frontend.fuzzySearch', TRUE);
         }
 
-        Configuration::set("frontend.ownHostOnly", FALSE);
-        if ($values["frontend.ownHostOnly"])
+        Configuration::set('frontend.ownHostOnly', FALSE);
+        if ($values['frontend.ownHostOnly'])
         {
-            Configuration::set("frontend.ownHostOnly", TRUE);
+            Configuration::set('frontend.ownHostOnly', TRUE);
         }
 
-        if (is_numeric($values["frontend.crawler.maxThreads"]))
+        if (is_numeric($values['frontend.crawler.maxThreads']))
         {
-            Configuration::set("frontend.crawler.maxThreads", $values["frontend.crawler.maxThreads"]);
+            Configuration::set('frontend.crawler.maxThreads', $values['frontend.crawler.maxThreads']);
         }
 
-        if (is_numeric($values["frontend.crawler.maxLinkDepth"]))
+        if (is_numeric($values['frontend.crawler.maxLinkDepth']))
         {
-            Configuration::set("frontend.crawler.maxLinkDepth", $values["frontend.crawler.maxLinkDepth"]);
+            Configuration::set('frontend.crawler.maxLinkDepth', $values['frontend.crawler.maxLinkDepth']);
         }
         else
         {
-            Configuration::set("frontend.crawler.maxLinkDepth", 15);
+            Configuration::set('frontend.crawler.maxLinkDepth', 15);
         }
 
-        Configuration::set("frontend.categories", $values["frontend.categories"]);
-        Configuration::set("frontend.urls", $values["frontend.urls"]);
-        Configuration::set("frontend.validLinkRegexes", $values["frontend.validLinkRegexes"]);
-        Configuration::set("frontend.invalidLinkRegexesEditable", $values["frontend.invalidLinkRegexesEditable"]);
+        Configuration::set('frontend.categories', $values['frontend.categories']);
+        Configuration::set('frontend.urls', $values['frontend.urls']);
+        Configuration::set('frontend.validLinkRegexes', $values['frontend.validLinkRegexes']);
+        Configuration::set('frontend.invalidLinkRegexesEditable', $values['frontend.invalidLinkRegexesEditable']);
 
-        Configuration::set("frontend.crawler.contentStartIndicator", $values["frontend.crawler.contentStartIndicator"]);
-        Configuration::set("frontend.crawler.contentEndIndicator", $values["frontend.crawler.contentEndIndicator"]);
+        Configuration::set('frontend.crawler.contentStartIndicator', $values['frontend.crawler.contentStartIndicator']);
+        Configuration::set('frontend.crawler.contentEndIndicator', $values['frontend.crawler.contentEndIndicator']);
 
-        $this->_helper->json(array("success" => true));
+        $this->_helper->json(array('success' => true));
 
     }
 

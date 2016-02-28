@@ -34,16 +34,16 @@ class FrontendCrawlCommand extends AbstractCommand
 
         if( $input->getArgument('crawl') == 'crawl' )
         {
-            $this->output->writeln("<comment>Start Crawling</comment>");
+            $this->output->writeln('<comment>Start Crawling</comment>');
 
-            \Logger::log("LuceneSearch: Starting crawl", \Zend_Log::DEBUG);
+            \Logger::log('LuceneSearch: Starting crawl', \Zend_Log::DEBUG);
 
             $indexDir = \LuceneSearch\Plugin::getFrontendSearchIndex();
 
-            $this->output->writeln("<comment>rm -Rf ". str_replace('/index','/tmpindex', $indexDir) ."</comment>");
+            $this->output->writeln('<comment>rm -Rf '. str_replace('/index','/tmpindex', $indexDir) .'</comment>');
 
             //TODO nix specific
-            exec("rm -Rf ".str_replace("/index","/tmpindex", $indexDir) );
+            exec('rm -Rf ' . str_replace('/index','/tmpindex', $indexDir) );
 
             $urls = Configuration::get('frontend.urls');
             $validLinkRegexes =  Configuration::get('frontend.validLinkRegexes');
@@ -52,26 +52,27 @@ class FrontendCrawlCommand extends AbstractCommand
             Configuration::set('frontend.crawler.running', TRUE);
             Configuration::set('frontend.crawler.started', time());
 
-            $crawler = new Crawler($validLinkRegexes, $invalidLinkRegexes,10, 30, Configuration::get('frontend.crawler.contentStartIndicator'),Configuration::get('frontend.crawler.contentEndIndicator'));
+            $crawler = new Crawler($validLinkRegexes, $invalidLinkRegexes, 10, 30, Configuration::get('frontend.crawler.contentStartIndicator'),Configuration::get('frontend.crawler.contentEndIndicator'));
+
             $crawler->findLinks($urls);
 
             Configuration::set('frontend.crawler.running', FALSE);
-            Configuration::set('frontend.crawler.started', time());
+            Configuration::set('frontend.crawler.finished', time());
 
-            \Logger::log("LuceneSearch_Plugin: replacing old index ...", \Zend_Log::DEBUG);
+            \Logger::log('LuceneSearch_Plugin: replacing old index ...', \Zend_Log::DEBUG);
 
             //TODO nix specific
-            exec("rm -Rf " . $indexDir);
-            $tmpIndex = str_replace("/index", "/tmpindex", $indexDir);
-            exec("cp -R " . substr($tmpIndex, 0, -1) . " " . substr($indexDir, 0, -1));
+            exec('rm -Rf ' . $indexDir);
+            $tmpIndex = str_replace('/index', '/tmpindex', $indexDir);
+            exec('cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
 
-            $this->output->writeln("<comment>rm -Rf ". $indexDir ."</comment>");
-            $this->output->writeln("<comment>cp -R ". substr($tmpIndex, 0, -1) . " " . substr($indexDir, 0, -1) ."</comment>");
+            $this->output->writeln('<comment>rm -Rf '. $indexDir .'</comment>');
+            $this->output->writeln('<comment>cp -R '. substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1) .'</comment>');
 
-            \Logger::log("Search_PluginPhp: replaced old index", \Zend_Log::DEBUG);
-            \Logger::log("Search_PluginPhp: Finished crawl", \Zend_Log::DEBUG);
+            \Logger::log('Search_PluginPhp: replaced old index', \Zend_Log::DEBUG);
+            \Logger::log('Search_PluginPhp: Finished crawl', \Zend_Log::DEBUG);
 
-            $this->output->writeln("LuceneSearch: Finished crawl");
+            $this->output->writeln('LuceneSearch: Finished crawl');
 
         }
     }

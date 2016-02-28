@@ -17,28 +17,28 @@ class LuceneSearch_FrontendController extends Action
     {
         parent::init();
 
-        if (Configuration::get("frontend.enabled"))
+        if (Configuration::get('frontend.enabled'))
         {
             try
             {
                 \Zend_Search_Lucene_Analysis_Analyzer::setDefault(new \Zend_Search_Lucene_Analysis_Analyzer_Common_Utf8Num_CaseInsensitive());
 
                 $this->frontendIndex = \Zend_Search_Lucene::open(Plugin::getFrontendSearchIndex());
-                $this->categories = Configuration::get("frontend.categories");
+                $this->categories = Configuration::get('frontend.categories');
 
-                if (Configuration::get("frontend.ignoreLanguage") !== TRUE)
+                if (Configuration::get('frontend.ignoreLanguage') !== TRUE)
                 {
-                    $this->searchLanguage = $this->_getParam("language");
+                    $this->searchLanguage = $this->_getParam('language');
 
                     if (empty($this->searchLanguage))
                     {
                         try
                         {
-                            $this->searchLanguage = \Zend_Registry::get("Zend_Locale");
+                            $this->searchLanguage = \Zend_Registry::get('Zend_Locale');
                         }
                         catch (Exception $e)
                         {
-                            $this->searchLanguage = "en";
+                            $this->searchLanguage = 'en';
                         }
                     }
                 }
@@ -49,19 +49,19 @@ class LuceneSearch_FrontendController extends Action
 
                 $this->fuzzySearch = false;
 
-                if (Configuration::get("frontend.fuzzySearch") == TRUE)
+                if (Configuration::get('frontend.fuzzySearch') == TRUE)
                 {
                     $this->fuzzySearch = true;
                 }
 
-                if (Configuration::get("frontend.ownHostOnly") == TRUE)
+                if (Configuration::get('frontend.ownHostOnly') == TRUE)
                 {
                     $this->ownHostOnly = true;
                 }
             }
             catch (Exception $e)
             {
-                throw new Exception("could not open index");
+                throw new Exception('could not open index');
             }
 
         }
@@ -72,23 +72,23 @@ class LuceneSearch_FrontendController extends Action
     {
         $this->removeViewRenderer();
 
-        $sitemapFile = $this->_getParam("sitemap");
+        $sitemapFile = $this->_getParam('sitemap');
 
         if (strpos($sitemapFile, '/') !== FALSE)
         {
             // not allowed since site map file name is generated from domain name
-            throw new Exception(get_class($this) . ": Attempted access to invalid sitemap [ $sitemapFile ]");
+            throw new Exception(get_class($this) . ': Attempted access to invalid sitemap [ $sitemapFile ]');
         }
 
-        header("Content-type: application/xml");
-        $requestedSitemap = PIMCORE_WEBSITE_PATH . "/var/search/sitemap/" . $sitemapFile;
-        $indexSitemap = PIMCORE_WEBSITE_PATH . "/var/search/sitemap/sitemap.xml";
+        header('Content-type: application/xml');
+        $requestedSitemap = PIMCORE_WEBSITE_PATH . '/var/search/sitemap/' . $sitemapFile;
+        $indexSitemap = PIMCORE_WEBSITE_PATH . '/var/search/sitemap/sitemap.xml';
 
-        if ($this->_getParam("sitemap") and is_file($requestedSitemap))
+        if ($this->_getParam('sitemap') and is_file($requestedSitemap))
         {
             $content = file_get_contents($requestedSitemap);
             //TODO: strlen($content) takes a few seconds!
-            //header("Content-Length: ".strlen($content));
+            //header('Content-Length: '.strlen($content));
             echo $content;
             exit;
 
@@ -97,14 +97,14 @@ class LuceneSearch_FrontendController extends Action
         {
             $content = file_get_contents($indexSitemap);
             //TODO: strlen($content) takes a few seconds!
-            //header("Content-Length: ".strlen($content));           
+            //header('Content-Length: '.strlen($content));
             echo $content;
             exit;
 
         }
         else
         {
-            \Logger::debug(get_class($this) . ": sitemap request - but no sitemap available to deliver");
+            \Logger::debug(get_class($this) . ': sitemap request - but no sitemap available to deliver');
             exit;
 
         }
@@ -114,8 +114,8 @@ class LuceneSearch_FrontendController extends Action
 
     public function autocompleteAction()
     {
-        $queryFromRequest = $this->cleanRequestString($this->_getParam("q"));
-        $categoryFromRequest = $this->cleanRequestString($this->_getParam("cat"));
+        $queryFromRequest = $this->cleanRequestString($this->_getParam('q'));
+        $categoryFromRequest = $this->cleanRequestString($this->_getParam('cat'));
 
         $terms = Plugin::wildcardFindTerms(strtolower($queryFromRequest), $this->frontendIndex);
 
@@ -137,7 +137,7 @@ class LuceneSearch_FrontendController extends Action
             {
                 $language = $this->searchLanguage;
             }
-            $language = str_replace(array("_", "-"), "", $language);
+            $language = str_replace(array('_', '-'), '', $language);
 
         }
 
@@ -178,8 +178,8 @@ class LuceneSearch_FrontendController extends Action
 
                     for ($i = 0; $i < (count($hits)); $i++)
                     {
-                        $url = $hits[$i]->getDocument()->getField("url");
-                        if (strpos($url->value, "http://" . $currenthost) !== FALSE) {
+                        $url = $hits[$i]->getDocument()->getField('url');
+                        if (strpos($url->value, 'http://' . $currenthost) !== FALSE) {
                             $validHits[] = $hits[$i];
                         }
                     }
@@ -209,7 +209,7 @@ class LuceneSearch_FrontendController extends Action
 
         foreach ($suggestions as $suggestion)
         {
-            echo $suggestion . "\r\n";
+            echo $suggestion . '\r\n';
         }
 
     }
@@ -217,24 +217,24 @@ class LuceneSearch_FrontendController extends Action
     public function findAction()
     {
 
-        $queryFromRequest = $this->cleanRequestString($_REQUEST["query"]);
-        $categoryFromRequest = $this->cleanRequestString($_REQUEST["cat"]);
+        $queryFromRequest = $this->cleanRequestString($_REQUEST['query']);
+        $categoryFromRequest = $this->cleanRequestString($_REQUEST['cat']);
 
         $searcher = new Searcher();
 
-        $this->view->groupByCategory = $this->_getParam("groupByCategory");
-        $this->view->omitSearchForm = $this->_getParam("omitSearchForm");
-        $this->view->categoryOrder = $this->_getParam("categoryOrder");
-        $this->view->omitJsIncludes = $this->_getParam("omitJsIncludes");
+        $this->view->groupByCategory = $this->_getParam('groupByCategory');
+        $this->view->omitSearchForm = $this->_getParam('omitSearchForm');
+        $this->view->categoryOrder = $this->_getParam('categoryOrder');
+        $this->view->omitJsIncludes = $this->_getParam('omitJsIncludes');
 
-        $perPage = $this->_getParam("perPage");
+        $perPage = $this->_getParam('perPage');
 
         if (empty($perPage))
         {
             $perPage = 10;
         }
 
-        $page = $this->_getParam("page");
+        $page = $this->_getParam('page');
 
         if (empty($page))
         {
@@ -261,13 +261,13 @@ class LuceneSearch_FrontendController extends Action
 
         }
 
-        $doFuzzy = $this->_getParam("fuzzy");
+        $doFuzzy = $this->_getParam('fuzzy');
 
         try
         {
             $query = new \Zend_Search_Lucene_Search_Query_Boolean();
 
-            $field = $this->_getParam("field");
+            $field = $this->_getParam('field');
 
             if (!empty($field))
             {
@@ -280,8 +280,8 @@ class LuceneSearch_FrontendController extends Action
             {
                 if ($doFuzzy)
                 {
-                    $queryStr = str_replace(" ", "~ ", $queryStr);
-                    $queryStr .= "~";
+                    $queryStr = str_replace(' ', '~ ', $queryStr);
+                    $queryStr .= '~';
                     \Zend_Search_Lucene_Search_Query_Fuzzy::setDefaultPrefixLength(3);
                 }
 
@@ -300,7 +300,7 @@ class LuceneSearch_FrontendController extends Action
                         $lang = $this->searchLanguage;
                     }
 
-                    $lang = str_replace(array("_", "-"), "", $lang);
+                    $lang = str_replace(array('_', '-'), '', $lang);
                     $languageTerm = new \Zend_Search_Lucene_Index_Term($lang, 'lang');
                     $languageQuery = new \Zend_Search_Lucene_Search_Query_Term($languageTerm);
                     $query->addSubquery($languageQuery, true);
@@ -324,8 +324,8 @@ class LuceneSearch_FrontendController extends Action
 
                     if (count($hits) == 1)
                     {
-                        $url = $hits[0]->getDocument()->getField("url");
-                        if (strpos($url->value, "http://" . $currenthost) !== FALSE || strpos($url->value, "https://" . $currenthost) !== FALSE)
+                        $url = $hits[0]->getDocument()->getField('url');
+                        if (strpos($url->value, 'http://' . $currenthost) !== FALSE || strpos($url->value, 'https://' . $currenthost) !== FALSE)
                         {
                             $validHits[] = $hits[0];
                         }
@@ -333,8 +333,8 @@ class LuceneSearch_FrontendController extends Action
 
                     for ($i = 0; $i < (count($hits)); $i++)
                     {
-                        $url = $hits[$i]->getDocument()->getField("url");
-                        if (strpos($url->value, "http://" . $currenthost) !== FALSE || strpos($url->value, "https://" . $currenthost) !== FALSE)
+                        $url = $hits[$i]->getDocument()->getField('url');
+                        if (strpos($url->value, 'http://' . $currenthost) !== FALSE || strpos($url->value, 'https://' . $currenthost) !== FALSE)
                         {
                             $validHits[] = $hits[$i];
                         }
@@ -357,8 +357,8 @@ class LuceneSearch_FrontendController extends Action
                 {
                     $hit = $validHits[$i];
 
-                    $url = $hit->getDocument()->getField("url");
-                    $title = $hit->getDocument()->getField("title");
+                    $url = $hit->getDocument()->getField('url');
+                    $title = $hit->getDocument()->getField('title');
 
 
                     $searchResult['boost'] = $hit->getDocument()->boost;
@@ -369,9 +369,9 @@ class LuceneSearch_FrontendController extends Action
 
                     try
                     {
-                        if ($hit->getDocument()->getField("h1"))
+                        if ($hit->getDocument()->getField('h1'))
                         {
-                            $searchResult['h1'] = $hit->getDocument()->getField("h1")->value;
+                            $searchResult['h1'] = $hit->getDocument()->getField('h1')->value;
                         }
 
                     }
@@ -383,7 +383,7 @@ class LuceneSearch_FrontendController extends Action
                     {
                         try
                         {
-                            $searchResult['categories'][] = $hit->getDocument()->getField("cat")->value;
+                            $searchResult['categories'][] = $hit->getDocument()->getField('cat')->value;
                         }
                         catch (\Zend_Search_Lucene_Exception $e)
                         {
@@ -444,7 +444,7 @@ class LuceneSearch_FrontendController extends Action
                                 {
                                     $language = $this->searchLanguage;
                                 }
-                                $language = str_replace(array("_", "-"), "", $language);
+                                $language = str_replace(array('_', '-'), '', $language);
                             }
 
                             $hits = null;
@@ -478,14 +478,14 @@ class LuceneSearch_FrontendController extends Action
 
                                 if (count($hits) == 1)
                                 {
-                                    $url = $hits[0]->getDocument()->getField("url");
-                                    if (strpos($url->value, "http://" . $currenthost) !== FALSE || strpos($url->value, "https://" . $currenthost) !== FALSE) {
+                                    $url = $hits[0]->getDocument()->getField('url');
+                                    if (strpos($url->value, 'http://' . $currenthost) !== FALSE || strpos($url->value, 'https://' . $currenthost) !== FALSE) {
                                         $validHits[] = $hits[0];
                                     }
                                 }
                                 for ($i = 0; $i < (count($hits)); $i++) {
-                                    $url = $hits[$i]->getDocument()->getField("url");
-                                    if (strpos($url->value, "http://" . $currenthost) !== FALSE) {
+                                    $url = $hits[$i]->getDocument()->getField('url');
+                                    if (strpos($url->value, 'http://' . $currenthost) !== FALSE) {
                                         $validHits[] = $hits[$i];
                                     }
                                 }
@@ -513,14 +513,14 @@ class LuceneSearch_FrontendController extends Action
         }
         catch (Exception $e)
         {
-            \Logger::log("An Exception occured during search:", \Zend_Log::ERR);
+            \Logger::log('An Exception occured during search:', \Zend_Log::ERR);
             \Logger::log($e, \Zend_Log::ERR);
             $this->view->searchResults = array();
         }
 
-        if ($this->_getParam("viewscript"))
+        if ($this->_getParam('viewscript'))
         {
-            $this->renderScript($this->_getParam("viewscript"));
+            $this->renderScript($this->_getParam('viewscript'));
         }
 
     }
@@ -533,7 +533,7 @@ class LuceneSearch_FrontendController extends Action
     private function cleanRequestString($requestString)
     {
         $queryFromRequest = strip_tags(urldecode($requestString));
-        $queryFromRequest = str_replace(array('<', '>', '"', "'", '&'), "", $queryFromRequest);
+        $queryFromRequest = str_replace(array('<', '>', ''', ''', '&'), '', $queryFromRequest);
 
         return $queryFromRequest;
 

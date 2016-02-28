@@ -14,7 +14,7 @@ class Dao extends Pimcore\Model\Dao\PhpArrayTable
     public function configure()
     {
         parent::configure();
-        $this->setFile("lucenesearch_configurations");
+        $this->setFile('lucenesearch_configurations');
     }
 
     /**
@@ -28,7 +28,7 @@ class Dao extends Pimcore\Model\Dao\PhpArrayTable
 
         $routes = array();
         foreach ($routesData as $routeData) {
-            $routes[] = Model\Configuration::getById($routeData["id"]);
+            $routes[] = Model\Configuration::getById($routeData['id']);
         }
 
         $this->model->setConfigurations($routes);

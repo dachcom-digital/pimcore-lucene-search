@@ -22,7 +22,7 @@ class Searcher {
     public function getSumaryForUrl($url,$queryStr)
     {
 
-        $query = "SELECT content from plugin_lucenesearch_contents where id = ? ";
+        $query = 'SELECT content from plugin_lucenesearch_contents where id = ? ';
         $params = array(md5($url));
         $data = $this->db->fetchRow($query,$params);
         $summary = null;
@@ -33,7 +33,7 @@ class Searcher {
 
             if(empty($summary))
             {
-                $tokens = explode(" ",$queryStr);
+                $tokens = explode(' ',$queryStr);
                 if(count($tokens)>1)
                 {
                     foreach($tokens as $token)
@@ -60,18 +60,18 @@ class Searcher {
      */
     protected function findPosInSumary($text,$queryStr)
     {
-        $pos = stripos($text, " " . $queryStr . " ");
+        $pos = stripos($text, ' ' . $queryStr . ' ');
         if ($pos === FALSE)
         {
             $pos = stripos($text, '"' . $queryStr . '"');
         }
         if ($pos === FALSE)
         {
-            $pos = stripos($text, "'" . $queryStr . "'");
+            $pos = stripos($text, '"' . $queryStr . '"');
         }
         if ($pos === FALSE)
         {
-            $pos = stripos($text, " " . $queryStr . '-');
+            $pos = stripos($text, ' ' . $queryStr . '-');
         }
         if ($pos === FALSE)
         {
@@ -79,11 +79,11 @@ class Searcher {
         }
         if ($pos === FALSE)
         {
-            $pos = stripos($text, $queryStr . " ");
+            $pos = stripos($text, $queryStr . ' ');
         }
         if ($pos === FALSE)
         {
-            $pos = stripos($text, " " . $queryStr);
+            $pos = stripos($text, ' ' . $queryStr);
         }
         if ($pos === FALSE)
         {
@@ -102,7 +102,7 @@ class Searcher {
     protected function getHighlightedSumary($text,$queryTokens)
     {
         //remove additional whitespaces
-        $text = preg_replace("/[\s]+/", " ", $text);
+        $text = preg_replace('/[\s]+/', ' ', $text);
 
         $pos = FALSE;
         $tokenInUse = $queryTokens[0];
@@ -128,7 +128,7 @@ class Searcher {
             $sumary = substr($text, $start, 200 + strlen($tokenInUse));
             $sumary = trim($sumary);
 
-            $tokens = explode(" ",$sumary);
+            $tokens = explode(' ',$sumary);
 
             if (strtolower($tokens[0]) != strtolower($tokenInUse))
             {
@@ -139,7 +139,7 @@ class Searcher {
                 $tokens = array_slice($tokens,0, - 1);
             }
 
-            $trimmedSumary = implode(" ", $tokens);
+            $trimmedSumary = implode(' ', $tokens);
 
             foreach($queryTokens as $queryStr)
             {

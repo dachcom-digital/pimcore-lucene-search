@@ -27,7 +27,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
         define('LUCENESEARCH_CONFIGURATION_FILE', PIMCORE_CONFIGURATION_DIRECTORY . '/lucenesearch_configuration.php');
 
-        \Pimcore::getEventManager()->attach("system.maintenance", array($this, 'maintenance'));
+        \Pimcore::getEventManager()->attach('system.maintenance', array($this, 'maintenance'));
 
         \Pimcore::getEventManager()->attach('system.console.init', function (\Zend_EventManager_Event $e) {
 
@@ -46,32 +46,32 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     {
         if (self::isInstalled())
         {
-            $message = "";
+            $message = '';
 
-            if (Configuration::get("frontend.enabled"))
+            if (Configuration::get('frontend.enabled'))
             {
-                if(Configuration::get("frontend.crawler.running"))
+                if(Configuration::get('frontend.crawler.running'))
                 {
-                    $message .= self::getTranslate()->_("lucenesearch_frontend_crawler_running") . ". ";
+                    $message .= self::getTranslate()->_('lucenesearch_frontend_crawler_running') . '. ';
                 } else {
-                    $message .= self::getTranslate()->_("lucenesearch_frontend_crawler_not_running") . ". ";
+                    $message .= self::getTranslate()->_('lucenesearch_frontend_crawler_not_running') . '. ';
                 }
 
                 $started = 'never';
                 $finished = 'never';
 
-                if( !is_bool( Configuration::get("frontend.crawler.started")))
+                if( !is_bool( Configuration::get('frontend.crawler.started')))
                 {
-                    $started = date('d.m.Y H:i', (double)Configuration::get("frontend.crawler.started"));
+                    $started = date('d.m.Y H:i', (double)Configuration::get('frontend.crawler.started'));
                 }
 
-                if( !is_bool( Configuration::get("frontend.crawler.finished")))
+                if( !is_bool( Configuration::get('frontend.crawler.finished')))
                 {
-                    $finished = date('d.m.Y H:i', (double) Configuration::get("frontend.crawler.finished"));
+                    $finished = date('d.m.Y H:i', (double) Configuration::get('frontend.crawler.finished'));
                 }
 
-                $message .= self::getTranslate()->_("lucenesearch_frontend_crawler_last_started") . ": " . $started . ". ";
-                $message .= self::getTranslate()->_("lucenesearch_frontend_crawler_last_finished") . ": " . $finished . ". ";
+                $message .= self::getTranslate()->_('lucenesearch_frontend_crawler_last_started') . ': ' . $started . '. ';
+                $message .= self::getTranslate()->_('lucenesearch_frontend_crawler_last_finished') . ': ' . $finished . '. ';
 
                 if (!self::frontendConfigComplete())
                 {
@@ -79,10 +79,10 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
                 }
                 else
                 {
-                    if (Configuration::get("frontend.crawler.forceStart"))
+                    if (Configuration::get('frontend.crawler.forceStart'))
                     {
-                        $message .= self::getTranslate()->_("lucenesearch_frontend_crawler") . ": ";
-                        $message .= self::getTranslate()->_("lucenesearch_frontend_crawler_start_on_next_maintenance");
+                        $message .= self::getTranslate()->_('lucenesearch_frontend_crawler') . ': ';
+                        $message .= self::getTranslate()->_('lucenesearch_frontend_crawler_start_on_next_maintenance');
                     }
                 }
 
@@ -121,13 +121,13 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function getTranslationFile($language)
     {
-        if (is_file(PIMCORE_PLUGINS_PATH . "/LuceneSearch/static/texts/" . $language . ".csv"))
+        if (is_file(PIMCORE_PLUGINS_PATH . '/LuceneSearch/static/texts/' . $language . '.csv'))
         {
-            return "/LuceneSearch/static/texts/" . $language . ".csv";
+            return '/LuceneSearch/static/texts/' . $language . '.csv';
         }
         else
         {
-            return "/LuceneSearch/static/texts/en.csv";
+            return '/LuceneSearch/static/texts/en.csv';
         }
     }
 
@@ -139,7 +139,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function getFrontendSearchIndex()
     {
-        $searchConf = Configuration::get("frontend.index");
+        $searchConf = Configuration::get('frontend.index');
 
         if( is_null( $searchConf ) )
         {
@@ -150,9 +150,9 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         {
             return $searchConf;
         }
-        else if (is_dir(PIMCORE_DOCUMENT_ROOT . "/" . $searchConf))
+        else if (is_dir(PIMCORE_DOCUMENT_ROOT . '/' . $searchConf))
         {
-            return PIMCORE_DOCUMENT_ROOT . "/" . $searchConf;
+            return PIMCORE_DOCUMENT_ROOT . '/' . $searchConf;
         }
 
         return null;
@@ -180,9 +180,9 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
             return self::getTranslate()->_('lucenesearch_install_failed');
         }
 
-        if (Configuration::get("frontend.enabled") )
+        if (Configuration::get('frontend.enabled') )
         {
-            self::forceCrawlerStartOnNextMaintenance("frontend");
+            self::forceCrawlerStartOnNextMaintenance('frontend');
         }
 
         return self::getTranslate()->_('lucenesearch_install_successfully');
@@ -209,11 +209,11 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
         if ($success)
         {
-            return self::getTranslate()->_("lucenesearch_uninstalled_successfully");
+            return self::getTranslate()->_('lucenesearch_uninstalled_successfully');
         }
         else
         {
-            return self::getTranslate()->_("lucenesearch_uninstall_failed");
+            return self::getTranslate()->_('lucenesearch_uninstall_failed');
         }
 
     }
@@ -248,7 +248,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function frontendCrawlerRunning()
     {
-        if (Configuration::get("frontend.crawler.running")) return true;
+        if (Configuration::get('frontend.crawler.running')) return true;
         else return false;
     }
 
@@ -258,7 +258,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function frontendCrawlerStopLocked()
     {
-        if (Configuration::get("frontend.crawler.forceStop")) return true;
+        if (Configuration::get('frontend.crawler.forceStop')) return true;
         else return false;
     }
 
@@ -267,7 +267,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function frontendCrawlerScheduledForStart()
     {
-        if (Configuration::get("frontend.crawler.forceStart")) return true;
+        if (Configuration::get('frontend.crawler.forceStart')) return true;
         else return false;
     }
 
@@ -277,8 +277,8 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function frontendConfigComplete()
     {
-        $frontEndUrls = Configuration::get("frontend.urls");
-        $validLinkRegexes = Configuration::get("frontend.validLinkRegexes");
+        $frontEndUrls = Configuration::get('frontend.urls');
+        $validLinkRegexes = Configuration::get('frontend.validLinkRegexes');
 
         if (!empty($frontEndUrls) && !empty($validLinkRegexes))
         {
@@ -297,30 +297,30 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function stopFrontendCrawler($playNice = true, $isFrontendCall = false)
     {
-        \Logger::debug("LuceneSearch: forcing frontend crawler stop, play nice: [ $playNice ]");
-        self::setStopLock("frontend", true);
+        \Logger::debug('LuceneSearch: forcing frontend crawler stop, play nice: [ $playNice ]');
+        self::setStopLock('frontend', true);
 
         //just to make sure nothing else starts the crawler right now
-        self::setCrawlerState("frontend", "started", false);
+        self::setCrawlerState('frontend', 'started', false);
 
-        $maxThreads = Configuration::get("frontend.crawler.maxThreads");
+        $maxThreads = Configuration::get('frontend.crawler.maxThreads');
 
         $db = \Pimcore\Db::get();
-        $db->query("DROP TABLE IF EXISTS `plugin_lucenesearch_frontend_crawler_todo`;");
-        $db->query("DROP TABLE IF EXISTS `plugin_lucenesearch_indexer_todo`;");
+        $db->query('DROP TABLE IF EXISTS `plugin_lucenesearch_frontend_crawler_todo`;');
+        $db->query('DROP TABLE IF EXISTS `plugin_lucenesearch_indexer_todo`;');
 
-        \Logger::debug("LuceneSearch: forcing frontend crawler stop - dropped tables");
+        \Logger::debug('LuceneSearch: forcing frontend crawler stop - dropped tables');
 
-        $pidFiles = array("maintainance_crawler-indexer");
+        $pidFiles = array('maintainance_crawler-indexer');
         for ($i = 1; $i <= $maxThreads; $i++) {
-            $pidFiles[] = "maintainance_crawler-" . $i;
+            $pidFiles[] = 'maintainance_crawler-' . $i;
         }
 
         $counter = 1;
         while ($pidFiles and count($pidFiles) > 0 and $counter < 10) {
             sort($pidFiles);
             for ($i = 0; $i < count($pidFiles); $i++) {
-                $file = PIMCORE_SYSTEM_TEMP_DIRECTORY . "/" . $pidFiles[$i];
+                $file = PIMCORE_SYSTEM_TEMP_DIRECTORY . '/' . $pidFiles[$i];
                 if (!is_file($file)) {
                     unset($pidFiles[$i]);
                 }
@@ -331,16 +331,16 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
         if (!$playNice) {
 
-            if (is_file(PIMCORE_SYSTEM_TEMP_DIRECTORY . "/maintainance_LuceneSearch_Plugin.pid" and $isFrontendCall)) {
-                $pidFiles[] = "maintainance_LuceneSearch_Plugin.pid";
+            if (is_file(PIMCORE_SYSTEM_TEMP_DIRECTORY . '/maintainance_LuceneSearch_Plugin.pid' and $isFrontendCall)) {
+                $pidFiles[] = 'maintainance_LuceneSearch_Plugin.pid';
             }
 
             //delete pid files of all  processes
             for ($i = 0; $i < count($pidFiles); $i++) {
-                $file = PIMCORE_SYSTEM_TEMP_DIRECTORY . "/" . $pidFiles[$i];
+                $file = PIMCORE_SYSTEM_TEMP_DIRECTORY . '/' . $pidFiles[$i];
                 if (is_file($file) and !unlink($file))
                 {
-                    \Logger::emerg("LuceneSearch_Plugin: : Trying to force stop crawler, but cannot delete [ $file ]");
+                    \Logger::emerg('LuceneSearch_Plugin: : Trying to force stop crawler, but cannot delete [ $file ]');
                 }
 
                 if (!is_file($file)) {
@@ -349,11 +349,11 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
             }
         }
 
-        self::setStopLock("frontend", false);
+        self::setStopLock('frontend', false);
 
         if (!$pidFiles or count($pidFiles) == 0)
         {
-            self::setCrawlerState("frontend", "finished", false);
+            self::setCrawlerState('frontend', 'finished', false);
             return true;
         }
 
@@ -366,23 +366,23 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         if (self::frontendConfigComplete())
         {
             ini_set('memory_limit', '2048M');
-            ini_set("max_execution_time", "-1");
+            ini_set('max_execution_time', '-1');
 
             $indexDir = self::getFrontendSearchIndex();
 
             if ($indexDir)
             {
                 //TODO nix specific
-                exec("rm -Rf " . str_replace("/index/", "/tmpindex", $indexDir));
-                \Logger::debug("rm -Rf " . str_replace("/index/", "/tmpindex", $indexDir));
+                exec('rm -Rf ' . str_replace('/index/', '/tmpindex', $indexDir));
+                \Logger::debug('rm -Rf ' . str_replace('/index/', '/tmpindex', $indexDir));
 
                 try
                 {
-                    $urls = Configuration::get("frontend.urls");
-                    $validLinkRegexes = Configuration::get("frontend.validLinkRegexes");
+                    $urls = Configuration::get('frontend.urls');
+                    $validLinkRegexes = Configuration::get('frontend.validLinkRegexes');
 
-                    $invalidLinkRegexesSystem = Configuration::get("frontend.invalidLinkRegexes");
-                    $invalidLinkRegexesEditable = Configuration::get("frontend.invalidLinkRegexesEditable");
+                    $invalidLinkRegexesSystem = Configuration::get('frontend.invalidLinkRegexes');
+                    $invalidLinkRegexesEditable = Configuration::get('frontend.invalidLinkRegexesEditable');
 
                     if (!empty($invalidLinkRegexesEditable) and !empty($invalidLinkRegexesSystem))
                     {
@@ -401,37 +401,37 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
                         $invalidLinkRegexes = array();
                     }
 
-                    self::setCrawlerState("frontend", "started", true);
+                    self::setCrawlerState('frontend', 'started', true);
 
-                    $maxLinkDepth = Configuration::get("frontend.crawler.maxLinkDepth");
+                    $maxLinkDepth = Configuration::get('frontend.crawler.maxLinkDepth');
 
                     if (is_numeric($maxLinkDepth) and $maxLinkDepth > 0)
                     {
-                        $crawler = new Crawler($validLinkRegexes, $invalidLinkRegexes, 10, 30, Configuration::get("frontend.crawler.contentStartIndicator"), Configuration::get("frontend.crawler.contentEndIndicator"), Configuration::get("frontend.crawler.maxThreads"), $maxLinkDepth);
+                        $crawler = new Crawler($validLinkRegexes, $invalidLinkRegexes, 10, 30, Configuration::get('frontend.crawler.contentStartIndicator'), Configuration::get('frontend.crawler.contentEndIndicator'), Configuration::get('frontend.crawler.maxThreads'), $maxLinkDepth);
                     }
                     else
                     {
-                        $crawler = new Crawler($validLinkRegexes, $invalidLinkRegexes, 10, 30, Configuration::get("frontend.crawler.contentStartIndicator"), Configuration::get("frontend.crawler.contentEndIndicator"), Configuration::get("frontend.crawler.maxThreads"));
+                        $crawler = new Crawler($validLinkRegexes, $invalidLinkRegexes, 10, 30, Configuration::get('frontend.crawler.contentStartIndicator'), Configuration::get('frontend.crawler.contentEndIndicator'), Configuration::get('frontend.crawler.maxThreads'));
                     }
 
                     $crawler->findLinks($urls);
 
-                    self::setCrawlerState("frontend", "finished", false);
+                    self::setCrawlerState('frontend', 'finished', false);
 
-                    \Logger::debug("LuceneSearch_Plugin: replacing old index ...");
+                    \Logger::debug('LuceneSearch_Plugin: replacing old index ...');
 
                     $db = \Pimcore\Db::get();
-                    $db->query("DROP TABLE IF EXISTS `plugin_lucenesearch_contents`;");
-                    $db->query("RENAME TABLE `plugin_lucenesearch_contents_temp` TO `plugin_lucenesearch_contents`;");
+                    $db->query('DROP TABLE IF EXISTS `plugin_lucenesearch_contents`;');
+                    $db->query('RENAME TABLE `plugin_lucenesearch_contents_temp` TO `plugin_lucenesearch_contents`;');
 
                     //TODO nix specific
-                    exec("rm -Rf " . $indexDir);
-                    \Logger::debug("rm -Rf " . $indexDir);
-                    $tmpIndex = str_replace("/index", "/tmpindex", $indexDir);
-                    exec("cp -R " . substr($tmpIndex, 0, -1) . " " . substr($indexDir, 0, -1));
-                    \Logger::debug("cp -R " . substr($tmpIndex, 0, -1) . " " . substr($indexDir, 0, -1));
-                    \Logger::debug("LuceneSearch_Plugin: replaced old index");
-                    \Logger::info("LuceneSearch_Plugin: Finished crawl");
+                    exec('rm -Rf ' . $indexDir);
+                    \Logger::debug('rm -Rf ' . $indexDir);
+                    $tmpIndex = str_replace('/index', '/tmpindex', $indexDir);
+                    exec('cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
+                    \Logger::debug('cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
+                    \Logger::debug('LuceneSearch_Plugin: replaced old index');
+                    \Logger::info('LuceneSearch_Plugin: Finished crawl');
 
 
                 }
@@ -444,7 +444,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         }
         else
         {
-            \Logger::info("LuceneSearch_Plugin: Did not start frontend crawler, because config incomplete");
+            \Logger::info('LuceneSearch_Plugin: Did not start frontend crawler, because config incomplete');
         }
     }
 
@@ -506,7 +506,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     {
         if (self::isInstalled())
         {
-            $currentHour = date("H", time());
+            $currentHour = date('H', time());
 
             //Frontend recrawl
             $lastStarted = Configuration::get('frontend.crawler.started');
@@ -519,7 +519,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
             if ($enabled && ((!$running && (is_bool($lastStarted) || $lastStarted <= $aDayAgo) && $currentHour > 1 && $currentHour < 3) || $forceStart))
             {
-                \Logger::debug("starting frontend recrawl...");
+                \Logger::debug('starting frontend recrawl...');
                 $this->frontendCrawl();
                 Tool\Tool::generateSitemap();
             }
@@ -528,7 +528,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
                 //there seems to be a problem
                 if ($lastFinished <= ($aDayAgo))
                 {
-                    \Logger::err("Search_PluginPhp: There seems to be a problem with the search crawler! Trying to stop it.");
+                    \Logger::err('Search_PluginPhp: There seems to be a problem with the search crawler! Trying to stop it.');
                 }
 
                 $this->stopFrontendCrawler(false, false);
@@ -537,7 +537,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         }
         else
         {
-            \Logger::debug("LuceneSearch Plugin is not installed - no maintenance to do for this plugin.");
+            \Logger::debug('LuceneSearch Plugin is not installed - no maintenance to do for this plugin.');
         }
     }
 
