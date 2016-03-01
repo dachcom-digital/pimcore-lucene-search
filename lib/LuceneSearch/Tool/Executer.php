@@ -59,7 +59,7 @@ class Executer {
                     ->setSearchStartIndicator(Configuration::get('frontend.crawler.contentStartIndicator'))
                     ->setSearchEndIndicator(Configuration::get('frontend.crawler.contentEndIndicator'))
                     ->setAllowSubdomain( FALSE )
-                    ->setDownloadLimit( 100 )
+                    //->setDownloadLimit( 4 )
                     ->setSeed( $urls[0] );
 
                 $parser->startParser($urls);
