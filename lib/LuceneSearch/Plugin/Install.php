@@ -17,8 +17,8 @@ class Install {
     public function installConfigFile() {
 
         Configuration::set('frontend.index', 'website/var/search/frontend/index/');
-        Configuration::set('frontend.ignoreLanguage', TRUE);
-        Configuration::set('frontend.fuzzySearch', TRUE);
+        Configuration::set('frontend.ignoreLanguage', FALSE);
+        Configuration::set('frontend.fuzzySearch', FALSE);
         Configuration::set('frontend.enabled', FALSE);
         Configuration::set('frontend.urls', '');
         Configuration::set('frontend.validLinkRegexes', '');
@@ -26,10 +26,9 @@ class Install {
         Configuration::set('frontend.invalidLinkRegexes', '@.*\.(js|JS|gif|GIF|jpg|JPG|png|PNG|ico|ICO|eps|jpeg|JPEG|bmp|BMP|css|CSS|sit|wmf|zip|ppt|mpg|xls|gz|rpm|tgz|mov|MOV|exe|mp3|MP3|kmz|gpx|kml|swf|SWF)$@');
         Configuration::set('frontend.categories', array());
         Configuration::set('frontend.ownHostOnly', FALSE);
-        Configuration::set('frontend.crawler.maxThreads', 1);
         Configuration::set('frontend.crawler.maxLinkDepth', 15);
-        Configuration::set('frontend.crawler.contentStartIndicator', FALSE);
-        Configuration::set('frontend.crawler.contentEndIndicator', FALSE);
+        Configuration::set('frontend.crawler.contentStartIndicator', '');
+        Configuration::set('frontend.crawler.contentEndIndicator', '');
         Configuration::set('frontend.crawler.forceStart', FALSE);
         Configuration::set('frontend.crawler.running', FALSE);
         Configuration::set('frontend.crawler.started', FALSE);

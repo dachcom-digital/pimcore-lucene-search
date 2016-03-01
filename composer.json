@@ -21,6 +21,7 @@
       }
   ],
   "require": {
-    "pimcore/installer-plugin": ">=1"
+    "pimcore/installer-plugin": ">=1",
+    "spatie/crawler": "1.*"
   }
 }

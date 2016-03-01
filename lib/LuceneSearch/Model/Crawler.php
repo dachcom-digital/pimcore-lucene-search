@@ -3,15 +3,10 @@
 namespace LuceneSearch\Model;
 
 use LuceneSearch\Plugin;
+use VDB\Spider;
 
 class Crawler
 {
-
-    /**
-     * @var integer
-     *
-     */
-    protected $maxThreads;
 
     /**
      * @var string[]
@@ -69,10 +64,9 @@ class Crawler
      * @param int  $timeout
      * @param null $searchStartIndicator
      * @param null $searchEndIndicator
-     * @param int  $maxThreads
      * @param int  $maxLinkDepth
      */
-    public function __construct($validLinkRegexes, $invalidLinkRegexes, $maxRedirects = 10, $timeout = 30, $searchStartIndicator = null, $searchEndIndicator = null, $maxThreads = 20, $maxLinkDepth = 15)
+    public function __construct($validLinkRegexes, $invalidLinkRegexes, $maxRedirects = 10, $timeout = 30, $searchStartIndicator = null, $searchEndIndicator = null, $maxLinkDepth = 15)
     {
         $this->validLinkRegexes = $validLinkRegexes;
         $this->invalidLinkRegexes = $invalidLinkRegexes;
@@ -80,7 +74,6 @@ class Crawler
         $this->timeout = $timeout;
         $this->searchEndIndicator = $searchEndIndicator;
         $this->searchStartIndicator = $searchStartIndicator;
-        $this->maxThreads = $maxThreads;
         $this->maxLinkDepth = $maxLinkDepth;
 
         $this->db = \Pimcore\Db::get();
@@ -116,151 +109,77 @@ class Crawler
      */
     public function findLinks($urls)
     {
-        //inital for all urls
-        $cookieJar = new \Zend_Http_CookieJar();
-
         foreach ($urls as $url)
         {
             try
             {
-                $uri = \Zend_Uri_Http::fromString($url);
-                $url = str_ireplace($uri->getHost(), strtolower($uri->getHost()), $url);
-            }
-            catch (\Zend_Uri_Exception $e)
-            {
-            }
+                $statsHandler = new Spider\StatsHandler();
+                $spider = new Spider\Spider($url);
 
-            $url = $this->addEvictOutputFilterParameter($url);
+                $spider->getQueueManager()->getDispatcher()->addSubscriber($statsHandler);
 
-            $client = \Pimcore\Tool::getHttpClient();
-            $client->setUri($url);
-            $client->setConfig(
-                array(
-                    'maxredirects' => $this->maxRedirects,
-                    'timeout' => $this->timeout
-                )
-            );
+                $allowSubDomains = false;
 
-            $client->setCookieJar($cookieJar);
-            $client->setHeaders('If-Modified-Since', null);
+                $spider->getDiscovererSet()->addFilter(new Spider\Filter\Prefetch\UriFilter($this->invalidLinkRegexes));
 
-            $response = NULL;
+                $spider->getDiscovererSet()->addFilter(new Spider\Filter\Prefetch\AllowedHostsFilter(array($url), $allowSubDomains));
+                $spider->getDiscovererSet()->addFilter(new \LuceneSearch\Crawler\Filter\PimcoreUriFilter($this->invalidLinkRegexes));
 
-            try
-            {
-                $response = $client->request();
+                $spider->getDiscovererSet()->set(new Spider\Discoverer\XPathExpressionDiscoverer("//a"));
+                $spider->getDiscovererSet()->maxDepth = $this->maxLinkDepth -1;
+
+                $spider->crawl();
+
+                //initial for all urls
+                $cookieJar = new \Zend_Http_CookieJar();
+
+                foreach( $statsHandler->getQueued() as $queriedUrl )
+                {
+                    echo $queriedUrl->toString() . "\n";
+
+                    try
+                    {
+                        if ($this->db->insert('plugin_lucenesearch_frontend_crawler_todo', array('id' => md5($queriedUrl->toString()), 'uri' => $queriedUrl->toString(), 'depth' => ($queriedUrl->getDepthFound() + 1), 'cookiejar' => serialize($cookieJar))))
+                        {
+                            \Logger::log(get_class($this) . ': Added link [ ' . $queriedUrl->toString(). ' ] to fetch list', \Zend_Log::DEBUG);
+                        }
+
+                    }
+                    catch (\Exception $e)
+                    {
+
+                    }
+
+                }
+
             }
             catch (\Zend_Http_Client_Adapter_Exception $e)
             {
                 \Logger::log(get_class($this) . ': Could not get response for Link [ ' . $url .' ] ', \Zend_Log::ERR);
             }
 
-            if ($response instanceof \Zend_Http_Response && ($response->isSuccessful() || $response->isRedirect()))
-            {
-                //we don't use port - crawler ist limited to standard port 80
-                $client->getUri()->setPort(null);
-
-                //update url - maybe we were redirected
-                $url = $client->getUri(true);
-                $url = $this->removeOutputFilterParameters($url);
-
-                try
-                {
-                    $success = $this->parse($url, $response, $client->getUri()->getHost(), $client->getCookieJar(), 0);
-                    \Logger::log(get_class($this) . ': parsed entry point  [ ' . $url .' ] ', \Zend_Log::INFO);
-
-                }
-                catch (\Exception $e)
-                {
-                    \Logger::log($e);
-                }
-
-            }
-            else
-            {
-                \Logger::log(get_class($this) . ': Invalid Respose for URL  [ ' . $url .' ] ', \Zend_Log::DEBUG);
-            }
-
         }
-
-        $manager = \Pimcore\Model\Schedule\Manager\Factory::getManager('lucenesearchcrawlermanager.pid');
-
-        for ($i = 1; $i <= $this->maxThreads; $i++)
-        {
-            $manager->registerJob(new \Pimcore\Model\Schedule\Maintenance\Job('crawler-' . $i, $this, 'continueWithFoundLinks', array()));
-        }
-
-        $manager->registerJob(new \Pimcore\Model\Schedule\Maintenance\Job('crawler-indexer', $this, 'doIndex', array()));
-        $manager->run();
 
         //make sure that there are no more links left in DB
         $this->continueWithFoundLinks();
 
         //final indexer run
-        $this->doIndex(true);
+        $this->doIndex();
 
     }
 
     /**
-     * @param int $delay
-     * @return array|FALSE
-     */
-    protected function getIndexerRows($delay = 0)
-    {
-        if ($delay > 0)
-        {
-            sleep($delay);
-        }
-        try
-        {
-            $rows = $this->db->fetchAll('SELECT * FROM plugin_lucenesearch_indexer_todo ORDER BY id', array());
-            return $rows;
-        }
-        catch (\Exception $e)
-        {
-            // probably table was already removed because crawler is finished
-            \Logger::log(get_class($this) . ': Could not extract next lucene document from table plugin_lucenesearch_frontend_crawler_todo ', \Zend_Log::DEBUG);
-            return FALSE;
-        }
-
-    }
-
-    /**
-     * @param bool $final
-     *
      * @return void writes lucene documents from db to lucene index
      */
-    public function doIndex($final = false)
+    public function doIndex()
     {
         $this->db = \Pimcore\Db::reset();
         $this->checkAndPrepareIndex();
 
-        //start with delay
-        sleep(3);
-
-        $counter = 1;
-
         do
         {
             $idsDone = array();
-            $rows = $this->getIndexerRows(0);
-
-            if (!$final and !$rows === FALSE)
-            {
-                //try again with delay
-                if (!is_array($rows) or count($rows) == 0)
-                {
-                    $rows = $this->getIndexerRows(5);
-                }
-                if (!is_array($rows) or count($rows) == 0)
-                {
-                    $rows = $this->getIndexerRows(10);
-                }
-                if (!is_array($rows) or count($rows) == 0)
-                {
-                    $rows = $this->getIndexerRows(20);
-                }
-            }
+            $rows = $this->getIndexerRows();
 
             if ($rows !== FALSE and count($rows) > 0)
             {
@@ -307,6 +226,26 @@ class Crawler
     }
 
     /**
+     * @return array|FALSE
+     */
+    protected function getIndexerRows()
+    {
+        try
+        {
+            $rows = $this->db->fetchAll('SELECT * FROM plugin_lucenesearch_indexer_todo ORDER BY id', array());
+            return $rows;
+        }
+        catch (\Exception $e)
+        {
+            // probably table was already removed because crawler is finished
+            \Logger::log(get_class($this) . ': Could not extract next lucene document from table plugin_lucenesearch_frontend_crawler_todo ', \Zend_Log::DEBUG);
+            return FALSE;
+        }
+
+    }
+
+
+    /**
      * @return void
      */
     public function continueWithFoundLinks()
@@ -314,12 +253,12 @@ class Crawler
         //reset DB in case this is executed in a forked child process
         $this->db = \Pimcore\Db::reset();
 
+        $rows = NULL;
+
         try
         {
-            $row = $this->db->fetchRow('SELECT * FROM plugin_lucenesearch_frontend_crawler_todo ORDER BY id', array());
-            $nextLink = $row['uri'];
-            $depth = $row['depth'];
-            $cookieJar = unserialize($row['cookiejar']);
+            $rows = $this->db->fetchAll('SELECT * FROM plugin_lucenesearch_frontend_crawler_todo ORDER BY id', array());
+
         }
         catch (\Exception $e)
         {
@@ -328,25 +267,29 @@ class Crawler
             return;
         }
 
-        if (empty($nextLink))
+        if (empty($rows))
         {
             return;
         }
 
-        $client = \Pimcore\Tool::getHttpClient();
-        $client->setUri($nextLink);
-        $client->setConfig(array(
-            'maxredirects' => $this->maxRedirects,
-            'keepalive' => true,
-            'timeout' => $this->timeout
-            )
-        );
-
-        $client->setCookieJar($cookieJar);
-        $client->setHeaders('If-Modified-Since', null);
-
-        while ($nextLink)
+        foreach( $rows as $row )
         {
+            $nextLink = $row['uri'];
+            $depth = $row['depth'];
+            $cookieJar = unserialize($row['cookiejar']);
+
+            $client = \Pimcore\Tool::getHttpClient();
+            $client->setUri($nextLink);
+            $client->setConfig(array(
+                    'maxredirects' => $this->maxRedirects,
+                    'keepalive' => true,
+                    'timeout' => $this->timeout
+                )
+            );
+
+            $client->setCookieJar($cookieJar);
+            $client->setHeaders('If-Modified-Since', null);
+
             try
             {
                 $this->db->delete('plugin_lucenesearch_frontend_crawler_todo', 'id = "' . md5($nextLink) . '"');
@@ -398,7 +341,7 @@ class Crawler
                             }
                             catch (\Exception $e)
                             {
-                                \Logger::log(get_class($this) . ': could not fetch from plugin_lucenesearch_contents_temp', \Zend_Log::DEBUG);
+                                \Logger::log(get_class($this) . ': could not fetch from plugin_lucenesearch_frontend_crawler_todo', \Zend_Log::DEBUG);
                             }
 
                             try
@@ -419,7 +362,7 @@ class Crawler
                                 \Logger::log(get_class($this) . ': could not fetch from plugin_lucenesearch_frontend_crawler_noindex', \Zend_Log::DEBUG);
                             }
 
-                            if ($rowTodo['count'] > 0 or $rowDone['count'] > 0 or $rowNoIndex['count'] > 0)
+                            if ($rowTodo['count'] > 0 || $rowDone['count'] > 0 || $rowNoIndex['count'] > 0)
                             {
                                 \Logger::log(get_class($this) . ' Redirected to uri [ ' . $nextLink. ' ] - which has already been processed',\ Zend_Log::DEBUG);
                             }
@@ -458,34 +401,6 @@ class Crawler
                 \Logger::alert(get_class($this) . ': Stopping with uri [ ' . $nextLink . ' ] because maximum link depth of [ ' . $depth . ' ] has been reached.');
             }
 
-            //get next from DB
-            try
-            {
-                $row = $this->db->fetchRow('SELECT * FROM plugin_lucenesearch_frontend_crawler_todo ORDER BY id', array());
-                $nextLink = $row['uri'];
-                $depth = $row['depth'];
-                $cookieJar = unserialize($row['cookiejar']);
-            }
-            catch (\Exception $e)
-            {
-                //wait 2 seconds then try again
-                sleep(2);
-
-                try
-                {
-                    $row = $this->db->fetchRow('SELECT * FROM plugin_lucenesearch_frontend_crawler_todo ORDER BY id', array());
-                    $nextLink = $row['uri'];
-                    $depth = $row['depth'];
-                    $cookieJar = unserialize($row['cookiejar']);
-                }
-                catch (\Exception $e)
-                {
-                    // probably table was already removed because crawler is finished
-                    \Logger::log(get_class($this) . ': Could not extract next link from table plugin_lucenesearch_frontend_crawler_todo ', \Zend_Log::DEBUG);
-                    $nextLink = false;
-                }
-
-            }
 
         }
 
@@ -553,14 +468,14 @@ class Crawler
         }
         else if (strpos($foundLink, 'http://') !== 0
             and strpos($foundLink, 'https://') !== 0
-                and strpos($foundLink, 'www.') !== 0
-                    and strpos($foundLink, 'mailto:') !== 0
-                        and strpos($foundLink, 'javascript:') !== 0
-                            and strpos($foundLink, 'file://') !== 0
-                                and strpos($foundLink, 'ftp://') !== 0
-                                    and strpos($foundLink, 'gopher://') !== 0
-                                        and strpos($foundLink, 'telnet://') !== 0
-                                            and strpos($foundLink, 'news:') !== 0
+            and strpos($foundLink, 'www.') !== 0
+            and strpos($foundLink, 'mailto:') !== 0
+            and strpos($foundLink, 'javascript:') !== 0
+            and strpos($foundLink, 'file://') !== 0
+            and strpos($foundLink, 'ftp://') !== 0
+            and strpos($foundLink, 'gopher://') !== 0
+            and strpos($foundLink, 'telnet://') !== 0
+            and strpos($foundLink, 'news:') !== 0
         )
         {
             \Logger::debug('relative link:' . $foundLink);
@@ -596,6 +511,7 @@ class Crawler
     protected function parse($link, $response, $host, $cookieJar, $depth)
     {
         $success = false;
+
         if (strpos($link, 'https://') !== FALSE)
         {
             $protocol = 'https';
@@ -607,7 +523,7 @@ class Crawler
         else
         {
             \Logger::log(get_class($this) . ' parsing [$link] not possible. Only parsing http and https ', \Zend_Log::DEBUG);
-            return;
+            return $success;
         }
 
         $headers = $response->getHeaders();
@@ -640,7 +556,7 @@ class Crawler
             }
             else if ($mimeType == 'application/pdf')
             {
-                $success = $this->parsePdf($link, $response);
+                $success = $this->parsePdf($link, $response, $host);
             }
             else
             {
@@ -705,15 +621,8 @@ class Crawler
         //TODO: robots.txt
         \Zend_Search_Lucene_Document_Html::setExcludeNoFollowLinks(true);
         $doc = \Zend_Search_Lucene_Document_Html::loadHTML($html, false, 'utf-8');
-        $links = $doc->getLinks();
 
         $robotsMeta = $this->getRobotsMetaInfo($html);
-        if (in_array('nofollow', $robotsMeta))
-        {
-            //no links to follow
-            $links = array();
-            \Logger::debug(get_class($this) . ': not following links on [ ' . $link . ' ] because it has robots nofollow');
-        }
 
         if (!in_array('noindex', $robotsMeta))
         {
@@ -723,7 +632,7 @@ class Crawler
                 $documentHasDelimiter = strpos($html, $this->searchStartIndicator) !== FALSE;
             }
 
-            if ($documentHasDelimiter and !empty($this->searchStartIndicator) and !empty($this->searchEndIndicator))
+            if ($documentHasDelimiter && !empty($this->searchStartIndicator) && !empty($this->searchEndIndicator))
             {
                 //get part before html head starts
                 $top = explode('<head>', $html);
@@ -765,19 +674,6 @@ class Crawler
             \Logger::debug(get_class($this) . ': not indexing [ ' . $link. ' ] because it has robots noindex');
         }
 
-        if (count($links) > 0)
-        {
-            foreach ($links as $foundLink)
-            {
-                $this->processFoundLink($foundLink, $protocol, $host, $link, $depth, $cookieJar);
-            }
-        }
-        else
-        {
-            \Logger::debug(get_class($this) . ': No links found on page at [ ' . $link . ' ] ');
-        }
-
-        //TODO: for now we always return true - as success ... are there any unsuccessful states?
         return true;
 
     }
@@ -799,28 +695,19 @@ class Crawler
         {
             $valid = $this->validateLink($foundLink);
 
-            if ($valid and $foundLink != $link and strlen($foundLink) > 0)
+            if ($valid && $foundLink != $link && strlen($foundLink) > 0)
             {
                 $rowDone = $this->db->fetchRow('SELECT count(*) as count from plugin_lucenesearch_contents_temp WHERE id = "' . md5($foundLink) . '"');
                 $rowNoIndex = $this->db->fetchRow('SELECT count(*) as count from plugin_lucenesearch_frontend_crawler_noindex WHERE id ="' . md5($foundLink) . '"');
 
-                if ($rowDone['count'] == 0 and $rowNoIndex['count'] == 0)
+                if ($rowDone['count'] > 0 || $rowNoIndex['count'] == 0)
                 {
-                    try
-                    {
-                        if ($this->db->insert('plugin_lucenesearch_frontend_crawler_todo', array('id' => md5($foundLink), 'uri' => $foundLink, 'depth' => ($depth + 1), 'cookiejar' => serialize($cookieJar))))
-                        {
-                            \Logger::log(get_class($this) . ': Added link [ ' . $foundLink. ' ] to fetch list', \Zend_Log::DEBUG);
-                        }
-
-                    }
-                    catch (\Exception $e)
-                    {
-
-                    }
+                    return FALSE;
                 }
             }
         }
+
+        return FALSE;
 
     }
 
@@ -867,9 +754,9 @@ class Crawler
      * @param  \Zend_Http_Response $response
      * @return void
      */
-    protected function parsePdf($link, $response)
+    protected function parsePdf($link, $response, $host)
     {
-        $this->addPdfToIndex($link, $this->getLanguageFromResponse($response));
+        $this->addPdfToIndex($link, $this->getLanguageFromResponse($response), $host);
         \Logger::log(get_class($this) . ': Added pdf to index [ ' . $link . ' ]', \Zend_Log::INFO);
     }
 
@@ -1027,6 +914,7 @@ class Crawler
         try
         {
             $content = $this->getPlainTextFromHtml($html);
+
             $this->db->insert('plugin_lucenesearch_contents_temp', array('id' => md5($url), 'uri' => $url, 'host' => $host, 'content' => $content, 'html' => $html));
             $doc = \Zend_Search_Lucene_Document_Html::loadHTML($html, false, 'utf-8');
 
@@ -1054,7 +942,6 @@ class Crawler
             $serialized = serialize($doc);
             $this->db->insert('plugin_lucenesearch_indexer_todo', array('content' => $serialized));
 
-            //$this->index->addDocument($doc);
         }
         catch (\Exception $e)
         {
@@ -1066,40 +953,82 @@ class Crawler
      * adds a PDF page to lucene index and mysql table for search result sumaries
      * @param  string $url
      * @param  string $language
+     * @param string $host
      * @return void
      */
-    protected function addPdfToIndex($url, $language)
+    protected function addPdfToIndex($url, $language, $host)
     {
-        //TODO: PDF2Text does not seem to work
+        $pdftotextBin = FALSE;
 
-        /*
-        $pdf2Text = new PDF2Text();
-        $pdf2Text->setFilename($url);
-        $pdf2Text->setUnicode(true);
-        $pdf2Text->decodePDF();
-        $text = $pdf2Text->output();
-        echo $text;
-        try {
-            $this->db->insert('plugin_lucenesearch_contents_temp', array(
-                'id' => md5($url),
-                'uri' => $url,
-                'content' => $text  ,
-                'host' =>
-            ));
-
-            $doc = neplugin_lucenesearch_frontend_crawler_todow Zend_Search_Lucene_Document();
-
-            //TODO use propper encoding!
-            $doc->addField(Zend_Search_Lucene_Field::Text('body',$text,'utf-8'));
-            $doc->addField(Zend_Search_Lucene_Field::Keyword('lang', $language));
-            $doc->addField(Zend_Search_Lucene_Field::Keyword('url', $url));
-            $this->index->addDocument($doc);
-        } catch (Exception $e) {
-            logger::log($e->getMessage());
+        try
+        {
+            $pdftotextBin = \Pimcore\Document\Adapter\Ghostscript::getPdftotextCli();
         }
-        */
-    }
+        catch (\Exception $e)
+        {
+            $pdftotextBin = FALSE;
+        }
 
+        if( $pdftotextBin === FALSE )
+        {
+            return FALSE;
+        }
+
+        $textFileTmp = uniqid('t2p-');
+        $tmpFile = PIMCORE_TEMPORARY_DIRECTORY . '/' . $textFileTmp . '.txt';
+        $tmpPdfFile = PIMCORE_TEMPORARY_DIRECTORY . '/' . $textFileTmp. '.pdf';
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+
+        $data = curl_exec($ch);
+        $result = file_put_contents($tmpPdfFile, $data);
+
+        curl_close($ch);
+
+        try
+        {
+            $cmnd = '-layout ' . $tmpPdfFile . ' ' . $tmpFile;
+            echo $pdftotextBin . ' ' . $cmnd . "\n";
+            exec( $pdftotextBin . ' ' . $cmnd);
+        }
+        catch( \Exception $e )
+        {
+        }
+
+        if( is_file( $tmpFile ) )
+        {
+            $fileContent = file_get_contents( $tmpFile );
+
+            try
+            {
+                $this->db->insert( 'plugin_lucenesearch_contents_temp',  array(
+                    'id' => md5($url),
+                    'uri' => $url,
+                    'host' => $host,
+                    'content' =>  $fileContent
+                    )
+                );
+
+                $doc = new \Zend_Search_Lucene_Document();
+
+                $doc->addField(\Zend_Search_Lucene_Field::Text('body',$fileContent,'utf-8'));
+                $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $language));
+                $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $url));
+                $serialized = serialize($doc);
+                $this->db->insert('plugin_lucenesearch_indexer_todo', array('content' => $serialized));
+
+            }
+            catch (\Exception $e)
+            {
+                \Logger::log($e->getMessage());
+            }
+
+            @unlink( $tmpFile );
+            @unlink( $tmpPdfFile );
+        }
+
+    }
 
     protected function checkAndPrepareIndex()
     {

@@ -329,14 +329,6 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                         cls: 'description'
                     },
                     {
-                        xtype:'textfield',
-                        fieldLabel: t('lucenesearch_frontend_crawler_maxthreads'),
-                        name: 'frontend.crawler.maxThreads',
-                        collapsible: false,
-                        autoHeight:true,
-                        value:this.getValue('frontend.crawler.maxThreads')
-                    },
-                    {
                         xtype:'displayfield',
                         value:t('lucenesearch_frontend_crawler_maxlinkdepth_description'),
                         cls: 'description'

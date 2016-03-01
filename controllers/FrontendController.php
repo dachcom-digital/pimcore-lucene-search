@@ -207,11 +207,14 @@ class LuceneSearch_FrontendController extends Action
 
         $this->removeViewRenderer();
 
+        $data = [];
+
         foreach ($suggestions as $suggestion)
         {
-            echo $suggestion . "\r\n";
+            $data[] = $suggestion;
         }
 
+        $this->_helper->json($data);
     }
 
     public function findAction()

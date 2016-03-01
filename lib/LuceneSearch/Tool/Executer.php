@@ -5,6 +5,7 @@ namespace LuceneSearch\Tool;
 use LuceneSearch\Model\Configuration;
 use LuceneSearch\Model\Crawler;
 
+
 class Executer {
 
     public static function runCrawler()
@@ -54,15 +55,14 @@ class Executer {
                 self::setCrawlerState('frontend', 'started', true, true);
 
                 $maxLinkDepth = Configuration::get('frontend.crawler.maxLinkDepth');
-                $maxThreads = Configuration::get('frontend.crawler.maxThreads');
 
                 if (is_numeric($maxLinkDepth) and $maxLinkDepth > 0)
                 {
-                    $crawler = new Crawler($validLinkRegexes, $invalidLinkRegexes, 10, 30, Configuration::get('frontend.crawler.contentStartIndicator'), Configuration::get('frontend.crawler.contentEndIndicator'), $maxThreads, $maxLinkDepth);
+                    $crawler = new Crawler($validLinkRegexes, $invalidLinkRegexes, 10, 30, Configuration::get('frontend.crawler.contentStartIndicator'), Configuration::get('frontend.crawler.contentEndIndicator'),  $maxLinkDepth);
                 }
                 else
                 {
-                    $crawler = new Crawler($validLinkRegexes, $invalidLinkRegexes, 10, 30, Configuration::get('frontend.crawler.contentStartIndicator'), Configuration::get('frontend.crawler.contentEndIndicator'), $maxThreads);
+                    $crawler = new Crawler($validLinkRegexes, $invalidLinkRegexes, 10, 30, Configuration::get('frontend.crawler.contentStartIndicator'), Configuration::get('frontend.crawler.contentEndIndicator'));
                 }
 
                 $crawler->findLinks($urls);
