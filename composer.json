@@ -22,6 +22,6 @@
   ],
   "require": {
     "pimcore/installer-plugin": ">=1",
-    "spatie/crawler": "1.*"
+    "vdb/php-spider": "*"
   }
 }
