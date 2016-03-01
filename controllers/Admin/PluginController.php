@@ -59,7 +59,7 @@ class LuceneSearch_Admin_PluginController extends Admin {
 
         if(Plugin::frontendCrawlerRunning() || Plugin::frontendCrawlerScheduledForStart() || !Plugin::frontendConfigComplete())
         {
-            $frontendButtonDisabled = true;   
+            $frontendButtonDisabled = true;
         }
 
         $frontendStopButtonDisabled = false;
@@ -160,10 +160,14 @@ class LuceneSearch_Admin_PluginController extends Admin {
             Configuration::set('frontend.ownHostOnly', TRUE);
         }
 
+        /*
+
         if (is_numeric($values['frontend.crawler.maxThreads']))
         {
             Configuration::set('frontend.crawler.maxThreads', (int) $values['frontend.crawler.maxThreads']);
         }
+
+        */
 
         if (is_numeric($values['frontend.crawler.maxLinkDepth']))
         {

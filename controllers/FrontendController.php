@@ -8,9 +8,29 @@ use LuceneSearch\Model\Searcher;
 
 class LuceneSearch_FrontendController extends Action
 {
+    /**
+     * @var
+     */
     protected $frontendIndex;
+
+    /**
+     * @var
+     */
     protected $searchLanguage;
+
+    /**
+     * @var
+     */
+    protected $searchCountry;
+
+    /**
+     * @var bool
+     */
     protected $ownHostOnly = false;
+
+    /**
+     * @var array
+     */
     protected $categories = array();
 
     public function init()
@@ -28,7 +48,7 @@ class LuceneSearch_FrontendController extends Action
 
                 if (Configuration::get('frontend.ignoreLanguage') !== TRUE)
                 {
-                    $this->searchLanguage = $this->_getParam('language');
+                    $this->searchLanguage = $this->getParam('language');
 
                     if (empty($this->searchLanguage))
                     {
@@ -45,6 +65,13 @@ class LuceneSearch_FrontendController extends Action
                 else
                 {
                     $this->searchLanguage = null;
+                }
+
+                $country = $this->getParam('country');
+
+                if( !empty( $country ) )
+                {
+                    $this->searchCountry = $country;
                 }
 
                 $this->fuzzySearch = false;
@@ -305,6 +332,14 @@ class LuceneSearch_FrontendController extends Action
                     $languageTerm = new \Zend_Search_Lucene_Index_Term($lang, 'lang');
                     $languageQuery = new \Zend_Search_Lucene_Search_Query_Term($languageTerm);
                     $query->addSubquery($languageQuery, true);
+                }
+
+                if (!empty($this->searchCountry))
+                {
+                    $country = str_replace(array('_', '-'), '', $this->searchCountry);
+                    $countryTerm = new \Zend_Search_Lucene_Index_Term($country, 'country');
+                    $countryQuery = new \Zend_Search_Lucene_Search_Query_Term($countryTerm);
+                    $query->addSubquery($countryQuery, true);
                 }
 
                 if (!empty($category))

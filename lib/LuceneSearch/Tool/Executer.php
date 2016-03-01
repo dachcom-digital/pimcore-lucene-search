@@ -3,8 +3,7 @@
 namespace LuceneSearch\Tool;
 
 use LuceneSearch\Model\Configuration;
-use LuceneSearch\Model\Crawler;
-
+use LuceneSearch\Model\Parser;
 
 class Executer {
 
@@ -21,17 +20,14 @@ class Executer {
 
         if ($indexDir)
         {
-            //TODO nix specific
             exec('rm -Rf ' . str_replace('/index/', '/tmpindex', $indexDir));
 
-            \Logger::debug('rm -Rf ' . str_replace('/index/', '/tmpindex', $indexDir));
+            \Logger::debug('LuceneSearch: rm -Rf ' . str_replace('/index/', '/tmpindex', $indexDir));
             \Logger::log('LuceneSearch: Starting crawl', \Zend_Log::DEBUG);
 
             try
             {
                 $urls = Configuration::get('frontend.urls');
-                $validLinkRegexes = Configuration::get('frontend.validLinkRegexes');
-
                 $invalidLinkRegexesSystem = Configuration::get('frontend.invalidLinkRegexes');
                 $invalidLinkRegexesEditable = Configuration::get('frontend.invalidLinkRegexesEditable');
 
@@ -54,37 +50,35 @@ class Executer {
 
                 self::setCrawlerState('frontend', 'started', true, true);
 
-                $maxLinkDepth = Configuration::get('frontend.crawler.maxLinkDepth');
+                $parser = new Parser();
 
-                if (is_numeric($maxLinkDepth) and $maxLinkDepth > 0)
-                {
-                    $crawler = new Crawler($validLinkRegexes, $invalidLinkRegexes, 10, 30, Configuration::get('frontend.crawler.contentStartIndicator'), Configuration::get('frontend.crawler.contentEndIndicator'),  $maxLinkDepth);
-                }
-                else
-                {
-                    $crawler = new Crawler($validLinkRegexes, $invalidLinkRegexes, 10, 30, Configuration::get('frontend.crawler.contentStartIndicator'), Configuration::get('frontend.crawler.contentEndIndicator'));
-                }
+                $parser
+                    ->setDepth( Configuration::get('frontend.crawler.maxLinkDepth') )
+                    ->setValidLinkRegexes( Configuration::get('frontend.validLinkRegexes') )
+                    ->setInvalidLinkRegexes( $invalidLinkRegexes )
+                    ->setSearchStartIndicator(Configuration::get('frontend.crawler.contentStartIndicator'))
+                    ->setSearchEndIndicator(Configuration::get('frontend.crawler.contentEndIndicator'))
+                    ->setAllowSubdomain( FALSE )
+                    ->setDownloadLimit( 100 )
+                    ->setSeed( $urls[0] );
 
-                $crawler->findLinks($urls);
+                $parser->startParser($urls);
+
+                $parser->doIndex();
+
+                $parser->collectGarbage();
 
                 self::setCrawlerState('frontend', 'finished', false, true);
 
-                \Logger::debug('LuceneSearch_Plugin: replacing old index ...');
-
-                $db = \Pimcore\Db::get();
-                $db->query('DROP TABLE IF EXISTS `plugin_lucenesearch_contents`;');
-                $db->query('RENAME TABLE `plugin_lucenesearch_contents_temp` TO `plugin_lucenesearch_contents`;');
-
-                //TODO nix specific
                 exec('rm -Rf ' . $indexDir);
                 \Logger::debug('rm -Rf ' . $indexDir);
 
                 $tmpIndex = str_replace('/index', '/tmpindex', $indexDir);
                 exec('cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
 
-                \Logger::debug('cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
-                \Logger::debug('LuceneSearch_Plugin: replaced old index');
-                \Logger::info('LuceneSearch_Plugin: Finished crawl');
+                \Logger::debug('LuceneSearch: cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
+                \Logger::debug('LuceneSearch: replaced old index');
+                \Logger::info('LuceneSearch: Finished crawl');
 
             }
             catch (\Exception $e)
@@ -111,7 +105,7 @@ class Executer {
         //just to make sure nothing else starts the crawler right now
         self::setCrawlerState('frontend', 'started', false);
 
-        $maxThreads = Configuration::get('frontend.crawler.maxThreads');
+        $maxThreads = 0; //Configuration::get('frontend.crawler.maxThreads');
 
         $db = \Pimcore\Db::get();
         $db->query('DROP TABLE IF EXISTS `plugin_lucenesearch_frontend_crawler_todo`;');
@@ -155,7 +149,7 @@ class Executer {
 
                 if (is_file($file) and !unlink($file))
                 {
-                    \Logger::emerg('LuceneSearch_Plugin: : Trying to force stop crawler, but cannot delete [ '. $file. ' ]');
+                    \Logger::emerg('LuceneSearch: Trying to force stop crawler, but cannot delete [ '. $file. ' ]');
                 }
 
                 if (!is_file($file))

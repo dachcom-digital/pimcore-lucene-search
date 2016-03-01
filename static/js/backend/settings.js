@@ -325,11 +325,6 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                     },
                     {
                         xtype:'displayfield',
-                        value:t('lucenesearch_frontend_crawler_maxthreads_description'),
-                        cls: 'description'
-                    },
-                    {
-                        xtype:'displayfield',
                         value:t('lucenesearch_frontend_crawler_maxlinkdepth_description'),
                         cls: 'description'
                     },
