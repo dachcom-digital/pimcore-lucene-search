@@ -135,8 +135,6 @@ class Crawler
 
                 foreach( $statsHandler->getQueued() as $queriedUrl )
                 {
-                    echo $queriedUrl->toString() . "\n";
-
                     try
                     {
                         if ($this->db->insert('plugin_lucenesearch_frontend_crawler_todo', array('id' => md5($queriedUrl->toString()), 'uri' => $queriedUrl->toString(), 'depth' => ($queriedUrl->getDepthFound() + 1), 'cookiejar' => serialize($cookieJar))))
@@ -989,7 +987,6 @@ class Crawler
         try
         {
             $cmnd = '-layout ' . $tmpPdfFile . ' ' . $tmpFile;
-            echo $pdftotextBin . ' ' . $cmnd . "\n";
             exec( $pdftotextBin . ' ' . $cmnd);
         }
         catch( \Exception $e )
