@@ -335,8 +335,6 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
             $aDayAgo = time() - (24 * 60 * 60);
             $forceStart = Configuration::get('frontend.crawler.forceStart');
 
-            $forceStart = true;
-
             $enabled = Configuration::get('frontend.enabled');
 
             if ($enabled && ((!$running && (is_bool($lastStarted) || $lastStarted <= $aDayAgo) && $currentHour > 1 && $currentHour < 3) || $forceStart))
