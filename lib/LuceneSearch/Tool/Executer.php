@@ -50,28 +50,36 @@ class Executer {
 
                 self::setCrawlerState('frontend', 'started', true, true);
 
-                $parser = new Parser();
+                try
+                {
 
-                $parser
-                    ->setDepth( Configuration::get('frontend.crawler.maxLinkDepth') )
-                    ->setValidLinkRegexes( Configuration::get('frontend.validLinkRegexes') )
-                    ->setInvalidLinkRegexes( $invalidLinkRegexes )
-                    ->setSearchStartIndicator(Configuration::get('frontend.crawler.contentStartIndicator'))
-                    ->setSearchEndIndicator(Configuration::get('frontend.crawler.contentEndIndicator'))
-                    ->setAllowSubdomain( FALSE )
-                    //->setDownloadLimit( 4 )
-                    ->setSeed( $urls[0] );
+                    $parser = new Parser();
 
-                $parser->startParser($urls);
+                    $parser
+                        ->setDepth( Configuration::get('frontend.crawler.maxLinkDepth') )
+                        ->setValidLinkRegexes( Configuration::get('frontend.validLinkRegexes') )
+                        ->setInvalidLinkRegexes( $invalidLinkRegexes )
+                        ->setSearchStartIndicator(Configuration::get('frontend.crawler.contentStartIndicator'))
+                        ->setSearchEndIndicator(Configuration::get('frontend.crawler.contentEndIndicator'))
+                        ->setAllowSubdomain( FALSE )
+                        //->setDownloadLimit( 10 )
+                        ->setSeed( $urls[0] );
 
-                $parser->doIndex();
+                    $parser->startParser($urls);
+                    $parser->doIndex();
+                    $parser->collectGarbage();
 
-                $parser->collectGarbage();
+                }
+
+                catch(\Exception $e)
+                {
+
+                }
 
                 self::setCrawlerState('frontend', 'finished', false, true);
 
                 exec('rm -Rf ' . $indexDir);
-                \Logger::debug('rm -Rf ' . $indexDir);
+                \Logger::debug('LuceneSearch: rm -Rf ' . $indexDir);
 
                 $tmpIndex = str_replace('/index', '/tmpindex', $indexDir);
                 exec('cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
@@ -99,13 +107,12 @@ class Executer {
      */
     public static function stopCrawler($playNice = true, $isFrontendCall = false)
     {
-        \Logger::debug('LuceneSearch: forcing frontend crawler stop, play nice: [ ' . $playNice. ' ]');
+        \Logger::debug('LuceneSearch: forcing frontend crawler stop');
+
         self::setStopLock('frontend', true);
 
         //just to make sure nothing else starts the crawler right now
         self::setCrawlerState('frontend', 'started', false);
-
-        $maxThreads = 0; //Configuration::get('frontend.crawler.maxThreads');
 
         $db = \Pimcore\Db::get();
         $db->query('DROP TABLE IF EXISTS `plugin_lucenesearch_frontend_crawler_todo`;');
@@ -113,61 +120,12 @@ class Executer {
 
         \Logger::debug('LuceneSearch: forcing frontend crawler stop - dropped tables.');
 
-        $pidFiles = array('maintainance_crawler-indexer');
-        for ($i = 1; $i <= $maxThreads; $i++) {
-            $pidFiles[] = 'maintainance_crawler-' . $i;
-        }
-
-        $counter = 1;
-        while ($pidFiles and count($pidFiles) > 0 and $counter < 10)
-        {
-            sort($pidFiles);
-            for ($i = 0; $i < count($pidFiles); $i++)
-            {
-                $file = PIMCORE_SYSTEM_TEMP_DIRECTORY . '/' . $pidFiles[$i];
-                if (!is_file($file))
-                {
-                    unset($pidFiles[$i]);
-                }
-            }
-
-            sleep(1);
-            $counter++;
-        }
-
-        if (!$playNice)
-        {
-            if (is_file(PIMCORE_SYSTEM_TEMP_DIRECTORY . '/maintainance_LuceneSearch_Plugin.pid' and $isFrontendCall))
-            {
-                $pidFiles[] = 'maintainance_LuceneSearch_Plugin.pid';
-            }
-
-            //delete pid files of all  processes
-            for ($i = 0; $i < count($pidFiles); $i++)
-            {
-                $file = PIMCORE_SYSTEM_TEMP_DIRECTORY . '/' . $pidFiles[$i];
-
-                if (is_file($file) and !unlink($file))
-                {
-                    \Logger::emerg('LuceneSearch: Trying to force stop crawler, but cannot delete [ '. $file. ' ]');
-                }
-
-                if (!is_file($file))
-                {
-                    unset($pidFiles[$i]);
-                }
-            }
-        }
-
         self::setStopLock('frontend', false);
+        self::setCrawlerState('frontend', 'finished', false);
 
-        if (!$pidFiles or count($pidFiles) == 0)
-        {
-            self::setCrawlerState('frontend', 'finished', false);
-            return true;
-        }
+        \Zend_Registry::set('dings', true);
 
-        return false;
+        return true;
 
     }
 
@@ -189,6 +147,19 @@ class Executer {
 
         Configuration::set($crawler .'.crawler.forceStart', FALSE);
         Configuration::set($crawler .'.crawler.running', $run);
+
+        if( $action == 'started' && $running == TRUE )
+        {
+            touch( PIMCORE_TEMPORARY_DIRECTORY . '/lucene-crawler.tmp');
+        }
+
+        if( $action == 'finished' && $run == FALSE)
+        {
+            if( is_file( PIMCORE_TEMPORARY_DIRECTORY . '/lucene-crawler.tmp' ) )
+            {
+                unlink( PIMCORE_TEMPORARY_DIRECTORY . '/lucene-crawler.tmp');
+            }
+        }
 
         if ($setTime)
         {
