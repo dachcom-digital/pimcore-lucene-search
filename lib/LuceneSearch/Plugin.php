@@ -403,4 +403,3 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         }
     }
 }
-
