@@ -165,9 +165,9 @@ class Parser {
             $spider->getDownloader()->setDownloadLimit( $this->downloadLimit );
         }
 
-        $statsHandler = new StatsHandler();
-        $LogHandler = new Logger( \Pimcore::inDebugMode() );
-        $queueManager = new InMemoryQueueManager();
+        $statsHandler   = new StatsHandler();
+        $LogHandler     = new Logger(\Pimcore::inDebugMode());
+        $queueManager   = new InMemoryQueueManager();
 
         $queueManager->getDispatcher()->addSubscriber($statsHandler);
         $queueManager->getDispatcher()->addSubscriber($LogHandler);
@@ -225,32 +225,32 @@ class Parser {
             SpiderEvents::SPIDER_CRAWL_POST_REQUEST,
             function (Event $event)
             {
-                echo  'crawling: ' . $event->getArgument('uri')->toString() . "\n";
+                //'crawling: ' . $event->getArgument('uri')->toString() . "\n";
             }
         );
 
         // Execute the crawl
         $result = $spider->crawl();
 
-        echo "\n\nSPIDER ID: " . $statsHandler->getSpiderId();
-        echo "\n  ENQUEUED:  " . count($statsHandler->getQueued());
-        echo "\n  SKIPPED:   " . count($statsHandler->getFiltered());
-        echo "\n  FAILED:    " . count($statsHandler->getFailed());
-        echo "\n  PERSISTED: " . count($statsHandler->getPersisted());
-        echo "\n";
+        \Logger::debug("SPIDER ID: " . $statsHandler->getSpiderId());
+        \Logger::debug("SPIDER ID: " . $statsHandler->getSpiderId());
+
+        \Logger::debug("ENQUEUED:  " . count($statsHandler->getQueued()));
+        \Logger::debug("SKIPPED:   " . count($statsHandler->getFiltered()));
+        \Logger::debug("FAILED:    " . count($statsHandler->getFailed()));
+        \Logger::debug("PERSISTED: " . count($statsHandler->getPersisted()));
 
         $peakMem = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
         $totalTime = round(microtime(true) - $start, 2);
         $totalDelay = round($politenessPolicyEventListener->totalDelay / 1000 / 1000, 2);
 
-        echo "\n  METRICS:";
-        echo "\n  PEAK MEM USAGE:       " . $peakMem . 'MB';
-        echo "\n  TOTAL TIME:           " . $totalTime . 's';
-        echo "\n  POLITENESS WAIT TIME: " . $totalDelay . 's';
-        echo "\n\n";
+        \Logger::debug("PEAK MEM USAGE:       " . $peakMem . 'MB');
+        \Logger::debug("TOTAL TIME:           " . $totalTime . 's');
+        \Logger::debug("POLITENESS WAIT TIME: " . $totalDelay . 's');
 
         $downloaded = $spider->getDownloader()->getPersistenceHandler();
 
+        //parse all resources!
         foreach ($downloaded as $resource) {
 
             $this->parseResponse( $resource );
@@ -342,7 +342,7 @@ class Parser {
         }
 
         $contentLength = (int) $resource->getHeader('Content-Length')->__toString();
-        echo "\n - " . str_pad("[" . round($contentLength / 1024), 4, ' ', STR_PAD_LEFT) . "KB] $link - $title";
+        //echo "\n - " . str_pad("[" . round($contentLength / 1024), 4, ' ', STR_PAD_LEFT) . "KB] $link - $title";
 
         \Zend_Search_Lucene_Document_Html::setExcludeNoFollowLinks(true);
 
