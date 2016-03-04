@@ -281,19 +281,33 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                         minChars: 2
                     },
                     items :[
-                        {
-                            xtype:'displayfield',
-                            value:t('lucenesearch_frontend_ignoreLanguage_description'),
-                            cls: 'description'
-                        },
-                        {
-                            xtype:'checkbox',
-                            fieldLabel: t('language'),
-                            autoHeight:true,
-                            boxLabel: t('lucenesearch_frontend_ignoreLanguage'),
-                            name: 'frontend.ignoreLanguage',
-                            checked: this.getValue('frontend.ignoreLanguage'),
-                            inputValue: '1'
+                    {
+                        xtype:'displayfield',
+                        value:t('lucenesearch_frontend_ignoreLanguage_description'),
+                        cls: 'description'
+                    },
+                    {
+                        xtype:'checkbox',
+                        fieldLabel: t('language'),
+                        autoHeight:true,
+                        boxLabel: t('lucenesearch_frontend_ignoreLanguage'),
+                        name: 'frontend.ignoreLanguage',
+                        checked: this.getValue('frontend.ignoreLanguage'),
+                        inputValue: '1'
+                    },
+                    {
+                        xtype:'displayfield',
+                        value:t('lucenesearch_frontend_ignoreCountry_description'),
+                        cls: 'description'
+                    },
+                    {
+                        xtype:'checkbox',
+                        fieldLabel: t('country'),
+                        autoHeight:true,
+                        boxLabel: t('lucenesearch_frontend_ignoreCountry'),
+                        name: 'frontend.ignoreCountry',
+                        checked: this.getValue('frontend.ignoreCountry'),
+                        inputValue: '1'
                     },
                     {
                         xtype:'displayfield',

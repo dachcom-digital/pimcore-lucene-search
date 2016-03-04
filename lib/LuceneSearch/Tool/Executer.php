@@ -52,7 +52,6 @@ class Executer {
 
                 try
                 {
-
                     $parser = new Parser();
 
                     $parser
@@ -66,27 +65,34 @@ class Executer {
                         ->setSeed( $urls[0] );
 
                     $parser->startParser($urls);
-                    $parser->doIndex();
-                    $parser->collectGarbage();
+
+                    $parser->optimizeIndex();
 
                 }
 
-                catch(\Exception $e)
-                {
-
-                }
+                catch(\Exception $e) { }
 
                 self::setCrawlerState('frontend', 'finished', false, true);
 
-                exec('rm -Rf ' . $indexDir);
-                \Logger::debug('LuceneSearch: rm -Rf ' . $indexDir);
-
+                //only remove index, if tmp exists!
                 $tmpIndex = str_replace('/index', '/tmpindex', $indexDir);
-                exec('cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
 
-                \Logger::debug('LuceneSearch: cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
-                \Logger::debug('LuceneSearch: replaced old index');
-                \Logger::info('LuceneSearch: Finished crawl');
+                if( is_dir( $tmpIndex ) )
+                {
+                    exec('rm -Rf ' . $indexDir);
+                    \Logger::debug('LuceneSearch: rm -Rf ' . $indexDir);
+
+
+                    exec('cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
+
+                    \Logger::debug('LuceneSearch: cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
+                    \Logger::debug('LuceneSearch: replaced old index');
+                    \Logger::info('LuceneSearch: Finished crawl');
+                }
+                else
+                {
+                    \Logger::err('LuceneSearch: skipped index replacing. no tmp index found.');
+                }
 
             }
             catch (\Exception $e)
@@ -114,11 +120,7 @@ class Executer {
         //just to make sure nothing else starts the crawler right now
         self::setCrawlerState('frontend', 'started', false);
 
-        $db = \Pimcore\Db::get();
-        $db->query('DROP TABLE IF EXISTS `plugin_lucenesearch_frontend_crawler_todo`;');
-        $db->query('DROP TABLE IF EXISTS `plugin_lucenesearch_indexer_todo`;');
-
-        \Logger::debug('LuceneSearch: forcing frontend crawler stop - dropped tables.');
+        \Logger::debug('LuceneSearch: forcing frontend crawler stop.');
 
         self::setStopLock('frontend', false);
         self::setCrawlerState('frontend', 'finished', false);
@@ -186,6 +188,8 @@ class Executer {
 
     public static function generateSitemap()
     {
+        return FALSE;
+
         $sitemapDir = PIMCORE_WEBSITE_PATH . '/var/search/sitemap';
 
         if(is_dir($sitemapDir) && !is_writable($sitemapDir))

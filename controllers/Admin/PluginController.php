@@ -148,6 +148,12 @@ class LuceneSearch_Admin_PluginController extends Admin {
             Configuration::set('frontend.ignoreLanguage', TRUE);
         }
 
+        Configuration::set('frontend.ignoreCountry', FALSE);
+        if ($values['frontend.ignoreCountry'])
+        {
+            Configuration::set('frontend.ignoreCountry', TRUE);
+        }
+
         Configuration::set('frontend.fuzzySearch', FALSE);
         if ($values['frontend.fuzzySearch'])
         {

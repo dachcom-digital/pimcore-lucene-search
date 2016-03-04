@@ -67,11 +67,18 @@ class LuceneSearch_FrontendController extends Action
                     $this->searchLanguage = null;
                 }
 
-                $country = $this->getParam('country');
-
-                if( !empty( $country ) )
+                if (Configuration::get('frontend.ignoreCountry') !== TRUE)
                 {
-                    $this->searchCountry = $country;
+                    $this->searchCountry = $this->getParam('country');
+
+                    if (empty($this->searchCountry))
+                    {
+                        $this->searchLanguage = 'international';
+                    }
+                }
+                else
+                {
+                    $this->searchCountry = null;
                 }
 
                 $this->fuzzySearch = false;
@@ -183,6 +190,14 @@ class LuceneSearch_FrontendController extends Action
                     $languageTerm = new \Zend_Search_Lucene_Index_Term($language, 'lang');
                     $languageQuery = new \Zend_Search_Lucene_Search_Query_Term($languageTerm);
                     $query->addSubquery($languageQuery, true);
+                }
+
+                if (!empty($this->searchCountry))
+                {
+                    $country = str_replace(array('_', '-'), '', $this->searchCountry);
+                    $countryTerm = new \Zend_Search_Lucene_Index_Term($country, 'country');
+                    $countryQuery = new \Zend_Search_Lucene_Search_Query_Term($countryTerm);
+                    $query->addSubquery($countryQuery, true);
                 }
 
                 if (!empty($categoryFromRequest))
@@ -490,6 +505,14 @@ class LuceneSearch_FrontendController extends Action
                                 $languageTerm = new \Zend_Search_Lucene_Index_Term($language, 'lang');
                                 $languageQuery = new \Zend_Search_Lucene_Search_Query_Term($languageTerm);
                                 $query->addSubquery($languageQuery, true);
+                            }
+
+                            if (!empty($this->searchCountry))
+                            {
+                                $country = str_replace(array('_', '-'), '', $this->searchCountry);
+                                $countryTerm = new \Zend_Search_Lucene_Index_Term($country, 'country');
+                                $countryQuery = new \Zend_Search_Lucene_Search_Query_Term($countryTerm);
+                                $query->addSubquery($countryQuery, true);
                             }
 
                             if (!empty($category))

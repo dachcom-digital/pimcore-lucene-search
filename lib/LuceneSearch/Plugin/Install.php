@@ -8,16 +8,16 @@ class Install {
 
     private $configFile = NULL;
 
-    public function __construct() {
-
+    public function __construct()
+    {
         $this->configFile = LUCENESEARCH_CONFIGURATION_FILE;
-
     }
 
-    public function installConfigFile() {
-
+    public function installConfigFile()
+    {
         Configuration::set('frontend.index', 'website/var/search/frontend/index/');
         Configuration::set('frontend.ignoreLanguage', FALSE);
+        Configuration::set('frontend.ignoreCountry', TRUE);
         Configuration::set('frontend.fuzzySearch', FALSE);
         Configuration::set('frontend.enabled', FALSE);
         Configuration::set('frontend.urls', '');
@@ -40,8 +40,8 @@ class Install {
         return TRUE;
     }
 
-    public function createDirectories() {
-
+    public function createDirectories()
+    {
         //create folder for search in website
         if( !is_dir( (PIMCORE_WEBSITE_PATH . '/var/search' ) ) )
         {
@@ -60,8 +60,8 @@ class Install {
 
     }
 
-    public function createRedirect() {
-
+    public function createRedirect()
+    {
         //add redirect for sitemap.xml
         $redirect = new \Pimcore\Model\Redirect();
         $redirect->setValues(array('source' => '/\/sitemap.xml/', 'target' => '/plugin/LuceneSearch/frontend/sitemap', 'statusCode' => 301, 'priority' => 10));
@@ -77,7 +77,8 @@ class Install {
     {
         $configFile = \Pimcore\Config::locateConfigFile('lucenesearch_configurations');
 
-        if (is_file($configFile  . '.php')) {
+        if (is_file($configFile  . '.php'))
+        {
             rename($configFile  . '.php', $configFile  . '.BACKUP');
         }
     }

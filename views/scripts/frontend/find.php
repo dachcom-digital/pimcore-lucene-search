@@ -5,8 +5,8 @@
 <?php if(!$this->omitJsIncludes){?>
 
     <script src="/plugins/LuceneSearch/static/js/frontend/jquery-1.3.2.min.js"></script>
-    <link rel="stylesheet" href="/plugins/LuceneSearch/static/css/jquery-autocomplete.css" type="text/css" />
-    <script type="text/javascript" src="/plugins/LuceneSearch/static/js/frontend/jquery.autocomplete.js"></script>
+    <link rel="stylesheet" href="/plugins/LuceneSearch/static/css/jquery.auto-complete.css" type="text/css" />
+    <script type="text/javascript" src="/plugins/LuceneSearch/static/js/frontend/jquery.auto-autocomplete.min.js"></script>
 
 <?php } ?>
 
@@ -23,20 +23,25 @@
                 <option <?php if($this->category==$category){ ?>selected="selected"<?php } ?> value="<?php echo  $category ?>"><?php echo $this->translate('search_category_'.$category)?></option>
                 <?php } ?>
             </select>
-        <?php } ?>
-        <span class="submit_wrapper"><input class="submit" type="submit" value="<?php echo  $this->translate('search_submit')?>"/></span>
 
-             <script type="text/javascript">
-                if (jQuery().autocomplete) {// Only use autocompletion if the plugin is loaded
-                  $('#query').autocomplete('/plugin/LuceneSearch/frontend/autocomplete/',{
-                     minChars:3,
-                     cacheLength: 0,
-                     extraParams: {
-                         cat: function() { return $("#searchCat").val(); }
-                     }
-                  });
-                }
-            </script>
+        <?php } ?>
+        <span class="submit_wrapper">
+            <input class="submit" type="submit" value="<?php echo  $this->translate('search_submit')?>"/>
+        </span>
+
+         <script type="text/javascript">
+
+             $('#query').autoComplete({
+                 minChars: 3,
+                 source: function(term, response) {
+                     $.getJSON('/plugin/LuceneSearch/frontend/autocomplete/', { q : term, language : $("#searchLanguage").val(), country : $("#searchCountry").val(), cat : $("#searchCat").val() }, function(data){
+                         response(data);
+
+                     });
+                 }
+             });
+
+        </script>
 
     </form>
 </div>

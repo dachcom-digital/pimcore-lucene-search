@@ -21,7 +21,9 @@ use LuceneSearch\Crawler\Filter\NegativeUriFilter;
 
 class Parser {
 
-
+    /**
+     * @var \Zend_Search_Lucene
+     */
     protected $index = null;
 
     /**
@@ -76,31 +78,11 @@ class Parser {
      */
     protected $allowSubDomains = FALSE;
 
-
-    /**
-     * @var \Zend_Db_Adapter_Abstract
-     */
-    protected $db;
-
     protected $maxLinkDepth;
 
     public function __construct()
     {
-        $this->db = \Pimcore\Db::get();
-
-        $this->db->query( \LuceneSearch\Tool\Tool::getCrawlerQuery() );
-
-        try
-        {
-            $result = $this->db->describeTable('plugin_lucenesearch_contents_temp');
-            $this->readyToCrawl = !empty($result);
-        }
-        catch (\Zend_Db_Statement_Exception $e)
-        {
-            \Logger::alert('LuceneSearch: could not set up table for crawler contents.', \Zend_Log::ERR);
-            $this->readyToCrawl = FALSE;
-        }
-
+        $this->checkAndPrepareIndex();
     }
 
     public function setDepth( $depth = 0 )
@@ -168,9 +150,11 @@ class Parser {
         return $this;
     }
 
+    /**
+     * Start Parsing Urls!
+     */
     public function startParser()
     {
-
         $start = microtime();
 
         // Create spider
@@ -253,15 +237,17 @@ class Parser {
         echo "\n  SKIPPED:   " . count($statsHandler->getFiltered());
         echo "\n  FAILED:    " . count($statsHandler->getFailed());
         echo "\n  PERSISTED: " . count($statsHandler->getPersisted());
+        echo "\n";
 
         $peakMem = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
         $totalTime = round(microtime(true) - $start, 2);
         $totalDelay = round($politenessPolicyEventListener->totalDelay / 1000 / 1000, 2);
 
-        echo "\n\nMETRICS:";
+        echo "\n  METRICS:";
         echo "\n  PEAK MEM USAGE:       " . $peakMem . 'MB';
         echo "\n  TOTAL TIME:           " . $totalTime . 's';
         echo "\n  POLITENESS WAIT TIME: " . $totalDelay . 's';
+        echo "\n\n";
 
         $downloaded = $spider->getDownloader()->getPersistenceHandler();
 
@@ -273,62 +259,6 @@ class Parser {
 
     }
 
-    /**
-     * @return void writes lucene documents from db to lucene index
-     */
-    public function doIndex()
-    {
-        $this->db = \Pimcore\Db::reset();
-        $this->checkAndPrepareIndex();
-
-        do
-        {
-            $idsDone = array();
-            $rows = $this->getIndexerRows();
-
-            if ($rows !== FALSE and count($rows) > 0)
-            {
-                foreach ($rows as $row)
-                {
-                    $id = $row['id'];
-                    $doc = unserialize($row['content']);
-                    if ($doc instanceof \Zend_Search_Lucene_Document)
-                    {
-                        $this->index->addDocument($doc);
-                        \Logger::debug(get_class($this) . ': Added to lucene index db entry id [ ' . $id . ' ] ', \Zend_Log::DEBUG);
-                    }
-                    else
-                    {
-                        \Logger::error(get_class($this) . ': could not unserialize lucene document from db row [ ' . $id . ' ] ', \Zend_Log::DEBUG);
-                        \Logger::error(get_class($this) . ': string length: ' . strlen($row['content']));
-                    }
-
-                    $idsDone[] = $id;
-                }
-                try
-                {
-                    $this->db->delete('plugin_lucenesearch_indexer_todo', 'id in (' . implode(',', $idsDone) . ')');
-                }
-                catch (\Exception $e)
-                {
-                    \Logger::warn('LuceneSearch: Could not delete plugin_lucenesearch_indexer_todo - maybe forcing crawler stop right now?');
-                }
-
-            }
-
-        } while ($rows !== FALSE and count($rows) > 0);
-
-        // optimize lucene index for better performance
-        $this->index->optimize();
-
-        //clean up
-        if (is_object($this->index) and $this->index instanceof \Zend_Search_Lucene_Proxy)
-        {
-            $this->index->removeReference();
-            unset($this->index);
-            \Logger::log('LuceneSearch: Closed frontend index references',\Zend_Log::DEBUG);
-        }
-    }
 
     /**
      * @param $response \Guzzle\Http\Message\Response
@@ -337,22 +267,10 @@ class Parser {
     {
         $resource = $response->getResponse();
 
-        $title = '';
-
-        $hasTitle = $response->getCrawler()->filterXpath('//title')->count() > 0;
-
-        if( $hasTitle === TRUE )
-        {
-            $title = $response->getCrawler()->filterXpath('//title')->text();
-        }
-
         $host = $response->getUri()->getHost();
         $link = $response->getUri()->toString();
 
-        $contentLength = (int) $resource->getHeader('Content-Length')->__toString();
         $contentType = $resource->getHeader('Content-Type')->__toString();
-
-        echo "\n - " . str_pad("[" . round($contentLength / 1024), 4, ' ', STR_PAD_LEFT) . "KB] $link - (" . $title. ")";
 
         if (!empty($contentType))
         {
@@ -386,79 +304,96 @@ class Parser {
 
         $html = $resource->getBody();
 
-       // $canonicalLink = $this->checkForCanonical($html); // CHECK FOR CANONICAL: REDIRECT IF FOUND? @fixme!
+        //page has canonical link: do not track!
+        $hasCanonicalLink = $crawler->filterXpath('//link[@rel="canonical"]')->count() > 0;
 
+        if( $hasCanonicalLink === TRUE )
+        {
+            \Logger::debug('LuceneSearch: not indexing [ ' . $link. ' ] because it has canonical links');
+            return FALSE;
+        }
+
+        //page has no follow: do not track!
         $hasNoFollow = $crawler->filterXpath('//meta[@content="nofollow"]')->count() > 0;
+
+        if( $hasNoFollow === TRUE )
+        {
+            \Logger::debug('LuceneSearch: not indexing [ ' . $link. ' ] because it has robots noindex');
+            return FALSE;
+        }
+
         $hasCountryMeta = $crawler->filterXpath('//meta[@name="country"]')->count() > 0;
+        $hasTitle = $response->getCrawler()->filterXpath('//title')->count() > 0;
 
         $country = FALSE;
+        $title = '';
 
         if( $hasCountryMeta === TRUE )
         {
             $country = $crawler->filterXpath('//meta[@name="country"]')->attr('content');
         }
 
+        if( $hasTitle === TRUE )
+        {
+            $title = $response->getCrawler()->filterXpath('//title')->text();
+        }
+
+        $contentLength = (int) $resource->getHeader('Content-Length')->__toString();
+        echo "\n - " . str_pad("[" . round($contentLength / 1024), 4, ' ', STR_PAD_LEFT) . "KB] $link - $title";
+
         \Zend_Search_Lucene_Document_Html::setExcludeNoFollowLinks(true);
 
+        $documentHasDelimiter = FALSE;
 
-        if ( $hasNoFollow === FALSE )
+        //now limit to search content area if indicators are set and found in this document
+        if (!empty($this->searchStartIndicator))
         {
-            $documentHasDelimiter = FALSE;
+            $documentHasDelimiter = strpos($html, $this->searchStartIndicator) !== FALSE;
+        }
 
-            //now limit to search content area if indicators are set and found in this document
-            if (!empty($this->searchStartIndicator))
+        if ($documentHasDelimiter && !empty($this->searchStartIndicator) && !empty($this->searchEndIndicator))
+        {
+            //get part before html head starts
+            $top = explode('<head>', $html);
+
+            //get html head
+            $htmlHead = array();
+            preg_match_all('@(<head[^>]*?>.*?</head>)@si', $html, $htmlHead);
+            $head = $top[0] . '<head></head>';
+
+            if (is_array($htmlHead[0]))
             {
-                $documentHasDelimiter = strpos($html, $this->searchStartIndicator) !== FALSE;
+                $head = $top[0] . $htmlHead[0][0];
             }
 
-            if ($documentHasDelimiter && !empty($this->searchStartIndicator) && !empty($this->searchEndIndicator))
+            //get snippets within allowed content areas
+            $htmlSnippets = array();
+            $minified = str_replace(array('\r\n', '\r', '\n'), '', $html);
+            $minified = preg_replace('@[ \t\n\r\f]+@', ' ', $minified);
+
+            preg_match_all('%' . $this->searchStartIndicator . '(.*?)' . $this->searchEndIndicator . '%si', $minified, $htmlSnippets);
+
+            $html = $head;
+
+            if (is_array($htmlSnippets[0]))
             {
-                //get part before html head starts
-                $top = explode('<head>', $html);
-
-                //get html head
-                $htmlHead = array();
-                preg_match_all('@(<head[^>]*?>.*?</head>)@si', $html, $htmlHead);
-                $head = $top[0] . '<head></head>';
-
-                if (is_array($htmlHead[0]))
+                foreach ($htmlSnippets[0] as $snippet)
                 {
-                    $head = $top[0] . $htmlHead[0][0];
+                    $html .= ' ' . $snippet;
                 }
-
-                //get snippets within allowed content areas
-                $htmlSnippets = array();
-                $minified = str_replace(array('\r\n', '\r', '\n'), '', $html);
-                $minified = preg_replace('@[ \t\n\r\f]+@', ' ', $minified);
-
-                preg_match_all('%' . $this->searchStartIndicator . '(.*?)' . $this->searchEndIndicator . '%si', $minified, $htmlSnippets);
-
-                $html = $head;
-                if (is_array($htmlSnippets[0]))
-                {
-                    foreach ($htmlSnippets[0] as $snippet)
-                    {
-                        $html .= ' ' . $snippet;
-                    }
-                }
-
-                //close html tag
-                $html .= '</html>';
-
             }
 
-            $language = $this->getLanguageFromResponse($resource, $html);
-            $encoding = $this->getEncodingFromResponse($resource, $html);
+            //close html tag
+            $html .= '</html>';
 
-            $this->addHtmlToIndex($html, $link, $language, $country, $encoding, $host);
+        }
 
-            \Logger::info('LuceneSearch: Added to indexer stack [ ' . $link. ' ]');
-        }
-        else
-        {
-            $this->addNoIndexPage($link);
-            \Logger::debug('LuceneSearch: not indexing [ ' . $link. ' ] because it has robots noindex');
-        }
+        $language = $this->getLanguageFromResponse($resource, $html);
+        $encoding = $this->getEncodingFromResponse($resource, $html);
+
+        $this->addHtmlToIndex($html, $link, $language, $country, $encoding, $host);
+
+        \Logger::info('LuceneSearch: Added to indexer stack [ ' . $link. ' ]');
 
         return true;
 
@@ -529,21 +464,14 @@ class Parser {
 
             try
             {
-                $this->db->insert( 'plugin_lucenesearch_contents_temp',  array(
-                        'id' => md5($url),
-                        'uri' => $url,
-                        'host' => $host,
-                        'content' =>  $fileContent
-                    )
-                );
-
                 $doc = new \Zend_Search_Lucene_Document();
 
                 $doc->addField(\Zend_Search_Lucene_Field::Text('body',$fileContent,'utf-8'));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $language));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $url));
-                $serialized = serialize($doc);
-                $this->db->insert('plugin_lucenesearch_indexer_todo', array('content' => $serialized));
+
+                //no add document to lucene index!
+                $this->addDocumentToIndex( $doc );
 
             }
             catch (\Exception $e)
@@ -576,7 +504,6 @@ class Parser {
         {
             $content = $this->getPlainTextFromHtml($html);
 
-            $this->db->insert('plugin_lucenesearch_contents_temp', array('id' => md5($url), 'uri' => $url, 'host' => $host, 'content' => $content, 'html' => $html));
             $doc = \Zend_Search_Lucene_Document_Html::loadHTML($html, false, 'utf-8');
 
             //add h1 to index
@@ -606,9 +533,8 @@ class Parser {
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('country', $country));
             }
 
-            $serialized = serialize($doc);
-
-            $this->db->insert('plugin_lucenesearch_indexer_todo', array('content' => $serialized));
+            //no add document to lucene index!
+            $this->addDocumentToIndex( $doc );
 
         }
         catch (\Exception $e)
@@ -617,17 +543,21 @@ class Parser {
         }
     }
 
-    protected function addNoIndexPage($url)
+    /**
+     * @param $doc \Zend_Search_Lucene_Document
+     */
+    public function addDocumentToIndex( $doc )
     {
-        try
+        if ($doc instanceof \Zend_Search_Lucene_Document)
         {
-            $this->db->insert('plugin_lucenesearch_frontend_crawler_noindex', array('id' => md5($url), 'uri' => $url));
-            \Logger::log('LuceneSearch: Adding [ ' . $url. ' ] to noindex pages', \Zend_Log::DEBUG);
+            $this->index->addDocument($doc);
+            \Logger::debug(get_class($this) . ': Added to lucene index db entry', \Zend_Log::DEBUG);
         }
-        catch (\Exception $e)
+        else
         {
+            \Logger::error(get_class($this) . ': could not parse lucene document ', \Zend_Log::DEBUG);
+        }
 
-        }
     }
 
     /**
@@ -802,30 +732,19 @@ class Parser {
 
     }
 
-    /**
-     * @return array|FALSE
-     */
-    protected function getIndexerRows()
-    {
-        try
+    public function optimizeIndex() {
+
+        // optimize lucene index for better performance
+        $this->index->optimize();
+
+        //clean up
+        if (is_object($this->index) and $this->index instanceof \Zend_Search_Lucene_Proxy)
         {
-            $rows = $this->db->fetchAll('SELECT * FROM plugin_lucenesearch_indexer_todo ORDER BY id', array());
-            return $rows;
-        }
-        catch (\Exception $e)
-        {
-            // probably table was already removed because crawler is finished
-            \Logger::log('LuceneSearch: Could not extract next lucene document from table plugin_lucenesearch_frontend_crawler_todo ', \Zend_Log::DEBUG);
-            return FALSE;
+            $this->index->removeReference();
+            unset($this->index);
+            \Logger::log('LuceneSearch: Closed frontend index references',\Zend_Log::DEBUG);
         }
 
-    }
-
-    public function collectGarbage() {
-
-        $this->db->query('DROP TABLE IF EXISTS `plugin_lucenesearch_contents`;');
-        $this->db->query('RENAME TABLE `plugin_lucenesearch_contents_temp` TO `plugin_lucenesearch_contents`;');
-
-        \Logger::debug('LuceneSearch: replacing old index ...');
+        \Logger::debug('LuceneSearch: optimizeIndex.');
     }
 }
