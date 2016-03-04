@@ -76,11 +76,11 @@ class LuceneSearch_FrontendController extends Action
 
                     if( $this->searchCountry == 'global')
                     {
-                        $this->searchLanguage = 'international';
+                        $this->searchCountry = 'international';
                     }
                     else if (empty($this->searchCountry))
                     {
-                        $this->searchLanguage = 'international';
+                        $this->searchCountry = 'international';
                     }
                 }
                 else
