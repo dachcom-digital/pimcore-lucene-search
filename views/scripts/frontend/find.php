@@ -126,7 +126,7 @@
 				<a href="<?php echo  $searchResult['url']?>"><?php if(!empty($searchResult['title']) and trim($searchResult['title'])!='') { echo trim($searchResult['title']); } else { echo $searchResult['url']; }?></a><br/>
 				<?php if($searchResult['h1']){?><strong><?php echo  $searchResult['h1'] ?></strong>  <?php } ?>
                 <div id="resultSumary_<?php echo  $counter ?>">
-					... <?php echo  $searchResult['sumary']?> ...
+					... <?php echo  $searchResult['summary']?> ...
 				</div>
 
 				<?php $counter++;?>
@@ -150,7 +150,7 @@
 <a href="<?php echo $searchResult['url']?>"><?php if(!empty($searchResult['title']) and trim($searchResult['title'])!='') { echo trim($searchResult['title']); } else { echo $searchResult['url']; }?></a><br/>
 <?php if($searchResult['h1']){?><strong><?php echo  $searchResult['h1'] ?></strong>  <?php } ?>
 <div id="resultSumary_<?php echo  $counter ?>">
-    ... <?php echo  $searchResult['sumary']?> ...
+    ... <?php echo  $searchResult['summary']?> ...
 </div>
 <?php $counter++;?>
 </div>

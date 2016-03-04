@@ -79,6 +79,8 @@ class Executer {
 
                 if( is_dir( $tmpIndex ) )
                 {
+                    echo "\n";
+
                     exec('rm -Rf ' . $indexDir);
                     \Logger::debug('LuceneSearch: rm -Rf ' . $indexDir);
 

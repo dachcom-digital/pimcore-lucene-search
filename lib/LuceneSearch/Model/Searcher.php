@@ -15,34 +15,26 @@ class Searcher {
     }
 
     /**
-     * @param  $url
-     * @param  $queryStr
-     * @return string
+     * @param $content
+     * @param $queryStr
+     *
+     * @return mixed|string
      */
-    public function getSumaryForUrl($url,$queryStr)
+    public function getSummaryForUrl($content,$queryStr)
     {
+        $summary =  $this->getHighlightedSumary($content,array($queryStr));
 
-        $query = 'SELECT content from plugin_lucenesearch_contents where id = ? ';
-        $params = array(md5($url));
-        $data = $this->db->fetchRow($query,$params);
-        $summary = null;
-
-        if($data)
+        if(empty($summary))
         {
-            $summary =  $this->getHighlightedSumary($data['content'],array($queryStr));
-
-            if(empty($summary))
+            $tokens = explode(' ',$queryStr);
+            if(count($tokens)>1)
             {
-                $tokens = explode(' ',$queryStr);
-                if(count($tokens)>1)
+                foreach($tokens as $token)
                 {
-                    foreach($tokens as $token)
+                    $summary = $this->getHighlightedSumary($content,$tokens);
+                    if(!empty($summary))
                     {
-                        $summary = $this->getHighlightedSumary($data['content'],$tokens);
-                        if(!empty($summary))
-                        {
-                            break;
-                        }
+                        break;
                     }
                 }
             }

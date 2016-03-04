@@ -33,6 +33,9 @@ class LuceneSearch_FrontendController extends Action
      */
     protected $categories = array();
 
+    /**
+     * @throws \Exception
+     */
     public function init()
     {
         parent::init();
@@ -71,7 +74,11 @@ class LuceneSearch_FrontendController extends Action
                 {
                     $this->searchCountry = $this->getParam('country');
 
-                    if (empty($this->searchCountry))
+                    if( $this->searchCountry == 'global')
+                    {
+                        $this->searchLanguage = 'international';
+                    }
+                    else if (empty($this->searchCountry))
                     {
                         $this->searchLanguage = 'international';
                     }
@@ -266,19 +273,19 @@ class LuceneSearch_FrontendController extends Action
 
         $searcher = new Searcher();
 
-        $this->view->groupByCategory = $this->_getParam('groupByCategory');
-        $this->view->omitSearchForm = $this->_getParam('omitSearchForm');
-        $this->view->categoryOrder = $this->_getParam('categoryOrder');
-        $this->view->omitJsIncludes = $this->_getParam('omitJsIncludes');
+        $this->view->groupByCategory = $this->getParam('groupByCategory');
+        $this->view->omitSearchForm = $this->getParam('omitSearchForm');
+        $this->view->categoryOrder = $this->getParam('categoryOrder');
+        $this->view->omitJsIncludes = $this->getParam('omitJsIncludes');
 
-        $perPage = $this->_getParam('perPage');
+        $perPage = $this->getParam('perPage');
 
         if (empty($perPage))
         {
             $perPage = 10;
         }
 
-        $page = $this->_getParam('page');
+        $page = $this->getParam('page');
 
         if (empty($page))
         {
@@ -304,13 +311,13 @@ class LuceneSearch_FrontendController extends Action
             $this->view->availableCategories = $categories;
         }
 
-        $doFuzzy = $this->_getParam('fuzzy');
+        $doFuzzy = $this->getParam('fuzzy');
 
         try
         {
             $query = new \Zend_Search_Lucene_Search_Query_Boolean();
 
-            $field = $this->_getParam('field');
+            $field = $this->getParam('field');
 
             if (!empty($field))
             {
@@ -330,7 +337,6 @@ class LuceneSearch_FrontendController extends Action
 
                 $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($queryStr, 'utf-8');
                 $query->addSubquery($userQuery, true);
-
 
                 if (!empty($this->searchLanguage))
                 {
@@ -363,6 +369,7 @@ class LuceneSearch_FrontendController extends Action
                     $categoryQuery = new \Zend_Search_Lucene_Search_Query_Term($categoryTerm);
                     $query->addSubquery($categoryQuery, true);
                 }
+
 
                 $hits = $this->frontendIndex->find($query);
 
@@ -404,17 +411,19 @@ class LuceneSearch_FrontendController extends Action
                     $end = count($validHits) - 1;
                 }
 
+
                 for ($i = $start; $i <= $end; $i++)
                 {
                     $hit = $validHits[$i];
 
                     $url = $hit->getDocument()->getField('url');
                     $title = $hit->getDocument()->getField('title');
+                    $content = $hit->getDocument()->getField('content');
 
                     $searchResult['boost'] = $hit->getDocument()->boost;
                     $searchResult['title'] = $title->value;
                     $searchResult['url'] = $url->value;
-                    $searchResult['sumary'] = $searcher->getSumaryForUrl($url->value, $queryStr);
+                    $searchResult['summary'] = $searcher->getSummaryForUrl($content->value, $queryStr);
 
                     try
                     {
@@ -443,7 +452,6 @@ class LuceneSearch_FrontendController extends Action
                     unset($searchResult);
 
                 }
-
 
             }
 
@@ -563,7 +571,6 @@ class LuceneSearch_FrontendController extends Action
 
                     $this->view->suggestions = $suggestions;
 
-
                 }
             }
 
@@ -575,7 +582,7 @@ class LuceneSearch_FrontendController extends Action
             $this->view->searchResults = array();
         }
 
-        if ($this->_getParam('viewscript'))
+        if ($this->getParam('viewscript'))
         {
             $this->renderScript($this->_getParam('viewscript'));
         }

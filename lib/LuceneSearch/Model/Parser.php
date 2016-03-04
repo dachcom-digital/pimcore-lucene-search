@@ -304,6 +304,9 @@ class Parser {
 
         $html = $resource->getBody();
 
+        $language = $this->getLanguageFromResponse($resource, $html);
+        $encoding = $this->getEncodingFromResponse($resource, $html);
+
         //page has canonical link: do not track!
         $hasCanonicalLink = $crawler->filterXpath('//link[@rel="canonical"]')->count() > 0;
 
@@ -353,27 +356,9 @@ class Parser {
 
         if ($documentHasDelimiter && !empty($this->searchStartIndicator) && !empty($this->searchEndIndicator))
         {
-            //get part before html head starts
-            $top = explode('<head>', $html);
+            preg_match_all('%' . $this->searchStartIndicator . '(.*?)' . $this->searchEndIndicator . '%si', $html, $htmlSnippets);
 
-            //get html head
-            $htmlHead = array();
-            preg_match_all('@(<head[^>]*?>.*?</head>)@si', $html, $htmlHead);
-            $head = $top[0] . '<head></head>';
-
-            if (is_array($htmlHead[0]))
-            {
-                $head = $top[0] . $htmlHead[0][0];
-            }
-
-            //get snippets within allowed content areas
-            $htmlSnippets = array();
-            $minified = str_replace(array('\r\n', '\r', '\n'), '', $html);
-            $minified = preg_replace('@[ \t\n\r\f]+@', ' ', $minified);
-
-            preg_match_all('%' . $this->searchStartIndicator . '(.*?)' . $this->searchEndIndicator . '%si', $minified, $htmlSnippets);
-
-            $html = $head;
+            $html = '';
 
             if (is_array($htmlSnippets[0]))
             {
@@ -382,16 +367,9 @@ class Parser {
                     $html .= ' ' . $snippet;
                 }
             }
-
-            //close html tag
-            $html .= '</html>';
-
         }
 
-        $language = $this->getLanguageFromResponse($resource, $html);
-        $encoding = $this->getEncodingFromResponse($resource, $html);
-
-        $this->addHtmlToIndex($html, $link, $language, $country, $encoding, $host);
+        $this->addHtmlToIndex($html, $title, $link, $language, $country, $encoding, $host);
 
         \Logger::info('LuceneSearch: Added to indexer stack [ ' . $link. ' ]');
 
@@ -485,7 +463,6 @@ class Parser {
 
         return TRUE;
 
-
     }
 
     /**
@@ -498,13 +475,13 @@ class Parser {
      * @param  string $host
      * @return void
      */
-    protected function addHtmlToIndex($html, $url, $language, $country, $encoding, $host)
+    protected function addHtmlToIndex($html, $title, $url, $language, $country, $encoding, $host)
     {
         try
         {
             $content = $this->getPlainTextFromHtml($html);
 
-            $doc = \Zend_Search_Lucene_Document_Html::loadHTML($html, false, 'utf-8');
+            $doc = new \Zend_Search_Lucene_Document(); //\Zend_Search_Lucene_Document_Html::loadHTML($html, false, 'utf-8');
 
             //add h1 to index
             $headlines = array();
@@ -527,6 +504,9 @@ class Parser {
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('charset', $encoding));
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $language));
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $url));
+
+            $doc->addField(\Zend_Search_Lucene_Field::Text('title', $title));
+            $doc->addField(\Zend_Search_Lucene_Field::Text('content', $content));
 
             if( $country !== FALSE )
             {
