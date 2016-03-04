@@ -160,15 +160,6 @@ class LuceneSearch_Admin_PluginController extends Admin {
             Configuration::set('frontend.ownHostOnly', TRUE);
         }
 
-        /*
-
-        if (is_numeric($values['frontend.crawler.maxThreads']))
-        {
-            Configuration::set('frontend.crawler.maxThreads', (int) $values['frontend.crawler.maxThreads']);
-        }
-
-        */
-
         if (is_numeric($values['frontend.crawler.maxLinkDepth']))
         {
             Configuration::set('frontend.crawler.maxLinkDepth', (int) $values['frontend.crawler.maxLinkDepth']);
@@ -176,6 +167,15 @@ class LuceneSearch_Admin_PluginController extends Admin {
         else
         {
             Configuration::set('frontend.crawler.maxLinkDepth', 15);
+        }
+
+        if (is_numeric($values['frontend.crawler.maxDownloadLimit']))
+        {
+            Configuration::set('frontend.crawler.maxDownloadLimit', (int) $values['frontend.crawler.maxDownloadLimit']);
+        }
+        else
+        {
+            Configuration::set('frontend.crawler.maxDownloadLimit', 0);
         }
 
         Configuration::set('frontend.categories', $values['frontend.categories']);

@@ -70,6 +70,11 @@
 "lucenesearch_frontend_config_incomplete", "Crawler ist not ready to be started. Please complete crawler configuration below"
 "lucenesearch_frontend_crawler_maxlinkdepth","Maximum link depth"
 "lucenesearch_frontend_crawler_maxlinkdepth_description","To avoid loops produced by relative links on a website, a maximum link depth needs to be set. Please choose the value suited to the website to crawl, the default value is 15"
+
+"lucenesearch_frontend_crawler_maxdownloadlimit","Maximum download limit"
+"lucenesearch_frontend_crawler_maxdownloadlimit_description","Constrain crawler to a specific limit of crawled links. Defaults is 0 which means no limit."
+
+
 "lucenesearch_frontend_crawler_stop_failed_description","The crawler did not respond to the stop command within the last 10 Seconds, do you want to force stop it? Forcing the stop does not guarantee that all child processes have finished. It is advised to wait a couple of minutes before starting the crawler again."
 "lucenesearch_frontend_crawler_stop_failed","Could not stop crawler"
 "lucenesearch_please_wait","Please wait ..."

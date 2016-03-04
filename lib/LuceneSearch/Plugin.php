@@ -223,7 +223,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         if(is_null($lang)) {
             try {
                 $lang = \Zend_Registry::get('Zend_Locale')->getLanguage();
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 $lang = 'en';
             }
         }
@@ -347,7 +347,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
                 //there seems to be a problem
                 if ($lastFinished <= ($aDayAgo))
                 {
-                    \Logger::err('Search_PluginPhp: There seems to be a problem with the search crawler! Trying to stop it.');
+                    \Logger::err('LuceneSearch: There seems to be a problem with the search crawler! Trying to stop it.');
                 }
 
                 $this->stopFrontendCrawler(false, false);
@@ -356,7 +356,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         }
         else
         {
-            \Logger::debug('LuceneSearch Plugin is not installed - no maintenance to do for this plugin.');
+            \Logger::debug('LuceneSearch: Plugin is not installed - no maintenance to do for this plugin.');
         }
     }
 

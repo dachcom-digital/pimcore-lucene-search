@@ -188,18 +188,13 @@ class Parser {
         $queueManager->getDispatcher()->addSubscriber($statsHandler);
         $queueManager->getDispatcher()->addSubscriber($LogHandler);
 
-        // Set some sane defaults for this example. We only visit the first level of www.dmoz.org. We stop at 10 queued resources
         $spider->getDiscovererSet()->maxDepth = $this->maxLinkDepth;
 
-        // This time, we set the traversal algorithm to breadth-first. The default is depth-first
         $queueManager->setTraversalAlgorithm(InMemoryQueueManager::ALGORITHM_BREADTH_FIRST);
         $spider->setQueueManager($queueManager);
 
-        // We add an URI discoverer. Without it, the spider wouldn't get past the seed resource.
         $spider->getDiscovererSet()->set(new XPathExpressionDiscoverer("//link[@hreflang]|//a") );
 
-        // Add some prefetch filters. These are executed before a resource is requested.
-        // The more you have of these, the less HTTP requests and work for the processors
         $spider->getDiscovererSet()->addFilter(new AllowedSchemeFilter(array('http')));
         $spider->getDiscovererSet()->addFilter(new AllowedHostsFilter(array($this->seed), $this->allowSubDomains));
 
@@ -209,7 +204,6 @@ class Parser {
         $spider->getDiscovererSet()->addFilter(new UriFilter( $this->invalidLinkRegexes ) );
         $spider->getDiscovererSet()->addFilter(new NegativeUriFilter( $this->validLinkRegexes ) );
 
-        // We add an eventlistener to the crawler that implements a politeness policy. We wait 450ms between every request to the same domain
         $politenessPolicyEventListener = new PolitenessPolicyListener( 1 ); //CHANGE TO 100 !!!!
 
         $spider->getDownloader()->getDispatcher()->addListener(
@@ -220,13 +214,10 @@ class Parser {
         $spider->getDispatcher()->addSubscriber($statsHandler);
         $spider->getDispatcher()->addSubscriber($LogHandler);
 
-        // Let's add something to enable us to stop the script
         $spider->getDispatcher()->addListener(
 
             SpiderEvents::SPIDER_CRAWL_USER_STOPPED,
             function (Event $event) {
-
-                echo "\nCrawl aborted by user.\n";
                 \Logger::log('LuceneSearch: Crawl aborted by user.');
                 exit;
 
@@ -234,8 +225,17 @@ class Parser {
 
         );
 
-        // Let's add a CLI progress meter for fun
-        echo "\nCrawling\n";
+        $spider->getDownloader()->getDispatcher()->addListener(
+            SpiderEvents::SPIDER_CRAWL_PRE_REQUEST,
+            function (Event $event) use ( $spider )
+            {
+                if( !file_exists( PIMCORE_TEMPORARY_DIRECTORY . '/lucene-crawler.tmp' ) )
+                {
+                    $spider->getDispatcher()->dispatch(SpiderEvents::SPIDER_CRAWL_USER_STOPPED);
+                }
+
+            }
+        );
 
         $spider->getDownloader()->getDispatcher()->addListener(
             SpiderEvents::SPIDER_CRAWL_POST_REQUEST,
@@ -248,14 +248,12 @@ class Parser {
         // Execute the crawl
         $result = $spider->crawl();
 
-        // Report
         echo "\n\nSPIDER ID: " . $statsHandler->getSpiderId();
         echo "\n  ENQUEUED:  " . count($statsHandler->getQueued());
         echo "\n  SKIPPED:   " . count($statsHandler->getFiltered());
         echo "\n  FAILED:    " . count($statsHandler->getFailed());
         echo "\n  PERSISTED: " . count($statsHandler->getPersisted());
 
-        // With the information from some of plugins and listeners, we can determine some metrics
         $peakMem = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
         $totalTime = round(microtime(true) - $start, 2);
         $totalDelay = round($politenessPolicyEventListener->totalDelay / 1000 / 1000, 2);
@@ -264,9 +262,6 @@ class Parser {
         echo "\n  PEAK MEM USAGE:       " . $peakMem . 'MB';
         echo "\n  TOTAL TIME:           " . $totalTime . 's';
         echo "\n  POLITENESS WAIT TIME: " . $totalDelay . 's';
-
-        // Finally we could start some processing on the downloaded resources
-        echo "\n\nDOWNLOADED RESOURCES: ";
 
         $downloaded = $spider->getDownloader()->getPersistenceHandler();
 
@@ -316,7 +311,7 @@ class Parser {
                 }
                 catch (\Exception $e)
                 {
-                    \Logger::warn(get_class($this), ' Could not delete plugin_lucenesearch_indexer_todo - maybe forcing crawler stop right now?');
+                    \Logger::warn('LuceneSearch: Could not delete plugin_lucenesearch_indexer_todo - maybe forcing crawler stop right now?');
                 }
 
             }
@@ -350,7 +345,6 @@ class Parser {
         {
             $title = $response->getCrawler()->filterXpath('//title')->text();
         }
-
 
         $host = $response->getUri()->getHost();
         $link = $response->getUri()->toString();

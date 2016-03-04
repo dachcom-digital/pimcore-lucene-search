@@ -338,6 +338,19 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                     },
                     {
                         xtype:'displayfield',
+                        value:t('lucenesearch_frontend_crawler_maxdownloadlimit_description'),
+                        cls: 'description'
+                    },
+                    {
+                        xtype:'textfield',
+                        fieldLabel: t('lucenesearch_frontend_crawler_maxdownloadlimit'),
+                        name: 'frontend.crawler.maxDownloadLimit',
+                        collapsible: false,
+                        autoHeight:true,
+                        value:this.getValue('frontend.crawler.maxDownloadLimit')
+                    },
+                    {
+                        xtype:'displayfield',
                         value:t('lucenesearch_frontend_content_indicator_description'),
                         cls: 'description'
                     },

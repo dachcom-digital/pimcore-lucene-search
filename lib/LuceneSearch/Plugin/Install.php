@@ -27,6 +27,7 @@ class Install {
         Configuration::set('frontend.categories', array());
         Configuration::set('frontend.ownHostOnly', FALSE);
         Configuration::set('frontend.crawler.maxLinkDepth', 15);
+        Configuration::set('frontend.crawler.maxDownloadLimit', 0);
         Configuration::set('frontend.crawler.contentStartIndicator', '');
         Configuration::set('frontend.crawler.contentEndIndicator', '');
         Configuration::set('frontend.crawler.forceStart', FALSE);
