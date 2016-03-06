@@ -444,9 +444,16 @@ class Parser {
             {
                 $doc = new \Zend_Search_Lucene_Document();
 
-                $doc->addField(\Zend_Search_Lucene_Field::Text('body',$fileContent,'utf-8'));
+                $text = preg_replace('/[^ ]{14}[^ ]*/', '', $fileContent);
+                $text = preg_replace('/[^a-zA-Z0-9\s]/', "", $text);
+                $text = preg_replace('/\n[\s]*/',"\n",$text); // remove all leading blanks]
+
+                $doc->addField(\Zend_Search_Lucene_Field::Text('title', basename($url)));
+                $doc->addField(\Zend_Search_Lucene_Field::Text('content', $text));
+
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $language));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $url));
+                $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $host));
 
                 //no add document to lucene index!
                 $this->addDocumentToIndex( $doc );
@@ -504,6 +511,7 @@ class Parser {
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('charset', $encoding));
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $language));
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $url));
+            $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $host));
 
             $doc->addField(\Zend_Search_Lucene_Field::Text('title', $title));
             $doc->addField(\Zend_Search_Lucene_Field::Text('content', $content));
@@ -704,7 +712,7 @@ class Parser {
             }
             catch (\Exception $e)
             {
-                \Logger::log('LuceneSearch: could not open frontend index, creating new one.', \Zend_Log::WARN);
+                \Logger::log('LuceneSearch: could not open frontend index, creating new one.', \Zend_Log::DEBUG);
                 \Zend_Search_Lucene::create($indexDir);
                 $this->index = \Zend_Search_Lucene::open($indexDir);
             }

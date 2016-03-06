@@ -411,7 +411,6 @@ class LuceneSearch_FrontendController extends Action
                     $end = count($validHits) - 1;
                 }
 
-
                 for ($i = $start; $i <= $end; $i++)
                 {
                     $hit = $validHits[$i];

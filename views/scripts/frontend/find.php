@@ -4,15 +4,15 @@
 
 <?php if(!$this->omitJsIncludes){?>
 
-    <script src="/plugins/LuceneSearch/static/js/frontend/jquery-1.3.2.min.js"></script>
+    <script src="/plugins/LuceneSearch/static/js/frontend/jquery-1.12.0.min.js"></script>
     <link rel="stylesheet" href="/plugins/LuceneSearch/static/css/jquery.auto-complete.css" type="text/css" />
-    <script type="text/javascript" src="/plugins/LuceneSearch/static/js/frontend/jquery.auto-autocomplete.min.js"></script>
+    <script type="text/javascript" src="/plugins/LuceneSearch/static/js/frontend/jquery.auto-complete.min.js"></script>
 
 <?php } ?>
 
 <div class="searchForm">
 
-    <form method="post" action="?search=true" id="searchForm">
+    <form method="get" action="?search=true" id="searchForm">
 
         <input type="text" value="<?php echo  $this->query ?>" name="query" id="query" />
         <?php if(is_array($this->availableCategories) and count($this->availableCategories)>0){?>

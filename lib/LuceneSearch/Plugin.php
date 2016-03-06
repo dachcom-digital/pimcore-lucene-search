@@ -242,7 +242,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function frontendCrawlerRunning()
     {
-        if (Configuration::get('frontend.crawler.running')) return true;
+        if (Configuration::get('frontend.crawler.running') || is_file( PIMCORE_TEMPORARY_DIRECTORY . '/lucene-crawler.tmp' )) return true;
         else return false;
     }
 
@@ -298,9 +298,6 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     {
         if (self::frontendConfigComplete())
         {
-            ini_set('memory_limit', '2048M');
-            ini_set('max_execution_time', '-1');
-
             Tool\Executer::runCrawler();
             Tool\Executer::generateSitemap();
         }
@@ -317,6 +314,8 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     public static function forceCrawlerStartOnNextMaintenance($crawler)
     {
         Configuration::set($crawler .'.crawler.forceStart', TRUE);
+        \Logger::debug('LuceneSearch: forced to starting crawl');
+
     }
 
     /**
@@ -329,9 +328,10 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
             $currentHour = date('H', time());
 
             //Frontend recrawl
+            $running = self::frontendCrawlerRunning();
+
             $lastStarted = Configuration::get('frontend.crawler.started');
             $lastFinished = Configuration::get('frontend.crawler.finished');
-            $running = Configuration::get('frontend.crawler.running');
             $aDayAgo = time() - (24 * 60 * 60);
             $forceStart = Configuration::get('frontend.crawler.forceStart');
 
