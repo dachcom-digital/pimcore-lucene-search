@@ -184,6 +184,7 @@ class LuceneSearch_Admin_PluginController extends Admin {
             Configuration::set('frontend.crawler.maxDownloadLimit', 0);
         }
 
+        Configuration::set('frontend.allowedSchemes', $values['frontend.allowedSchemes']);
         Configuration::set('frontend.categories', $values['frontend.categories']);
         Configuration::set('frontend.urls', $values['frontend.urls']);
         Configuration::set('frontend.validLinkRegexes', $values['frontend.validLinkRegexes']);

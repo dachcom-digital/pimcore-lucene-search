@@ -386,6 +386,29 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                     },
                     {
                         xtype:'displayfield',
+                        value:t('lucenesearch_frontend_allowedschemes_description'),
+                        cls: 'description'
+                    },
+                    {
+                        xtype: 'tagfield',
+                        fieldLabel: t('lucenesearch_frontend_allowedschemes'),
+                        name: 'frontend.allowedSchemes',
+
+                        store: this.categoriesStore,
+                        value : this.getValue('frontend.allowedSchemes'),
+                        valueField: 'allowedschemes',
+                        displayField: 'allowedschemes',
+                        stacked : true,
+                        hideTrigger: true,
+                        expand: Ext.emptyFn,
+                        forceSelection: false,
+                        createNewOnEnter: true,
+                        queryMode: 'local',
+                        componentCls: 'superselect-no-drop-down'
+
+                    },
+                    {
+                        xtype:'displayfield',
                         value:t('lucenesearch_frontend_categories_description'),
                         cls: 'description'
                     },

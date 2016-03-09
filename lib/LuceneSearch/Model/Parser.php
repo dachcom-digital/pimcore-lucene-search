@@ -57,6 +57,11 @@ class Parser {
     protected $downloadLimit = 0;
 
     /**
+     * @var array
+     */
+    protected $allowedSchemes = array();
+
+    /**
      * indicates where the content relevant for search starts
      * @var string
      */
@@ -105,6 +110,12 @@ class Parser {
     public function setDownloadLimit( $downloadLimit = 0 )
     {
         $this->downloadLimit = $downloadLimit;
+        return $this;
+    }
+
+    public function setAllowedSchemes( $allowedSchemes = array() )
+    {
+        $this->allowedSchemes = $allowedSchemes;
         return $this;
     }
 
@@ -179,7 +190,7 @@ class Parser {
 
         $spider->getDiscovererSet()->set(new XPathExpressionDiscoverer("//link[@hreflang]|//a") );
 
-        $spider->getDiscovererSet()->addFilter(new AllowedSchemeFilter(array('http')));
+        $spider->getDiscovererSet()->addFilter(new AllowedSchemeFilter($this->allowedSchemes));
         $spider->getDiscovererSet()->addFilter(new AllowedHostsFilter(array($this->seed), $this->allowSubDomains));
 
         $spider->getDiscovererSet()->addFilter(new UriWithHashFragmentFilter());
@@ -427,13 +438,16 @@ class Parser {
 
         curl_close($ch);
 
+        $verboseCommand = \Pimcore::inDebugMode() ? '' : '-q ';
+
         try
         {
-            $cmnd = '-layout ' . $tmpPdfFile . ' ' . $tmpFile;
+            $cmnd = $verboseCommand . $tmpPdfFile . ' ' . $tmpFile;
             exec( $pdftotextBin . ' ' . $cmnd);
         }
         catch( \Exception $e )
         {
+            \Logger::log($e->getMessage());
         }
 
         if( is_file( $tmpFile ) )

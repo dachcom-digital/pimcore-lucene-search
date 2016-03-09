@@ -62,6 +62,7 @@ class Executer {
                         ->setSearchStartIndicator(Configuration::get('frontend.crawler.contentStartIndicator'))
                         ->setSearchEndIndicator(Configuration::get('frontend.crawler.contentEndIndicator'))
                         ->setAllowSubdomain( FALSE )
+                        ->setAllowedSchemes( Configuration::get('frontend.allowedSchemes') )
                         ->setDownloadLimit( Configuration::get('frontend.crawler.maxDownloadLimit') )
                         ->setSeed( $urls[0] );
 
@@ -82,7 +83,6 @@ class Executer {
                 {
                     exec('rm -Rf ' . $indexDir);
                     \Logger::debug('LuceneSearch: rm -Rf ' . $indexDir);
-
 
                     exec('cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
 
