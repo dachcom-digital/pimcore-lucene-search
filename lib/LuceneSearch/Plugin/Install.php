@@ -71,9 +71,6 @@ class Install {
         return TRUE;
     }
 
-    /**
-     * Remove CoreShop Config
-     */
     public function removeConfig()
     {
         $configFile = \Pimcore\Config::locateConfigFile('lucenesearch_configurations');
