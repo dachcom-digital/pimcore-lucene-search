@@ -49,7 +49,7 @@ class Executer {
                     $invalidLinkRegexes = array();
                 }
 
-                self::setCrawlerState('frontend', 'started', true, true);
+                self::setCrawlerState('frontend', 'started', true);
 
                 try
                 {
@@ -74,7 +74,7 @@ class Executer {
 
                 catch(\Exception $e) { }
 
-                self::setCrawlerState('frontend', 'finished', false, true);
+                self::setCrawlerState('frontend', 'finished', false);
 
                 //only remove index, if tmp exists!
                 $tmpIndex = str_replace('/index', '/tmpindex', $indexDir);
@@ -108,25 +108,14 @@ class Executer {
 
     /**
      * @static
-     * @param bool $playNice
-     * @param bool $isFrontendCall
      * @return bool
      */
-    public static function stopCrawler($playNice = true, $isFrontendCall = false)
+    public static function stopCrawler()
     {
         \Logger::debug('LuceneSearch: forcing frontend crawler stop');
 
-        self::setStopLock('frontend', true);
-
-        //just to make sure nothing else starts the crawler right now
-        self::setCrawlerState('frontend', 'started', false);
-
-        \Logger::debug('LuceneSearch: forcing frontend crawler stop.');
-
         self::setStopLock('frontend', false);
         self::setCrawlerState('frontend', 'finished', false);
-
-        \Zend_Registry::set('dings', true);
 
         return true;
 
@@ -141,22 +130,15 @@ class Executer {
      */
     public static function setCrawlerState($crawler, $action, $running, $setTime = true)
     {
-        $run = FALSE;
-
-        if ($running)
-        {
-            $run = TRUE;
-        }
-
         Configuration::set($crawler .'.crawler.forceStart', FALSE);
-        Configuration::set($crawler .'.crawler.running', $run);
+        Configuration::set($crawler .'.crawler.running', $running);
 
         if( $action == 'started' && $running == TRUE )
         {
             touch( PIMCORE_TEMPORARY_DIRECTORY . '/lucene-crawler.tmp');
         }
 
-        if( $action == 'finished' && $run == FALSE)
+        if( $action == 'finished' && $running == FALSE)
         {
             if( is_file( PIMCORE_TEMPORARY_DIRECTORY . '/lucene-crawler.tmp' ) )
             {

@@ -286,12 +286,11 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
     /**
      * @static
-     * @param bool $playNice
      * @return bool
      */
-    public static function stopFrontendCrawler($playNice = true, $isFrontendCall = false)
+    public static function stopFrontendCrawler()
     {
-        return Tool\Executer::stopCrawler($playNice, $isFrontendCall);
+        return Tool\Executer::stopCrawler();
     }
 
     public function frontendCrawl()
@@ -337,20 +336,16 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
             $enabled = Configuration::get('frontend.enabled');
 
-            if ($enabled && ((!$running && (is_bool($lastStarted) || $lastStarted <= $aDayAgo) && $currentHour > 1 && $currentHour < 3) || $forceStart))
+            if ($enabled && ( (!$running && (is_bool($lastStarted) || $lastStarted > $aDayAgo) && $currentHour > 1 && $currentHour < 3) || $forceStart))
             {
                 \Logger::debug('starting frontend recrawl...');
                 $this->frontendCrawl();
             }
-            else if ($running && ($lastFinished <= ($aDayAgo)))
+            else if ($running && ( $lastFinished > $aDayAgo ))
             {
                 //there seems to be a problem
-                if ($lastFinished <= ($aDayAgo))
-                {
-                    \Logger::err('LuceneSearch: There seems to be a problem with the search crawler! Trying to stop it.');
-                }
-
-                $this->stopFrontendCrawler(false, false);
+                \Logger::err('LuceneSearch: There seems to be a problem with the search crawler! Trying to stop it.');
+                $this->stopFrontendCrawler();
             }
 
         }

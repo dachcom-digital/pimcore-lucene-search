@@ -338,18 +338,27 @@ class Parser {
 
         $hasCountryMeta = $crawler->filterXpath('//meta[@name="country"]')->count() > 0;
         $hasTitle = $response->getCrawler()->filterXpath('//title')->count() > 0;
+        $hasRestriction = $response->getCrawler()->filterXpath('//meta[@name="m:groups"]')->count() > 0;
 
         $country = FALSE;
-        $title = '';
 
         if( $hasCountryMeta === TRUE )
         {
             $country = $crawler->filterXpath('//meta[@name="country"]')->attr('content');
         }
 
+        $title = '';
+
         if( $hasTitle === TRUE )
         {
             $title = $response->getCrawler()->filterXpath('//title')->text();
+        }
+
+        $restrictions = FALSE;
+
+        if( $hasRestriction === TRUE )
+        {
+            $restrictions = $crawler->filterXpath('//meta[@name="m:groups"]')->attr('content');
         }
 
         $contentLength = (int) $resource->getHeader('Content-Length')->__toString();
@@ -380,7 +389,7 @@ class Parser {
             }
         }
 
-        $this->addHtmlToIndex($html, $title, $link, $language, $country, $encoding, $host);
+        $this->addHtmlToIndex($html, $title, $link, $language, $country, $restrictions, $encoding, $host);
 
         \Logger::info('LuceneSearch: Added to indexer stack [ ' . $link. ' ]');
 
@@ -492,11 +501,12 @@ class Parser {
      * @param  string $url
      * @param  string $language
      * @param  string $country
+     * @param  string $restrictions
      * @param  string $encoding
      * @param  string $host
      * @return void
      */
-    protected function addHtmlToIndex($html, $title, $url, $language, $country, $encoding, $host)
+    protected function addHtmlToIndex($html, $title, $url, $language, $country, $restrictions, $encoding, $host)
     {
         try
         {
@@ -533,6 +543,15 @@ class Parser {
             if( $country !== FALSE )
             {
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('country', $country));
+            }
+
+            if( $restrictions !== FALSE )
+            {
+                $restrictionGroups = explode(',', $restrictions);
+                foreach( $restrictionGroups as $restrictionGroup )
+                {
+                    $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_' . $restrictionGroup, TRUE));
+                }
             }
 
             //no add document to lucene index!

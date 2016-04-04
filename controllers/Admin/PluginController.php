@@ -80,15 +80,7 @@ class LuceneSearch_Admin_PluginController extends Admin {
 
     public function stopFrontendCrawlerAction()
     {
-        $playNice = true;
-
-        if($this->_getParam('force'))
-        {
-            $playNice = false;
-        }
-
-        $success = Tool\Executer::stopCrawler($playNice, true);
-
+        $success = Tool\Executer::stopCrawler();
         $this->_helper->json(array('success' => $success));
     }
 

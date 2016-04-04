@@ -207,6 +207,11 @@ class LuceneSearch_FrontendController extends Action
                     $query->addSubquery($countryQuery, true);
                 }
 
+                //add restriction!
+                $restrictionTerm = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default');
+                $restrictionQuery = new \Zend_Search_Lucene_Search_Query_Term($restrictionTerm);
+                $query->addSubquery($restrictionQuery, true);
+
                 if (!empty($categoryFromRequest))
                 {
                     $categoryTerm = new \Zend_Search_Lucene_Index_Term($categoryFromRequest, 'cat');
@@ -362,6 +367,11 @@ class LuceneSearch_FrontendController extends Action
                     $countryQuery = new \Zend_Search_Lucene_Search_Query_Term($countryTerm);
                     $query->addSubquery($countryQuery, true);
                 }
+
+                //add restriction!
+                $restrictionTerm = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default');
+                $restrictionQuery = new \Zend_Search_Lucene_Search_Query_Term($restrictionTerm);
+                $query->addSubquery($restrictionQuery, true);
 
                 if (!empty($category))
                 {
