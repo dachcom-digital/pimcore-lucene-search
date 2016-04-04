@@ -18,6 +18,7 @@ class Install {
         Configuration::set('frontend.index', 'website/var/search/frontend/index/');
         Configuration::set('frontend.ignoreLanguage', FALSE);
         Configuration::set('frontend.ignoreCountry', TRUE);
+        Configuration::set('frontend.ignoreRestriction', TRUE);
         Configuration::set('frontend.fuzzySearch', FALSE);
         Configuration::set('frontend.enabled', FALSE);
         Configuration::set('frontend.urls', array());

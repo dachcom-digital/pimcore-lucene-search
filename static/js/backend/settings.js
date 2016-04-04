@@ -101,103 +101,103 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                         frame:false,
                         items: [
                             {
-                            xtype:'button',
-                            hideLabel: true,
-                            text: t('lucenesearch_start_crawler'),
-                            id: 'startFrontendCrawler',
-                            iconCls: 'pimcore_icon_apply',
-                            disabled: !this.getCrawlerState('canStart'),
-                            listeners:
-                            {
-                                click: function(button, event)
+                                xtype:'button',
+                                hideLabel: true,
+                                text: t('lucenesearch_start_crawler'),
+                                id: 'startFrontendCrawler',
+                                iconCls: 'pimcore_icon_apply',
+                                disabled: !this.getCrawlerState('canStart'),
+                                listeners:
                                 {
-                                    button.setDisabled(true);
+                                    click: function(button, event)
+                                    {
+                                        button.setDisabled(true);
 
-                                    Ext.Ajax.request({
-                                        url: '/plugin/LuceneSearch/admin_Plugin/start-frontend-crawler',
-                                        method: 'get',
-                                        success : function() {
+                                        Ext.Ajax.request({
+                                            url: '/plugin/LuceneSearch/admin_Plugin/start-frontend-crawler',
+                                            method: 'get',
+                                            success : function() {
 
-                                            Ext.Ajax.request({
-                                                url: '/plugin/LuceneSearch/admin_Plugin/get-state',
-                                                method: 'get',
-                                                success: function (transport) {
-                                                    var res = Ext.decode(transport.responseText);
-                                                    Ext.getCmp('stateMessage').setValue(res.message);
-                                                }
-                                            });
-
-                                        }
-                                    });
-
-                                }
-                            }
-
-                            },
-                            {
-                            xtype:'button',
-                            style: 'margin: 0 0 0 5px',
-                            hideLabel: true,
-                            text: t('lucenesearch_stop_crawler'),
-                            id: 'stopFrontendCrawler',
-                            iconCls: 'pimcore_icon_cancel',
-                            disabled: !this.getCrawlerState('canStop'),
-                            listeners:
-                            {
-                                click: function(button, event)
-                                {
-                                    var _self = this;
-
-                                    _self.loadMask.show();
-                                    button.setDisabled(true);
-
-                                    Ext.Ajax.request({
-                                        url:'/plugin/LuceneSearch/admin_Plugin/stop-frontend-crawler',
-                                        method: 'get',
-                                        success: function(transport){
-
-                                            var res = Ext.decode(transport.responseText);
-
-                                            if( res.success != true) {
-
-                                                Ext.MessageBox.show({
-                                                    title: t('lucenesearch_frontend_crawler_stop_failed'),
-                                                    msg: t('lucenesearch_frontend_crawler_stop_failed_description'),
-                                                    buttons: Ext.Msg.OKCANCEL,
-                                                    icon: Ext.MessageBox.QUESTION,
-                                                    fn: function(v,s,o){
-                                                        if(o[0]=='ok'){
-                                                            Ext.Ajax.request({
-                                                                url: '/plugin/LuceneSearch/admin_Plugin/stop-frontend-crawler?force=true',
-                                                                method: 'get'
-                                                            } );
-                                                        }
+                                                Ext.Ajax.request({
+                                                    url: '/plugin/LuceneSearch/admin_Plugin/get-state',
+                                                    method: 'get',
+                                                    success: function (transport) {
+                                                        var res = Ext.decode(transport.responseText);
+                                                        Ext.getCmp('stateMessage').setValue(res.message);
                                                     }
                                                 });
 
-                                            } else {
-
-                                                button.setDisabled(false);
-                                                _self.loadMask.hide();
                                             }
+                                        });
 
-                                            Ext.Ajax.request({
+                                    }
+                                }
 
-                                                url: '/plugin/LuceneSearch/admin_Plugin/get-state',
-                                                method: 'get',
-                                                success: function (transport) {
+                            },
+                            {
+                                xtype:'button',
+                                style: 'margin: 0 0 0 5px',
+                                hideLabel: true,
+                                text: t('lucenesearch_stop_crawler'),
+                                id: 'stopFrontendCrawler',
+                                iconCls: 'pimcore_icon_cancel',
+                                disabled: !this.getCrawlerState('canStop'),
+                                listeners:
+                                {
+                                    click: function(button, event)
+                                    {
+                                        var _self = this;
 
-                                                    var res = Ext.decode(transport.responseText);
-                                                    Ext.getCmp('stateMessage').setValue(res.message);
+                                        _self.loadMask.show();
+                                        button.setDisabled(true);
+
+                                        Ext.Ajax.request({
+                                            url:'/plugin/LuceneSearch/admin_Plugin/stop-frontend-crawler',
+                                            method: 'get',
+                                            success: function(transport){
+
+                                                var res = Ext.decode(transport.responseText);
+
+                                                if( res.success != true) {
+
+                                                    Ext.MessageBox.show({
+                                                        title: t('lucenesearch_frontend_crawler_stop_failed'),
+                                                        msg: t('lucenesearch_frontend_crawler_stop_failed_description'),
+                                                        buttons: Ext.Msg.OKCANCEL,
+                                                        icon: Ext.MessageBox.QUESTION,
+                                                        fn: function(v,s,o){
+                                                            if(o[0]=='ok'){
+                                                                Ext.Ajax.request({
+                                                                    url: '/plugin/LuceneSearch/admin_Plugin/stop-frontend-crawler?force=true',
+                                                                    method: 'get'
+                                                                } );
+                                                            }
+                                                        }
+                                                    });
+
+                                                } else {
+
+                                                    button.setDisabled(false);
                                                     _self.loadMask.hide();
-
                                                 }
-                                            });
-                                        }
-                                    });
 
-                                }.bind(this)
-                            }
+                                                Ext.Ajax.request({
+
+                                                    url: '/plugin/LuceneSearch/admin_Plugin/get-state',
+                                                    method: 'get',
+                                                    success: function (transport) {
+
+                                                        var res = Ext.decode(transport.responseText);
+                                                        Ext.getCmp('stateMessage').setValue(res.message);
+                                                        _self.loadMask.hide();
+
+                                                    }
+                                                });
+                                            }
+                                        });
+
+                                    }.bind(this)
+                                }
 
                             }
                         ]
@@ -225,25 +225,25 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                 ],
                 items: [
                     {
-                    xtype:'fieldset',
-                    id: 'basic_settings',
-                    title:t('lucenesearch_basic'),
-                    collapsible: false,
-                    autoHeight:true,
-                    labelWidth: 100,
-                    items :[
-                        {
-                            xtype:'displayfield',
-                            value: t('lucenesearch_frontend_enabled_description'),
-                            cls: 'description'
-                        },
-                        {
-                            xtype:'checkbox',
-                            autoHeight:true,
-                            boxLabel: t('lucenesearch_frontend_enabled'),
-                            name: 'search.frontend.enabled',
-                            checked: this.getValue('frontend.enabled'),
-                            inputValue: '1',
+                        xtype:'fieldset',
+                        id: 'basic_settings',
+                        title:t('lucenesearch_basic'),
+                        collapsible: false,
+                        autoHeight:true,
+                        labelWidth: 100,
+                        items :[
+                            {
+                                xtype:'displayfield',
+                                value: t('lucenesearch_frontend_enabled_description'),
+                                cls: 'description'
+                            },
+                            {
+                                xtype:'checkbox',
+                                autoHeight:true,
+                                boxLabel: t('lucenesearch_frontend_enabled'),
+                                name: 'search.frontend.enabled',
+                                checked: this.getValue('frontend.enabled'),
+                                inputValue: '1',
                                 ctCls: 'x-form-item',
                                 listeners:{
                                     change: function(checkbox, checked) {
@@ -259,253 +259,267 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                         ]
                     },
                     {
-                    xtype:'fieldset',
-                    id: 'ls_frontend_settings',
-                    title: t('lucenesearch_frontend_settings'),
-                    collapsible: false,
-                    autoHeight:true,
-                    labelWidth: 100,
-                    hidden: !this.getValue('frontend.enabled'),
-                    defaultType: 'combobox',
-                    defaults: {
-                        allowBlank:true,
-                        msgTarget: 'under',
-                        allowAddNewData: true,
-                        queryDelay: 0,
-                        triggerAction: 'all',
-                        extraItemCls: 'x-tag',
-                        resizable: true,
-                        mode: 'remote',
-                        anchor:'100%',
-                        queryValuesDelimiter:'__#--#__',
-                        minChars: 2
-                    },
-                    items :[
-                    {
-                        xtype:'displayfield',
-                        value:t('lucenesearch_frontend_ignoreLanguage_description'),
-                        cls: 'description'
-                    },
-                    {
-                        xtype:'checkbox',
-                        fieldLabel: t('language'),
-                        autoHeight:true,
-                        boxLabel: t('lucenesearch_frontend_ignoreLanguage'),
-                        name: 'frontend.ignoreLanguage',
-                        checked: this.getValue('frontend.ignoreLanguage'),
-                        inputValue: '1'
-                    },
-                    {
-                        xtype:'displayfield',
-                        value:t('lucenesearch_frontend_ignoreCountry_description'),
-                        cls: 'description'
-                    },
-                    {
-                        xtype:'checkbox',
-                        fieldLabel: t('country'),
-                        autoHeight:true,
-                        boxLabel: t('lucenesearch_frontend_ignoreCountry'),
-                        name: 'frontend.ignoreCountry',
-                        checked: this.getValue('frontend.ignoreCountry'),
-                        inputValue: '1'
-                    },
-                    {
-                        xtype:'displayfield',
-                        value:t('lucenesearch_frontend_fuzzysearch_description'),
-                        cls: 'description'
-                    },
-                    {
-                        xtype:'checkbox',
-                        fieldLabel: t('lucenesearch_frontend_fuzzysearch'),
-                        autoHeight:true,
-                        boxLabel: t('lucenesearch_search_suggestions'),
-                        name: 'frontend.fuzzySearch',
-                        checked: this.getValue('frontend.fuzzySearch'),
-                        inputValue: '1'
-                    },
-                    {
-                        xtype:'displayfield',
-                        value:t('lucenesearch_frontend_ownhostonly_description'),
-                        cls: 'description'
-                    },
-                    {
-                        xtype:'checkbox',
-                        fieldLabel: t('lucenesearch_subdomains'),
-                        autoHeight:true,
-                        boxLabel: t('lucenesearch_frontend_ownhostonly'),
-                        name: 'frontend.ownHostOnly',
-                        checked:this.getValue('frontend.ownHostOnly'),
-                        inputValue: '1'
-                    },
-                    {
-                        xtype:'displayfield',
-                        value:t('lucenesearch_frontend_crawler_maxlinkdepth_description'),
-                        cls: 'description'
-                    },
-                    {
-                        xtype:'textfield',
-                        fieldLabel: t('lucenesearch_frontend_crawler_maxlinkdepth'),
-                        name: 'frontend.crawler.maxLinkDepth',
+                        xtype:'fieldset',
+                        id: 'ls_frontend_settings',
+                        title: t('lucenesearch_frontend_settings'),
                         collapsible: false,
                         autoHeight:true,
-                        value:this.getValue('frontend.crawler.maxLinkDepth')
-                    },
-                    {
-                        xtype:'displayfield',
-                        value:t('lucenesearch_frontend_crawler_maxdownloadlimit_description'),
-                        cls: 'description'
-                    },
-                    {
-                        xtype:'textfield',
-                        fieldLabel: t('lucenesearch_frontend_crawler_maxdownloadlimit'),
-                        name: 'frontend.crawler.maxDownloadLimit',
-                        collapsible: false,
-                        autoHeight:true,
-                        value:this.getValue('frontend.crawler.maxDownloadLimit')
-                    },
-                    {
-                        xtype:'displayfield',
-                        value:t('lucenesearch_frontend_content_indicator_description'),
-                        cls: 'description'
-                    },
-                    {
-                        xtype:'textfield',
-                        fieldLabel: t('lucenesearch_frontend_content_start_indicator'),
-                        name: 'frontend.crawler.contentStartIndicator',
-                        collapsible: false,
-                        autoHeight:true,
-                        value: this.getValue('frontend.crawler.contentStartIndicator')
-                    },
-                    {
-                        xtype:'textfield',
-                        fieldLabel: t('lucenesearch_frontend_content_end_indicator'),
-                        name: 'frontend.crawler.contentEndIndicator',
-                        collapsible: false,
-                        autoHeight:true,
-                        value: this.getValue('frontend.crawler.contentEndIndicator')
-                    },
-                    {
-                        xtype:'displayfield',
-                        value:t('lucenesearch_frontend_allowedschemes_description'),
-                        cls: 'description'
-                    },
-                    {
-                        xtype: 'tagfield',
-                        fieldLabel: t('lucenesearch_frontend_allowedschemes'),
-                        name: 'frontend.allowedSchemes',
+                        labelWidth: 100,
+                        hidden: !this.getValue('frontend.enabled'),
+                        defaultType: 'combobox',
+                        defaults: {
+                            allowBlank:true,
+                            msgTarget: 'under',
+                            allowAddNewData: true,
+                            queryDelay: 0,
+                            triggerAction: 'all',
+                            extraItemCls: 'x-tag',
+                            resizable: true,
+                            mode: 'remote',
+                            anchor:'100%',
+                            queryValuesDelimiter:'__#--#__',
+                            minChars: 2
+                        },
+                        items :[
+                            {
+                                xtype:'displayfield',
+                                value:t('lucenesearch_frontend_ignoreLanguage_description'),
+                                cls: 'description'
+                            },
+                            {
+                                xtype:'checkbox',
+                                fieldLabel: t('language'),
+                                autoHeight:true,
+                                boxLabel: t('lucenesearch_frontend_ignoreLanguage'),
+                                name: 'frontend.ignoreLanguage',
+                                checked: this.getValue('frontend.ignoreLanguage'),
+                                inputValue: '1'
+                            },
+                            {
+                                xtype:'displayfield',
+                                value:t('lucenesearch_frontend_ignoreCountry_description'),
+                                cls: 'description'
+                            },
+                            {
+                                xtype:'checkbox',
+                                fieldLabel: t('country'),
+                                autoHeight:true,
+                                boxLabel: t('lucenesearch_frontend_ignoreCountry'),
+                                name: 'frontend.ignoreCountry',
+                                checked: this.getValue('frontend.ignoreCountry'),
+                                inputValue: '1'
+                            },
+                            {
+                                xtype:'displayfield',
+                                value:t('lucenesearch_frontend_ignoreRestriction_description'),
+                                cls: 'description'
+                            },
+                            {
+                                xtype:'checkbox',
+                                fieldLabel: t('lucenesearch_restriction'),
+                                autoHeight:true,
+                                boxLabel: t('lucenesearch_frontend_ignoreRestriction'),
+                                name: 'frontend.ignoreRestriction',
+                                checked: this.getValue('frontend.ignoreRestriction'),
+                                inputValue: '1'
+                            },
+                            {
+                                xtype:'displayfield',
+                                value:t('lucenesearch_frontend_fuzzysearch_description'),
+                                cls: 'description'
+                            },
+                            {
+                                xtype:'checkbox',
+                                fieldLabel: t('lucenesearch_frontend_fuzzysearch'),
+                                autoHeight:true,
+                                boxLabel: t('lucenesearch_search_suggestions'),
+                                name: 'frontend.fuzzySearch',
+                                checked: this.getValue('frontend.fuzzySearch'),
+                                inputValue: '1'
+                            },
+                            {
+                                xtype:'displayfield',
+                                value:t('lucenesearch_frontend_ownhostonly_description'),
+                                cls: 'description'
+                            },
+                            {
+                                xtype:'checkbox',
+                                fieldLabel: t('lucenesearch_subdomains'),
+                                autoHeight:true,
+                                boxLabel: t('lucenesearch_frontend_ownhostonly'),
+                                name: 'frontend.ownHostOnly',
+                                checked:this.getValue('frontend.ownHostOnly'),
+                                inputValue: '1'
+                            },
+                            {
+                                xtype:'displayfield',
+                                value:t('lucenesearch_frontend_crawler_maxlinkdepth_description'),
+                                cls: 'description'
+                            },
+                            {
+                                xtype:'textfield',
+                                fieldLabel: t('lucenesearch_frontend_crawler_maxlinkdepth'),
+                                name: 'frontend.crawler.maxLinkDepth',
+                                collapsible: false,
+                                autoHeight:true,
+                                value:this.getValue('frontend.crawler.maxLinkDepth')
+                            },
+                            {
+                                xtype:'displayfield',
+                                value:t('lucenesearch_frontend_crawler_maxdownloadlimit_description'),
+                                cls: 'description'
+                            },
+                            {
+                                xtype:'textfield',
+                                fieldLabel: t('lucenesearch_frontend_crawler_maxdownloadlimit'),
+                                name: 'frontend.crawler.maxDownloadLimit',
+                                collapsible: false,
+                                autoHeight:true,
+                                value:this.getValue('frontend.crawler.maxDownloadLimit')
+                            },
+                            {
+                                xtype:'displayfield',
+                                value:t('lucenesearch_frontend_content_indicator_description'),
+                                cls: 'description'
+                            },
+                            {
+                                xtype:'textfield',
+                                fieldLabel: t('lucenesearch_frontend_content_start_indicator'),
+                                name: 'frontend.crawler.contentStartIndicator',
+                                collapsible: false,
+                                autoHeight:true,
+                                value: this.getValue('frontend.crawler.contentStartIndicator')
+                            },
+                            {
+                                xtype:'textfield',
+                                fieldLabel: t('lucenesearch_frontend_content_end_indicator'),
+                                name: 'frontend.crawler.contentEndIndicator',
+                                collapsible: false,
+                                autoHeight:true,
+                                value: this.getValue('frontend.crawler.contentEndIndicator')
+                            },
+                            {
+                                xtype:'displayfield',
+                                value:t('lucenesearch_frontend_allowedschemes_description'),
+                                cls: 'description'
+                            },
+                            {
+                                xtype: 'tagfield',
+                                fieldLabel: t('lucenesearch_frontend_allowedschemes'),
+                                name: 'frontend.allowedSchemes',
 
-                        store: this.categoriesStore,
-                        value : this.getValue('frontend.allowedSchemes'),
-                        valueField: 'allowedschemes',
-                        displayField: 'allowedschemes',
-                        stacked : true,
-                        hideTrigger: true,
-                        expand: Ext.emptyFn,
-                        forceSelection: false,
-                        createNewOnEnter: true,
-                        queryMode: 'local',
-                        componentCls: 'superselect-no-drop-down'
+                                store: this.categoriesStore,
+                                value : this.getValue('frontend.allowedSchemes'),
+                                valueField: 'allowedschemes',
+                                displayField: 'allowedschemes',
+                                stacked : true,
+                                hideTrigger: true,
+                                expand: Ext.emptyFn,
+                                forceSelection: false,
+                                createNewOnEnter: true,
+                                queryMode: 'local',
+                                componentCls: 'superselect-no-drop-down'
 
-                    },
-                    {
-                        xtype:'displayfield',
-                        value:t('lucenesearch_frontend_categories_description'),
-                        cls: 'description'
-                    },
-                    {
-                        xtype: 'tagfield',
-                        fieldLabel: t('lucenesearch_frontend_categories'),
-                        //emptyText: t('lucenesearch_frontend_categories_empty_text'),
-                        name: 'frontend.categories',
+                            },
+                            {
+                                xtype:'displayfield',
+                                value:t('lucenesearch_frontend_categories_description'),
+                                cls: 'description'
+                            },
+                            {
+                                xtype: 'tagfield',
+                                fieldLabel: t('lucenesearch_frontend_categories'),
+                                //emptyText: t('lucenesearch_frontend_categories_empty_text'),
+                                name: 'frontend.categories',
 
-                        store: this.categoriesStore,
-                        value : this.getValue('frontend.categories'),
-                        valueField: 'category',
-                        displayField: 'category',
-                        stacked : true,
-                        hideTrigger: true,
-                        expand: Ext.emptyFn,
-                        forceSelection: false,
-                        createNewOnEnter: true,
-                        queryMode: 'local',
-                        componentCls: 'superselect-no-drop-down'
+                                store: this.categoriesStore,
+                                value : this.getValue('frontend.categories'),
+                                valueField: 'category',
+                                displayField: 'category',
+                                stacked : true,
+                                hideTrigger: true,
+                                expand: Ext.emptyFn,
+                                forceSelection: false,
+                                createNewOnEnter: true,
+                                queryMode: 'local',
+                                componentCls: 'superselect-no-drop-down'
 
-                    },
-                    {
-                        xtype:'displayfield',
-                        value:t('lucenesearch_frontend_settings_urls_description'),
-                        cls: 'description'
-                    },
-                    {
-                        xtype: 'tagfield',
-                        fieldLabel: t('lucenesearch_frontend_settings_urls') + ' *',
-                        //emptyText: t('lucenesearch_frontend_settings_empty_text'),
-                        name: 'frontend.urls',
-                        value: this.getValue('frontend.urls'),
-                        store: this.tagStore,
-                        displayField: 'url',
-                        valueField: 'url',
-                        stacked : true,
-                        hideTrigger: true,
-                        expand: Ext.emptyFn,
-                        forceSelection: false,
-                        createNewOnEnter: true,
-                        queryMode: 'local',
-                        componentCls: 'superselect-no-drop-down'
+                            },
+                            {
+                                xtype:'displayfield',
+                                value:t('lucenesearch_frontend_settings_urls_description'),
+                                cls: 'description'
+                            },
+                            {
+                                xtype: 'tagfield',
+                                fieldLabel: t('lucenesearch_frontend_settings_urls') + ' *',
+                                //emptyText: t('lucenesearch_frontend_settings_empty_text'),
+                                name: 'frontend.urls',
+                                value: this.getValue('frontend.urls'),
+                                store: this.tagStore,
+                                displayField: 'url',
+                                valueField: 'url',
+                                stacked : true,
+                                hideTrigger: true,
+                                expand: Ext.emptyFn,
+                                forceSelection: false,
+                                createNewOnEnter: true,
+                                queryMode: 'local',
+                                componentCls: 'superselect-no-drop-down'
 
-                    },
-                    {
-                        xtype:'displayfield',
-                        value:t('lucenesearch_frontend_allowed_description'),
-                        cls: 'description'
-                    },
-                    {
-                        xtype: 'tagfield',
-                        fieldLabel: t('lucenesearch_frontend_allowed') + ' *',
-                        //emptyText: t('lucenesearch_frontend_allowed_empty_text'),
-                        name: 'frontend.validLinkRegexes',
-                        store: this.allowedStore,
-                        displayField: 'regex',
-                        valueField: 'regex',
-                        value: this.getValue('frontend.validLinkRegexes'),
-                        stacked : true,
-                        hideTrigger: true,
-                        expand: Ext.emptyFn,
-                        forceSelection: false,
-                        createNewOnEnter: true,
-                        queryMode: 'local',
-                        componentCls: 'superselect-no-drop-down'
+                            },
+                            {
+                                xtype:'displayfield',
+                                value:t('lucenesearch_frontend_allowed_description'),
+                                cls: 'description'
+                            },
+                            {
+                                xtype: 'tagfield',
+                                fieldLabel: t('lucenesearch_frontend_allowed') + ' *',
+                                //emptyText: t('lucenesearch_frontend_allowed_empty_text'),
+                                name: 'frontend.validLinkRegexes',
+                                store: this.allowedStore,
+                                displayField: 'regex',
+                                valueField: 'regex',
+                                value: this.getValue('frontend.validLinkRegexes'),
+                                stacked : true,
+                                hideTrigger: true,
+                                expand: Ext.emptyFn,
+                                forceSelection: false,
+                                createNewOnEnter: true,
+                                queryMode: 'local',
+                                componentCls: 'superselect-no-drop-down'
 
-                    },
-                    {
-                        xtype:'displayfield',
-                        value:t('lucenesearch_frontend_forbidden_description'),
-                        cls: 'description'
-                    },
-                    {
-                        xtype: 'tagfield',
-                        fieldLabel: t('lucenesearch_frontend_forbidden'),
-                        //emptyText: t('lucenesearch_frontend_forbidden_empty_text'),
-                        name: 'frontend.invalidLinkRegexesEditable',
-                        store: this.forbiddenStore,
-                        displayField: 'regex',
-                        valueField: 'regex',
-                        value: this.getValue('frontend.invalidLinkRegexesEditable'),
-                        stacked : true,
-                        hideTrigger: true,
-                        expand: Ext.emptyFn,
-                        forceSelection: false,
-                        createNewOnEnter: true,
-                        queryMode: 'local',
-                        componentCls: 'superselect-no-drop-down'
+                            },
+                            {
+                                xtype:'displayfield',
+                                value:t('lucenesearch_frontend_forbidden_description'),
+                                cls: 'description'
+                            },
+                            {
+                                xtype: 'tagfield',
+                                fieldLabel: t('lucenesearch_frontend_forbidden'),
+                                //emptyText: t('lucenesearch_frontend_forbidden_empty_text'),
+                                name: 'frontend.invalidLinkRegexesEditable',
+                                store: this.forbiddenStore,
+                                displayField: 'regex',
+                                valueField: 'regex',
+                                value: this.getValue('frontend.invalidLinkRegexesEditable'),
+                                stacked : true,
+                                hideTrigger: true,
+                                expand: Ext.emptyFn,
+                                forceSelection: false,
+                                createNewOnEnter: true,
+                                queryMode: 'local',
+                                componentCls: 'superselect-no-drop-down'
 
-                    },
-                    {
-                        xtype:'displayfield',
-                        value:'*) ' + t('lucenesearch_frontend_mandatory_fields'),
-                        cls: 'mandatory_hint'
-                    }
-                    ]}
+                            },
+                            {
+                                xtype:'displayfield',
+                                value:'*) ' + t('lucenesearch_frontend_mandatory_fields'),
+                                cls: 'mandatory_hint'
+                            }
+                        ]}
                 ]
             });
 

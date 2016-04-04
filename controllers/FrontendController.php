@@ -24,6 +24,11 @@ class LuceneSearch_FrontendController extends Action
     protected $searchCountry;
 
     /**
+     * @var
+     */
+    protected $searchRestriction = false;
+
+    /**
      * @var bool
      */
     protected $ownHostOnly = false;
@@ -86,6 +91,11 @@ class LuceneSearch_FrontendController extends Action
                 else
                 {
                     $this->searchCountry = null;
+                }
+
+                if (Configuration::get('frontend.ignoreRestriction') === FALSE)
+                {
+                    $this->searchRestriction = TRUE;
                 }
 
                 $this->fuzzySearch = false;
@@ -208,9 +218,12 @@ class LuceneSearch_FrontendController extends Action
                 }
 
                 //add restriction!
-                $restrictionTerm = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default');
-                $restrictionQuery = new \Zend_Search_Lucene_Search_Query_Term($restrictionTerm);
-                $query->addSubquery($restrictionQuery, true);
+                if( $this->searchRestriction )
+                {
+                    $restrictionTerm = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default');
+                    $restrictionQuery = new \Zend_Search_Lucene_Search_Query_Term($restrictionTerm);
+                    $query->addSubquery($restrictionQuery, true);
+                }
 
                 if (!empty($categoryFromRequest))
                 {
@@ -369,9 +382,12 @@ class LuceneSearch_FrontendController extends Action
                 }
 
                 //add restriction!
-                $restrictionTerm = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default');
-                $restrictionQuery = new \Zend_Search_Lucene_Search_Query_Term($restrictionTerm);
-                $query->addSubquery($restrictionQuery, true);
+                if( $this->searchRestriction )
+                {
+                    $restrictionTerm = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default');
+                    $restrictionQuery = new \Zend_Search_Lucene_Search_Query_Term($restrictionTerm);
+                    $query->addSubquery($restrictionQuery, true);
+                }
 
                 if (!empty($category))
                 {
@@ -530,6 +546,14 @@ class LuceneSearch_FrontendController extends Action
                                 $countryTerm = new \Zend_Search_Lucene_Index_Term($country, 'country');
                                 $countryQuery = new \Zend_Search_Lucene_Search_Query_Term($countryTerm);
                                 $query->addSubquery($countryQuery, true);
+                            }
+
+                            //add restriction!
+                            if( $this->searchRestriction )
+                            {
+                                $restrictionTerm = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default');
+                                $restrictionQuery = new \Zend_Search_Lucene_Search_Query_Term($restrictionTerm);
+                                $query->addSubquery($restrictionQuery, true);
                             }
 
                             if (!empty($category))
