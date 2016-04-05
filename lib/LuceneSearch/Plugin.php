@@ -307,10 +307,10 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     }
 
     /**
-     * @param  $crawler frontend | backend
+     * @param string $crawler frontend | backend
      * @return void
      */
-    public static function forceCrawlerStartOnNextMaintenance($crawler)
+    public static function forceCrawlerStartOnNextMaintenance( $crawler )
     {
         Configuration::set($crawler .'.crawler.forceStart', TRUE);
         \Logger::debug('LuceneSearch: forced to starting crawl');
@@ -336,14 +336,27 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
             $enabled = Configuration::get('frontend.enabled');
 
+            /**
+             * + If Crawler is enabled
+             * + If Crawler is not running
+             * + If last start of Crawler is initial or a day ago
+             * + If it's between 1 + 3 o clock in the night
+             * + OR if its force
+             * => RUN
+             */
             if ($enabled && ( (!$running && (is_bool($lastStarted) || $lastStarted > $aDayAgo) && $currentHour > 1 && $currentHour < 3) || $forceStart))
             {
                 \Logger::debug('starting frontend recrawl...');
                 $this->frontendCrawl();
-            }
-            else if ($running && ( $lastFinished > $aDayAgo ))
+
+            /**
+             * + If Crawler is Running
+             * + If last stop of crawler is before last start
+             * + If last start is older than one day
+             * => We have some errors: EXIT CRAWLING!
+             */
+            } else if( $running && $lastFinished < $lastStarted && $lastStarted > $aDayAgo)
             {
-                //there seems to be a problem
                 \Logger::err('LuceneSearch: There seems to be a problem with the search crawler! Trying to stop it.');
                 $this->stopFrontendCrawler();
             }
