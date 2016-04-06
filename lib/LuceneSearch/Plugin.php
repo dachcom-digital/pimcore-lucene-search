@@ -25,7 +25,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
         define('LUCENESEARCH_CONFIGURATION_FILE', PIMCORE_CONFIGURATION_DIRECTORY . '/lucenesearch_configuration.php');
 
-        \Pimcore::getEventManager()->attach('system.maintenance', array($this, 'maintenance'));
+        \Pimcore::getEventManager()->attach('system.maintenance', array($this, 'maintenanceJob'));
 
         \Pimcore::getEventManager()->attach('system.console.init', function (\Zend_EventManager_Event $e) {
 
@@ -242,7 +242,8 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function frontendCrawlerRunning()
     {
-        if (Configuration::get('frontend.crawler.running') || is_file( PIMCORE_TEMPORARY_DIRECTORY . '/lucene-crawler.tmp' )) return true;
+        //do not use the configuration here!
+        if (is_file( PIMCORE_TEMPORARY_DIRECTORY . '/lucene-crawler.tmp' ) ) return true;
         else return false;
     }
 
@@ -320,7 +321,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     /**
      * Hook called when maintenance script is called
      */
-    public function maintenance()
+    public function maintenanceJob()
     {
         if (self::isInstalled())
         {
@@ -344,18 +345,18 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
              * + OR if its force
              * => RUN
              */
-            if ($enabled && ( (!$running && (is_bool($lastStarted) || $lastStarted > $aDayAgo) && $currentHour > 1 && $currentHour < 3) || $forceStart))
+            if ($enabled && !$running && ( ( (is_bool($lastStarted) || $lastStarted <= $aDayAgo) && $currentHour > 1 && $currentHour < 3) || $forceStart))
             {
                 \Logger::debug('starting frontend recrawl...');
                 $this->frontendCrawl();
 
-            /**
-             * + If Crawler is Running
-             * + If last stop of crawler is before last start
-             * + If last start is older than one day
-             * => We have some errors: EXIT CRAWLING!
-             */
-            } else if( $running && $lastFinished < $lastStarted && $lastStarted > $aDayAgo)
+                /**
+                 * + If Crawler is Running
+                 * + If last stop of crawler is before last start
+                 * + If last start is older than one day
+                 * => We have some errors: EXIT CRAWLING!
+                 */
+            } else if( $running && $lastFinished < $lastStarted && $lastStarted <= $aDayAgo)
             {
                 \Logger::err('LuceneSearch: There seems to be a problem with the search crawler! Trying to stop it.');
                 $this->stopFrontendCrawler();
