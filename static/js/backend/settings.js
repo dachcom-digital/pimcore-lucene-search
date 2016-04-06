@@ -73,8 +73,6 @@ pimcore.plugin.luceneSearch.settings = Class.create({
 
             this.panel.add(this.container);
 
-            var luceneSearchCrawlerLoadingMask = null;
-
             this.statusLayout = Ext.create('Ext.form.Panel', {
 
                 id: 'LSstatusFormPanel',
@@ -557,7 +555,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
     activate: function () {
 
         var tabPanel = Ext.getCmp('pimcore_panel_tabs');
-        tabPanel.activate('lucenesearch_settings')
+        tabPanel.setActiveItem('lucenesearch_settings')
 
     },
 
