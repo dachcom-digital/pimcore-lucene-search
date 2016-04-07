@@ -40,6 +40,7 @@ class Configuration extends Model\AbstractModel
      */
     protected static $nameIdMappingCache = array();
 
+
     /**
      * @param integer $id
      * @return Configuration
@@ -160,14 +161,14 @@ class Configuration extends Model\AbstractModel
         {
             try
             {
-                $config = new \Zend_Config_Xml(LUCENESEARCH_CONFIGURATION_FILE);
+                $config = new \Zend_Config_Xml(LUCENESEARCH__PLUGIN_CONFIG);
                 self::setPluginConfig($config);
             }
             catch (\Exception $e)
             {
-                if (is_file(LUCENESEARCH_CONFIGURATION_FILE))
+                if (is_file(LUCENESEARCH__PLUGIN_CONFIG))
                 {
-                    $m = 'Your plugin_xml.xml located at is invalid, please check and correct it manually!';
+                    $m = 'Your plugin_xml.xml located at ' . LUCENESEARCH__PLUGIN_CONFIG. ' is invalid, please check and correct it manually!';
                     Tool::exitWithError($m);
                 }
             }

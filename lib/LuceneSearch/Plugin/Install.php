@@ -6,11 +6,8 @@ use LuceneSearch\Model\Configuration;
 
 class Install {
 
-    private $configFile = NULL;
-
     public function __construct()
     {
-        $this->configFile = LUCENESEARCH_CONFIGURATION_FILE;
     }
 
     public function installConfigFile()
@@ -74,11 +71,11 @@ class Install {
 
     public function removeConfig()
     {
-        $configFile = \Pimcore\Config::locateConfigFile('lucenesearch_configurations');
+        $configFile = \Pimcore\Config::locateConfigFile('lucenesearch_configurations.php');
 
-        if (is_file($configFile  . '.php'))
+        if (is_file( $configFile ))
         {
-            rename($configFile  . '.php', $configFile  . '.BACKUP');
+            rename($configFile, $configFile  . '.BACKUP');
         }
     }
 

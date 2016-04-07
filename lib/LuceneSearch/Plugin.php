@@ -16,17 +16,17 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
     public function __construct($jsPaths = null, $cssPaths = null, $alternateIndexDir = null)
     {
+        define('LUCENESEARCH__PLUGIN_CONFIG', PIMCORE_PLUGINS_PATH . '/LuceneSearch/plugin.xml');
+
         parent::__construct($jsPaths, $cssPaths);
+
     }
 
     public function init()
     {
         parent::init();
 
-        define('LUCENESEARCH_CONFIGURATION_FILE', PIMCORE_CONFIGURATION_DIRECTORY . '/lucenesearch_configuration.php');
-
         \Pimcore::getEventManager()->attach('system.maintenance', array($this, 'maintenanceJob'));
-
         \Pimcore::getEventManager()->attach('system.console.init', function (\Zend_EventManager_Event $e) {
 
             $application = $e->getTarget();
