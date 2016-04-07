@@ -38,10 +38,10 @@ pimcore.plugin.luceneSearch = Class.create(pimcore.plugin.admin,{
     openSettings : function()
     {
         try {
-            pimcore.globalmanager.get('luceneSearch_settings').activate();
+            pimcore.globalmanager.get('lucenesearch_settings').activate();
         }
         catch (e) {
-            pimcore.globalmanager.add('luceneSearch_settings', new pimcore.plugin.luceneSearch.settings());
+            pimcore.globalmanager.add('lucenesearch_settings', new pimcore.plugin.luceneSearch.settings());
         }
     }
 
