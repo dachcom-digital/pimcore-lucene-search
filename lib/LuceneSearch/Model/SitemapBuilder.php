@@ -40,6 +40,10 @@ class SitemapBuilder {
                     $hostQuery = new \Zend_Search_Lucene_Search_Query_Term($hostTerm);
                     $query->addSubquery($hostQuery, true);
 
+                    $hostTerm = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default');
+                    $hostQuery = new \Zend_Search_Lucene_Search_Query_Term($hostTerm);
+                    $query->addSubquery($hostQuery, true);
+
                     $hits = $this->index->find($query);
 
                     $name = str_replace('.','-',$hostName);
