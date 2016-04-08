@@ -15,29 +15,40 @@
     <form method="get" action="?search=true" id="searchForm">
 
         <input type="text" value="<?php echo  $this->query ?>" name="query" id="query" />
-        <?php if(is_array($this->availableCategories) and count($this->availableCategories)>0){?>
+
+        <?php if(is_array($this->availableCategories) and count($this->availableCategories)>0){ ?>
 
             <select id="searchCat" name="cat">
                 <option value=""><?php echo  $this->translate('search_all_categories')?></option>
-                <?php foreach($this->availableCategories as $category){?>
+                <?php foreach($this->availableCategories as $category){ ?>
                 <option <?php if($this->category==$category){ ?>selected="selected"<?php } ?> value="<?php echo  $category ?>"><?php echo $this->translate('search_category_'.$category)?></option>
                 <?php } ?>
             </select>
 
         <?php } ?>
+
+        <input id="searchLanguage" type="hidden" name="language" value="<?=$this->language?>" />
+        <input id="searchCountry" type="hidden" name="country" value="<?=$this->country?>" />
+
         <span class="submit_wrapper">
             <input class="submit" type="submit" value="<?php echo  $this->translate('search_submit')?>"/>
         </span>
 
          <script type="text/javascript">
 
-             $('#query').autoComplete({
+             $('#searchForm input').autoComplete({
                  minChars: 3,
                  source: function(term, response) {
-                     $.getJSON('/plugin/LuceneSearch/frontend/autocomplete/', { q : term, language : $("#searchLanguage").val(), country : $("#searchCountry").val(), cat : $("#searchCat").val() }, function(data){
-                         response(data);
+                     $.getJSON('/plugin/LuceneSearch/frontend/autocomplete/', {
+                         q : term,
+                         language : $("#searchLanguage").val(),
+                         country : $("#searchCountry").val(),
+                         cat : $("#searchCat").val() },
+                         function(data){
+                            response(data);
 
-                     });
+                        }
+                     );
                  }
              });
 
@@ -66,13 +77,13 @@
     <?php echo  $this->translate('search_suggestions') ?>
     <?php for($i=0;$i<5;$i++ ){ ?>
     <?php  $suggestion = $this->suggestions[$i]; ?>
-    <a href="?cat=<?php echo  $this->category ?>&query=<?php echo  $suggestion ?>"><?php echo  $suggestion ?></a>&nbsp;
+    <a href="?cat=<?php echo  $this->category ?>&query=<?php echo  $suggestion ?>&language=<?php echo $this->language ?>"><?php echo  $suggestion ?></a>&nbsp;
     <?php } ?>
     <?php if(count($this->suggestions)>5) { ?>
         <span id="search_result_additional_suggestions" style="display:none;">
         <?php for($i=5;$i<count($this->suggestions);$i++ ){ ?>
             <?php  $suggestion = $this->suggestions[$i]; ?>
-            <a href="?cat=<?php echo  $this->category ?>&query=<?php echo  $suggestion ?>"><?php echo  $suggestion ?></a>&nbsp;
+            <a href="?cat=<?php echo  $this->category ?>&query=<?php echo  $suggestion ?>&language=<?php echo $this->language ?>"><?php echo  $suggestion ?></a>&nbsp;
             <?php } ?>
         </span>
         <a style="cursor:pointer;" id="search_result_additional_suggestions_hint" onclick="$('#search_result_additional_suggestions_hint').hide();$('#search_result_additional_suggestions').show()"><?php echo  (count($this->suggestions)-5).' '.$this->translate('more_search_suggestions')?></a>
