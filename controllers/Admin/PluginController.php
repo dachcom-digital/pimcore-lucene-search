@@ -147,9 +147,29 @@ class LuceneSearch_Admin_PluginController extends Admin {
         }
 
         Configuration::set('frontend.ignoreRestriction', FALSE);
+
+        Configuration::set('frontend.auth.useAuth', FALSE);
+        Configuration::set('frontend.auth.username', '');
+        Configuration::set('frontend.auth.password', '');
+        Configuration::set('frontend.restriction.class', '');
+        Configuration::set('frontend.restriction.method', '');
+
         if ($values['frontend.ignoreRestriction'])
         {
             Configuration::set('frontend.ignoreRestriction', TRUE);
+        }
+        else
+        {
+            if ($values['frontend.auth.useAuth'])
+            {
+                Configuration::set('frontend.auth.useAuth', TRUE);
+                Configuration::set('frontend.auth.username', $values['frontend.auth.username']);
+                Configuration::set('frontend.auth.password', $values['frontend.auth.password']);
+            }
+
+            Configuration::set('frontend.restriction.class', $values['frontend.restriction.class']);
+            Configuration::set('frontend.restriction.method', $values['frontend.restriction.method']);
+
         }
 
         Configuration::set('frontend.fuzzySearch', FALSE);

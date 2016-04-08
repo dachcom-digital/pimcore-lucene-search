@@ -155,11 +155,10 @@ class LuceneSearch_FrontendController extends Action
         }
         else
         {
-            \Logger::debug(get_class($this) . ': sitemap request - but no sitemap available to deliver');
+            \Logger::debug('LuceneSearch: sitemap request - but no sitemap available to deliver');
             exit;
 
         }
-
 
     }
 
@@ -175,22 +174,8 @@ class LuceneSearch_FrontendController extends Action
             $terms = Plugin::fuzzyFindTerms(strtolower($queryFromRequest), $this->frontendIndex);
         }
 
-        $data = array();
         $suggestions = array();
         $counter = 1;
-
-        if ($this->searchLanguage != null)
-        {
-            if (is_object($this->searchLanguage))
-            {
-                $language = $this->searchLanguage->toString();
-            } else
-            {
-                $language = $this->searchLanguage;
-            }
-            $language = str_replace(array('_', '-'), '', $language);
-
-        }
 
         foreach ($terms as $term)
         {
@@ -198,70 +183,21 @@ class LuceneSearch_FrontendController extends Action
 
             //check if term can be found for current language
             $hits = null;
-            if (!empty($language) or !empty($categoryFromRequest))
-            {
-                $query = new \Zend_Search_Lucene_Search_Query_Boolean();
 
-                if ($language != null)
-                {
-                    $languageTerm = new \Zend_Search_Lucene_Index_Term($language, 'lang');
-                    $languageQuery = new \Zend_Search_Lucene_Search_Query_Term($languageTerm);
-                    $query->addSubquery($languageQuery, true);
-                }
+            $query = new \Zend_Search_Lucene_Search_Query_Boolean();
 
-                if (!empty($this->searchCountry))
-                {
-                    $country = str_replace(array('_', '-'), '', $this->searchCountry);
-                    $countryTerm = new \Zend_Search_Lucene_Index_Term($country, 'country');
-                    $countryQuery = new \Zend_Search_Lucene_Search_Query_Term($countryTerm);
-                    $query->addSubquery($countryQuery, true);
-                }
+            $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($t, 'utf-8');
+            $query->addSubquery($userQuery, true);
 
-                //add restriction!
-                if( $this->searchRestriction )
-                {
-                    $restrictionTerm = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default');
-                    $restrictionQuery = new \Zend_Search_Lucene_Search_Query_Term($restrictionTerm);
-                    $query->addSubquery($restrictionQuery, true);
-                }
+            $this->addLanguageQuery( $query );
 
-                if (!empty($categoryFromRequest))
-                {
-                    $categoryTerm = new \Zend_Search_Lucene_Index_Term($categoryFromRequest, 'cat');
-                    $categoryQuery = new \Zend_Search_Lucene_Search_Query_Term($categoryTerm);
-                    $query->addSubquery($categoryQuery, true);
-                }
+            $this->addCategoryQuery( $query, $categoryFromRequest );
 
-                $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($t, 'utf-8');
-                $query->addSubquery($userQuery, true);
+            $this->addCountryQuery( $query );
 
-                $hits = $this->frontendIndex->find($query);
-                $validHits = array();
+            $this->addRestrictionQuery( $query );
 
-                if ($this->ownHostOnly and $hits != null)
-                {
-                    //get rid of hits from other hosts
-                    $currenthost = $_SERVER['HTTP_HOST'];
-
-                    for ($i = 0; $i < (count($hits)); $i++)
-                    {
-                        $url = $hits[$i]->getDocument()->getField('url');
-                        if (strpos($url->value, 'http://' . $currenthost) !== FALSE) {
-                            $validHits[] = $hits[$i];
-                        }
-                    }
-
-                }
-                else
-                {
-                    $validHits = $hits;
-                }
-
-            }
-            else
-            {
-                $validHits[] = $t;
-            }
+            $validHits = $this->getValidHits( $this->frontendIndex->find($query) );
 
             if (count($validHits) > 0 and !in_array($t, $suggestions))
             {
@@ -312,15 +248,8 @@ class LuceneSearch_FrontendController extends Action
 
         $queryStr = strtolower($queryFromRequest);
         $this->view->category = $categoryFromRequest;
-
-        if (!empty($this->view->category))
-        {
-            $category = $this->view->category;
-        }
-        else
-        {
-            $category = null;
-        }
+        $this->view->language = $this->searchLanguage;
+        $this->view->country = $this->searchCountry;
 
         $categories = Configuration::get('frontend.categories');
 
@@ -343,6 +272,7 @@ class LuceneSearch_FrontendController extends Action
             }
 
             $searchResults = array();
+            $validHits = array();
 
             if (!empty($queryStr))
             {
@@ -356,78 +286,15 @@ class LuceneSearch_FrontendController extends Action
                 $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($queryStr, 'utf-8');
                 $query->addSubquery($userQuery, true);
 
-                if (!empty($this->searchLanguage))
-                {
-                    if (is_object($this->searchLanguage))
-                    {
-                        $lang = $this->searchLanguage->toString();
-                    }
-                    else
-                    {
-                        $lang = $this->searchLanguage;
-                    }
+                $this->addLanguageQuery( $query );
 
-                    $lang = str_replace(array('_', '-'), '', $lang);
-                    $languageTerm = new \Zend_Search_Lucene_Index_Term($lang, 'lang');
-                    $languageQuery = new \Zend_Search_Lucene_Search_Query_Term($languageTerm);
-                    $query->addSubquery($languageQuery, true);
-                }
+                $this->addCountryQuery( $query );
 
-                if (!empty($this->searchCountry))
-                {
-                    $country = str_replace(array('_', '-'), '', $this->searchCountry);
-                    $countryTerm = new \Zend_Search_Lucene_Index_Term($country, 'country');
-                    $countryQuery = new \Zend_Search_Lucene_Search_Query_Term($countryTerm);
-                    $query->addSubquery($countryQuery, true);
-                }
+                $this->addCategoryQuery( $query, $this->view->category );
 
-                //add restriction!
-                if( $this->searchRestriction )
-                {
-                    $restrictionTerm = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default');
-                    $restrictionQuery = new \Zend_Search_Lucene_Search_Query_Term($restrictionTerm);
-                    $query->addSubquery($restrictionQuery, true);
-                }
+                $this->addRestrictionQuery( $query );
 
-                if (!empty($category))
-                {
-                    $categoryTerm = new \Zend_Search_Lucene_Index_Term($category, 'cat');
-                    $categoryQuery = new \Zend_Search_Lucene_Search_Query_Term($categoryTerm);
-                    $query->addSubquery($categoryQuery, true);
-                }
-
-
-                $hits = $this->frontendIndex->find($query);
-
-                $validHits = array();
-
-                if ($this->ownHostOnly and $hits != null)
-                {
-                    //get rid of hits from other hosts
-                    $currenthost = $_SERVER['HTTP_HOST'];
-
-                    if (count($hits) == 1)
-                    {
-                        $url = $hits[0]->getDocument()->getField('url');
-                        if (strpos($url->value, 'http://' . $currenthost) !== FALSE || strpos($url->value, 'https://' . $currenthost) !== FALSE)
-                        {
-                            $validHits[] = $hits[0];
-                        }
-                    }
-
-                    for ($i = 0; $i < (count($hits)); $i++)
-                    {
-                        $url = $hits[$i]->getDocument()->getField('url');
-                        if (strpos($url->value, 'http://' . $currenthost) !== FALSE || strpos($url->value, 'https://' . $currenthost) !== FALSE)
-                        {
-                            $validHits[] = $hits[$i];
-                        }
-                    }
-                }
-                else
-                {
-                    $validHits = $hits;
-                }
+                $validHits = $this->getValidHits( $this->frontendIndex->find($query) );
 
                 $start = $perPage * ($page - 1);
                 $end = $start + ($perPage - 1);
@@ -515,82 +382,22 @@ class LuceneSearch_FrontendController extends Action
                         {
                             $t = $term->text;
 
-                            //check if term can be found for current language
-                            if ($this->searchLanguage != null)
-                            {
-                                if (is_object($this->searchLanguage))
-                                {
-                                    $language = $this->searchLanguage->toString();
-                                }
-                                else
-                                {
-                                    $language = $this->searchLanguage;
-                                }
-                                $language = str_replace(array('_', '-'), '', $language);
-                            }
-
                             $hits = null;
 
                             $query = new \Zend_Search_Lucene_Search_Query_Boolean();
 
-                            if ($language != null)
-                            {
-                                $languageTerm = new \Zend_Search_Lucene_Index_Term($language, 'lang');
-                                $languageQuery = new \Zend_Search_Lucene_Search_Query_Term($languageTerm);
-                                $query->addSubquery($languageQuery, true);
-                            }
-
-                            if (!empty($this->searchCountry))
-                            {
-                                $country = str_replace(array('_', '-'), '', $this->searchCountry);
-                                $countryTerm = new \Zend_Search_Lucene_Index_Term($country, 'country');
-                                $countryQuery = new \Zend_Search_Lucene_Search_Query_Term($countryTerm);
-                                $query->addSubquery($countryQuery, true);
-                            }
-
-                            //add restriction!
-                            if( $this->searchRestriction )
-                            {
-                                $restrictionTerm = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default');
-                                $restrictionQuery = new \Zend_Search_Lucene_Search_Query_Term($restrictionTerm);
-                                $query->addSubquery($restrictionQuery, true);
-                            }
-
-                            if (!empty($category))
-                            {
-                                $categoryTerm = new \Zend_Search_Lucene_Index_Term($category, 'cat');
-                                $categoryQuery = new \Zend_Search_Lucene_Search_Query_Term($categoryTerm);
-                                $query->addSubquery($categoryQuery, true);
-                            }
-
                             $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($t, 'utf-8');
                             $query->addSubquery($userQuery, true);
-                            $hits = $this->frontendIndex->find($query);
 
-                            $validHits = array();
+                            $this->addLanguageQuery( $query );
 
-                            if ($this->ownHostOnly and $hits != null)
-                            {
-                                //get rid of hits from other hosts
-                                $currenthost = $_SERVER['HTTP_HOST'];
+                            $this->addCategoryQuery( $query, $categoryFromRequest );
 
-                                if (count($hits) == 1)
-                                {
-                                    $url = $hits[0]->getDocument()->getField('url');
-                                    if (strpos($url->value, 'http://' . $currenthost) !== FALSE || strpos($url->value, 'https://' . $currenthost) !== FALSE) {
-                                        $validHits[] = $hits[0];
-                                    }
-                                }
-                                for ($i = 0; $i < (count($hits)); $i++) {
-                                    $url = $hits[$i]->getDocument()->getField('url');
-                                    if (strpos($url->value, 'http://' . $currenthost) !== FALSE) {
-                                        $validHits[] = $hits[$i];
-                                    }
-                                }
-                            } else
-                            {
-                                $validHits = $hits;
-                            }
+                            $this->addCountryQuery( $query );
+
+                            $this->addRestrictionQuery( $query );
+
+                            $validHits = $this->getValidHits( $this->frontendIndex->find($query) );
 
                             if (count($validHits) > 0 and!in_array($t, $suggestions))
                             {
@@ -622,6 +429,127 @@ class LuceneSearch_FrontendController extends Action
 
     }
 
+    private function getValidHits( $queryHits )
+    {
+        $validHits = array();
+
+        if ($this->ownHostOnly and $queryHits != null)
+        {
+            //get rid of hits from other hosts
+            $currenthost = $_SERVER['HTTP_HOST'];
+
+            if (count($queryHits) == 1)
+            {
+                $url = $queryHits[0]->getDocument()->getField('url');
+                if (strpos($url->value, 'http://' . $currenthost) !== FALSE || strpos($url->value, 'https://' . $currenthost) !== FALSE)
+                {
+                    $validHits[] = $queryHits[0];
+                }
+            }
+
+            for ($i = 0; $i < (count($queryHits)); $i++)
+            {
+                $url = $queryHits[$i]->getDocument()->getField('url');
+                if (strpos($url->value, 'http://' . $currenthost) !== FALSE)
+                {
+                    $validHits[] = $queryHits[$i];
+                }
+            }
+        }
+        else
+        {
+            $validHits = $queryHits;
+        }
+
+        return $validHits;
+
+    }
+
+    private function addCountryQuery( $query )
+    {
+        if (!empty($this->searchCountry))
+        {
+            $country = str_replace(array('_', '-'), '', $this->searchCountry);
+            $countryTerm = new \Zend_Search_Lucene_Index_Term($country, 'country');
+            $countryQuery = new \Zend_Search_Lucene_Search_Query_Term($countryTerm);
+            $query->addSubquery($countryQuery, true);
+        }
+
+        return $query;
+    }
+
+    private function addCategoryQuery( $query, $category = NULL )
+    {
+        if ( !empty( $category ) )
+        {
+            $categoryTerm = new \Zend_Search_Lucene_Index_Term($category, 'cat');
+            $categoryQuery = new \Zend_Search_Lucene_Search_Query_Term($categoryTerm);
+            $query->addSubquery($categoryQuery, true);
+        }
+
+        return $query;
+    }
+
+    private function addLanguageQuery( $query )
+    {
+        if (!empty($this->searchLanguage))
+        {
+            if (is_object($this->searchLanguage))
+            {
+                $lang = $this->searchLanguage->toString();
+            }
+            else
+            {
+                $lang = $this->searchLanguage;
+            }
+
+            $lang = str_replace(array('_', '-'), '', $lang);
+            $languageTerm = new \Zend_Search_Lucene_Index_Term($lang, 'lang');
+            $languageQuery = new \Zend_Search_Lucene_Search_Query_Term($languageTerm);
+            $query->addSubquery($languageQuery, true);
+        }
+
+        return $query;
+    }
+
+    private function addRestrictionQuery( $query )
+    {
+        if( $this->searchRestriction )
+        {
+            $restrictionTerms = array(
+                new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default')
+            );
+
+            $signs = array( null );
+
+            $class = Configuration::get('frontend.restriction.class');
+            $method = Configuration::get('frontend.restriction.method');
+
+            $call = array($class, $method);
+
+            if( is_callable($call, false) )
+            {
+                $allowedGroups = call_user_func( $call );
+
+                if( is_array($allowedGroups) )
+                {
+                    foreach( $allowedGroups as $group)
+                    {
+                        $restrictionTerms[] = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_' . $group);
+                        $signs[] = null;
+                    }
+                }
+            }
+
+            $restrictionQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm($restrictionTerms, $signs);
+            $query->addSubquery($restrictionQuery, true);
+
+        }
+
+        return $query;
+
+    }
+
     /**
      * remove evil stuff from request string
      * @param  string $requestString
@@ -635,5 +563,4 @@ class LuceneSearch_FrontendController extends Action
         return $queryFromRequest;
 
     }
-
 }

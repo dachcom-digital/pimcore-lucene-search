@@ -13,9 +13,18 @@ class Install {
     public function installConfigFile()
     {
         Configuration::set('frontend.index', 'website/var/search/frontend/index/');
+
         Configuration::set('frontend.ignoreLanguage', FALSE);
         Configuration::set('frontend.ignoreCountry', TRUE);
         Configuration::set('frontend.ignoreRestriction', TRUE);
+
+        Configuration::set('frontend.restriction.class', '');
+        Configuration::set('frontend.restriction.method', '');
+
+        Configuration::set('frontend.auth.useAuth', FALSE);
+        Configuration::set('frontend.auth.username', '');
+        Configuration::set('frontend.auth.password', '');
+
         Configuration::set('frontend.fuzzySearch', FALSE);
         Configuration::set('frontend.enabled', FALSE);
         Configuration::set('frontend.urls', array());

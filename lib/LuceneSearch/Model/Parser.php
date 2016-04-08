@@ -17,6 +17,7 @@ use VDB\Spider\StatsHandler;
 
 use LuceneSearch\Plugin;
 use LuceneSearch\Model\Logger;
+use LuceneSearch\Crawler\Listener;
 use LuceneSearch\Crawler\Filter\NegativeUriFilter;
 
 class Parser {
@@ -83,7 +84,25 @@ class Parser {
      */
     protected $allowSubDomains = FALSE;
 
-    protected $maxLinkDepth;
+    /**
+     * @var int
+     */
+    protected $maxLinkDepth = 0;
+
+    /**
+     * @var bool
+     */
+    protected $useAuth = FALSE;
+
+    /**
+     * @var null
+     */
+    protected $authUserName = NULL;
+
+    /**
+     * @var null
+     */
+    Protected $authPassword = NULL;
 
     public function __construct()
     {
@@ -143,15 +162,22 @@ class Parser {
         return $this;
     }
 
-    public function setSeed( $seed = '' )
-    {
-        $this->seed = $seed;
-        return $this;
-    }
-
     public function setMaxRedirects( $maxRedirects = '' )
     {
         $this->maxRedirects = $maxRedirects;
+        return $this;
+    }
+
+    public function setAuth( $username = NULL, $password = NULL )
+    {
+        $this->authUserName = $username;
+        $this->authPassword = $password;
+
+        if( !empty( $this->authUserName ) && !empty(  $this->authPassword ) )
+        {
+            $this->useAuth = TRUE;
+        }
+
         return $this;
     }
 
@@ -161,6 +187,11 @@ class Parser {
         return $this;
     }
 
+    public function setSeed( $seed = '' )
+    {
+        $this->seed = $seed;
+        return $this;
+    }
     /**
      * Start Parsing Urls!
      */
@@ -168,7 +199,6 @@ class Parser {
     {
         $start = microtime();
 
-        // Create spider
         $spider = new Spider( $this->seed );
 
         if( $this->downloadLimit > 0 )
@@ -199,7 +229,7 @@ class Parser {
         $spider->getDiscovererSet()->addFilter(new UriFilter( $this->invalidLinkRegexes ) );
         $spider->getDiscovererSet()->addFilter(new NegativeUriFilter( $this->validLinkRegexes ) );
 
-        $politenessPolicyEventListener = new PolitenessPolicyListener( 1 ); //CHANGE TO 100 !!!!
+        $politenessPolicyEventListener = new PolitenessPolicyListener( 20 ); //CHANGE TO 100 !!!!
 
         $spider->getDownloader()->getDispatcher()->addListener(
             SpiderEvents::SPIDER_CRAWL_PRE_REQUEST,
@@ -209,34 +239,37 @@ class Parser {
         $spider->getDispatcher()->addSubscriber($statsHandler);
         $spider->getDispatcher()->addSubscriber($LogHandler);
 
+        $abortListener = new Listener\Abort($spider);
+        $spider->getDownloader()->getDispatcher()->addListener(
+
+            SpiderEvents::SPIDER_CRAWL_PRE_REQUEST,
+            array($abortListener, 'checkCrawlerState')
+
+        );
+
         $spider->getDispatcher()->addListener(
 
             SpiderEvents::SPIDER_CRAWL_USER_STOPPED,
-            function (Event $event) {
-                \Logger::log('LuceneSearch: Crawl aborted by user.');
-                exit;
-
-            }
+            array($abortListener, 'stopCrawler')
 
         );
 
-        $spider->getDownloader()->getDispatcher()->addListener(
-            SpiderEvents::SPIDER_CRAWL_PRE_REQUEST,
-            function (Event $event) use ( $spider )
-            {
-                if( !file_exists( PIMCORE_TEMPORARY_DIRECTORY . '/lucene-crawler.tmp' ) )
-                {
-                    $spider->getDispatcher()->dispatch(SpiderEvents::SPIDER_CRAWL_USER_STOPPED);
-                }
+        if( $this->useAuth )
+        {
+            $authListener = new Listener\Auth( $this->authUserName, $this->authPassword );
+            $spider->getDownloader()->getDispatcher()->addListener(
 
-            }
-        );
+                SpiderEvents::SPIDER_CRAWL_PRE_REQUEST,
+                array($authListener, 'setAuth')
+            );
+
+        }
 
         $spider->getDownloader()->getDispatcher()->addListener(
             SpiderEvents::SPIDER_CRAWL_POST_REQUEST,
             function (Event $event)
             {
-                //'crawling: ' . $event->getArgument('uri')->toString() . "\n";
+                //echo 'crawling: ' . $event->getArgument('uri')->toString() . "\n";
             }
         );
 
@@ -572,11 +605,11 @@ class Parser {
         if ($doc instanceof \Zend_Search_Lucene_Document)
         {
             $this->index->addDocument($doc);
-            \Logger::debug(get_class($this) . ': Added to lucene index db entry', \Zend_Log::DEBUG);
+            \Logger::debug('LuceneSearch: Added to lucene index db entry', \Zend_Log::DEBUG);
         }
         else
         {
-            \Logger::error(get_class($this) . ': could not parse lucene document ', \Zend_Log::DEBUG);
+            \Logger::error('LuceneSearch: could not parse lucene document ', \Zend_Log::DEBUG);
         }
 
     }

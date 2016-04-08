@@ -319,8 +319,95 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                 boxLabel: t('lucenesearch_frontend_ignoreRestriction'),
                                 name: 'frontend.ignoreRestriction',
                                 checked: this.getValue('frontend.ignoreRestriction'),
-                                inputValue: '1'
+                                inputValue: '1',
+                                listeners:{
+                                    change: function(checkbox, checked) {
+                                        if (checked) {
+                                            Ext.getCmp('lucenesearch_auth').hide();
+                                        } else {
+                                            Ext.getCmp('lucenesearch_auth').show();
+
+                                        }
+                                    }
+                                }
                             },
+
+                            {
+                                xtype:'fieldset',
+                                id: 'lucenesearch_auth',
+                                title:t('lucenesearch_restriction_settings'),
+                                collapsible: false,
+                                autoHeight:true,
+                                labelWidth: 100,
+                                items :[
+                                    {
+                                        xtype:'displayfield',
+                                        value: t('lucenesearch_use_auth_enabled_description'),
+                                        cls: 'description'
+                                    },
+
+                                    {
+                                        xtype:'textfield',
+                                        id:'lucenesearch_restriction_static_class',
+                                        fieldLabel: t('lucenesearch_restriction_static_class'),
+                                        name: 'frontend.restriction.class',
+                                        collapsible: false,
+                                        autoHeight:true,
+                                        value: this.getValue('frontend.restriction.class')
+                                    },
+                                    {
+                                        xtype:'textfield',
+                                        id:'lucenesearch_restriction_method',
+                                        fieldLabel: t('lucenesearch_restriction_method'),
+                                        name: 'frontend.restriction.method',
+                                        collapsible: false,
+                                        autoHeight:true,
+                                        value: this.getValue('frontend.restriction.method')
+                                    },
+
+                                    {
+                                        xtype:'checkbox',
+                                        autoHeight:true,
+                                        boxLabel: t('lucenesearch_use_auth'),
+                                        name: 'frontend.auth.useAuth',
+                                        checked: this.getValue('frontend.auth.useAuth'),
+                                        inputValue: '1',
+                                        ctCls: 'x-form-item',
+                                        listeners:{
+                                            change: function(checkbox, checked) {
+                                                if (checked) {
+                                                    Ext.getCmp('lucenesearch_auth_username').enable();
+                                                    Ext.getCmp('lucenesearch_auth_password').enable();
+                                                } else {
+                                                    Ext.getCmp('lucenesearch_auth_username').disable();
+                                                    Ext.getCmp('lucenesearch_auth_password').disable();
+
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        xtype:'textfield',
+                                        id:'lucenesearch_auth_username',
+                                        fieldLabel: t('lucenesearch_auth_username'),
+                                        name: 'frontend.auth.username',
+                                        collapsible: false,
+                                        autoHeight:true,
+                                        value: this.getValue('frontend.auth.username')
+                                    },
+                                    {
+                                        xtype:'textfield',
+                                        id:'lucenesearch_auth_password',
+                                        fieldLabel: t('lucenesearch_auth_password'),
+                                        name: 'frontend.auth.password',
+                                        collapsible: false,
+                                        autoHeight:true,
+                                        value: this.getValue('frontend.auth.password')
+                                    }
+
+                                ]
+                            },
+
                             {
                                 xtype:'displayfield',
                                 value:t('lucenesearch_frontend_fuzzysearch_description'),

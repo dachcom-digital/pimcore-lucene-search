@@ -49,6 +49,17 @@
 "lucenesearch_country","Country"
 "lucenesearch_restriction","Document Restriction"
 "lucenesearch_frontend_ignoreRestriction","Ignore Document Restriction"
+
+"lucenesearch_use_auth_enabled_description","Set a crawler login, so protected pages can be crawled. logged in users can than find their protected pages. You also need to define a static class & method to get the current users valid groups."
+
+"lucenesearch_restriction_settings","Restriction Settings"
+"lucenesearch_restriction_static_class","Restriction Class"
+"lucenesearch_restriction_method","Restriction Method"
+
+"lucenesearch_use_auth","Enable crawler authentication"
+"lucenesearch_auth_username","Username"
+"lucenesearch_auth_password","Password"
+
 "lucenesearch_backend_excludeassets","exclude assets"
 "lucenesearch_backend_excludedocuments","exclude documents"
 "lucenesearch_backend_excludeobjects","exclude objects"

@@ -66,6 +66,11 @@ class Executer {
                         ->setDownloadLimit( Configuration::get('frontend.crawler.maxDownloadLimit') )
                         ->setSeed( $urls[0] );
 
+                    if( Configuration::get('frontend.auth.useAuth') === TRUE )
+                    {
+                        $parser->setAuth( Configuration::get('frontend.auth.username'), Configuration::get('frontend.auth.password') );
+                    }
+
                     $parser->startParser($urls);
 
                     $parser->optimizeIndex();
