@@ -394,9 +394,6 @@ class Parser {
             $restrictions = $crawler->filterXpath('//meta[@name="m:groups"]')->attr('content');
         }
 
-        $contentLength = (int) $resource->getHeader('Content-Length')->__toString();
-        //echo "\n - " . str_pad("[" . round($contentLength / 1024), 4, ' ', STR_PAD_LEFT) . "KB] $link - $title";
-
         \Zend_Search_Lucene_Document_Html::setExcludeNoFollowLinks(true);
 
         $documentHasDelimiter = FALSE;
