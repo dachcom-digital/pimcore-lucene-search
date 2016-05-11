@@ -331,12 +331,12 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                     }
                                 }
                             },
-
                             {
                                 xtype:'fieldset',
                                 id: 'lucenesearch_auth',
                                 title:t('lucenesearch_restriction_settings'),
                                 collapsible: false,
+                                hidden: this.getValue('frontend.ignoreRestriction'),
                                 autoHeight:true,
                                 labelWidth: 100,
                                 items :[
@@ -392,6 +392,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                         fieldLabel: t('lucenesearch_auth_username'),
                                         name: 'frontend.auth.username',
                                         collapsible: false,
+                                        disabled : !this.getValue('frontend.auth.useAuth'),
                                         autoHeight:true,
                                         value: this.getValue('frontend.auth.username')
                                     },
@@ -401,6 +402,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                         fieldLabel: t('lucenesearch_auth_password'),
                                         name: 'frontend.auth.password',
                                         collapsible: false,
+                                        disabled : !this.getValue('frontend.auth.useAuth'),
                                         autoHeight:true,
                                         value: this.getValue('frontend.auth.password')
                                     }
@@ -561,7 +563,6 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                             {
                                 xtype: 'tagfield',
                                 fieldLabel: t('lucenesearch_frontend_allowed') + ' *',
-                                //emptyText: t('lucenesearch_frontend_allowed_empty_text'),
                                 name: 'frontend.validLinkRegexes',
                                 store: this.allowedStore,
                                 displayField: 'regex',
@@ -584,7 +585,6 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                             {
                                 xtype: 'tagfield',
                                 fieldLabel: t('lucenesearch_frontend_forbidden'),
-                                //emptyText: t('lucenesearch_frontend_forbidden_empty_text'),
                                 name: 'frontend.invalidLinkRegexesEditable',
                                 store: this.forbiddenStore,
                                 displayField: 'regex',
@@ -598,6 +598,20 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                 queryMode: 'local',
                                 componentCls: 'superselect-no-drop-down'
 
+                            },
+                            {
+                                xtype:'displayfield',
+                                value:t('lucenesearch_sitemap_render_description'),
+                                cls: 'description'
+                            },
+                            {
+                                xtype:'checkbox',
+                                fieldLabel: t('lucenesearch_sitemap_render'),
+                                autoHeight:true,
+                                boxLabel: t('lucenesearch_sitemap_allow_render'),
+                                name: 'frontend.sitemap.render',
+                                checked: this.getValue('frontend.sitemap.render'),
+                                inputValue: '1'
                             },
                             {
                                 xtype:'displayfield',

@@ -5,7 +5,7 @@
     <pluginNiceName>LuceneSearch Search Module</pluginNiceName>
     <pluginIcon>/plugins/LuceneSearch/static/img/search-logo.png</pluginIcon>
     <pluginDescription>Search module for website with a php website crawler</pluginDescription>
-    <pluginVersion>2.0.0</pluginVersion>
+    <pluginVersion>1.0.1</pluginVersion>
     <pluginClassName>\LuceneSearch\Plugin</pluginClassName>
     <pluginIncludePaths>
       <path>/LuceneSearch/lib</path>
@@ -13,7 +13,6 @@
     </pluginIncludePaths>
     <pluginNamespaces>
       <namespace>LuceneSearch</namespace>
-      <namespace>PDF2Text</namespace>
     </pluginNamespaces>
       <pluginJsPaths-extjs6>
           <path>/plugins/LuceneSearch/static/js/backend/startup.js</path>

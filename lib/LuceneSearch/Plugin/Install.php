@@ -44,6 +44,7 @@ class Install {
         Configuration::set('frontend.crawler.finished', FALSE);
         Configuration::set('frontend.crawler.forceStop', FALSE);
         Configuration::set('frontend.crawler.forceStopInitiated', FALSE);
+        Configuration::set('frontend.sitemap.render', FALSE);
 
         return TRUE;
     }

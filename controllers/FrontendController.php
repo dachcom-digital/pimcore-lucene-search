@@ -123,6 +123,12 @@ class LuceneSearch_FrontendController extends Action
     {
         $this->removeViewRenderer();
 
+        if( Configuration::get('frontend.sitemap.render') === FALSE )
+        {
+            header("HTTP/1.0 404 Not Found");
+            exit;
+        }
+
         $sitemapFile = $this->_getParam('sitemap');
 
         if (strpos($sitemapFile, '/') !== FALSE)

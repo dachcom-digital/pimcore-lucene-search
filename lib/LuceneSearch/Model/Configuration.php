@@ -105,7 +105,6 @@ class Configuration extends Model\AbstractModel
         }
         catch (\Exception $e)
         {
-            \Logger::warn($e);
             return null;
         }
 

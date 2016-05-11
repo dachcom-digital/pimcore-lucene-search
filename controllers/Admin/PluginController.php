@@ -184,6 +184,12 @@ class LuceneSearch_Admin_PluginController extends Admin {
             Configuration::set('frontend.ownHostOnly', TRUE);
         }
 
+        Configuration::set('frontend.sitemap.render', FALSE);
+        if ($values['frontend.sitemap.render'])
+        {
+            Configuration::set('frontend.sitemap.render', TRUE);
+        }
+
         if (is_numeric($values['frontend.crawler.maxLinkDepth']))
         {
             Configuration::set('frontend.crawler.maxLinkDepth', (int) $values['frontend.crawler.maxLinkDepth']);

@@ -31,7 +31,6 @@ class SitemapBuilder {
 
             if(is_array($hosts))
             {
-                //create domain sitemaps
                 foreach($hosts as $hostName)
                 {
                     $query = new \Zend_Search_Lucene_Search_Query_Boolean();
@@ -69,7 +68,6 @@ class SitemapBuilder {
                     fclose($fh);
                 }
 
-                //create sitemap index file
                 $filePath = $this->sitemapDir . '/sitemap.xml';
                 $fh = fopen($filePath, 'w');
                 fwrite($fh, '<?xml version="1.0" encoding="UTF-8"?>' . "\r\n");

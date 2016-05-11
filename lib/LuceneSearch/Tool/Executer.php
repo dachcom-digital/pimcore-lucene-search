@@ -176,9 +176,14 @@ class Executer {
 
     public static function generateSitemap()
     {
+        if( Configuration::get('frontend.sitemap.render') === FALSE )
+        {
+            return FALSE;
+        }
+
         $builder = new SitemapBuilder();
         $builder->generateSitemap();
 
-        return FALSE;
+        return TRUE;
     }
 }
