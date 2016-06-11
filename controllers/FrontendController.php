@@ -317,9 +317,12 @@ class LuceneSearch_FrontendController extends Action
                     $url = $hit->getDocument()->getField('url');
                     $title = $hit->getDocument()->getField('title');
                     $content = $hit->getDocument()->getField('content');
+                    //$imageTags = $hit->getDocument()->getField('imageTags');
 
                     $searchResult['boost'] = $hit->getDocument()->boost;
                     $searchResult['title'] = $title->value;
+                    //$searchResult['imageTags'] = $imageTags->value;
+
                     $searchResult['url'] = $url->value;
                     $searchResult['summary'] = $searcher->getSummaryForUrl($content->value, $queryStr);
 
@@ -548,7 +551,6 @@ class LuceneSearch_FrontendController extends Action
 
                 $restrictionQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm($restrictionTerms, $signs);
                 $query->addSubquery($restrictionQuery, true);
-
             }
             else
             {

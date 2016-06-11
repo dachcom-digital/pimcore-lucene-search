@@ -528,6 +528,7 @@ class Parser {
     /**
      * adds a HTML page to lucene index and mysql table for search result summaries
      * @param  string $html
+     * @param  string $title
      * @param  string $url
      * @param  string $language
      * @param  string $country
@@ -542,7 +543,7 @@ class Parser {
         {
             $content = $this->getPlainTextFromHtml($html);
 
-            $doc = new \Zend_Search_Lucene_Document(); //\Zend_Search_Lucene_Document_Html::loadHTML($html, false, 'utf-8');
+            $doc = new \Zend_Search_Lucene_Document();
 
             //add h1 to index
             $headlines = array();
@@ -562,6 +563,17 @@ class Parser {
                 $doc->addField($field);
             }
 
+            $imageTags = $this->extractImageAltText($html);
+
+            $tags = array();
+            if( !empty( $imageTags ) )
+            {
+                foreach($imageTags as $imageTag)
+                {
+                    $tags[] = $imageTag['alt'];
+                }
+            }
+
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('charset', $encoding));
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $language));
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $url));
@@ -569,6 +581,7 @@ class Parser {
 
             $doc->addField(\Zend_Search_Lucene_Field::Text('title', $title));
             $doc->addField(\Zend_Search_Lucene_Field::Text('content', $content));
+            $doc->addField(\Zend_Search_Lucene_Field::Text('imageTags', join(',', $tags)));
 
             if( $country !== FALSE )
             {
@@ -757,6 +770,44 @@ class Parser {
 
         return $text;
 
+    }
+
+    protected function extractImageAltText($html)
+    {
+        libxml_use_internal_errors(true);
+
+        $doc = new \DOMDocument();
+        $data = array();
+        $imageTags = array();
+
+        try
+        {
+            $doc->loadHTML( mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+            $imageTags = $doc->getElementsByTagName('img');
+        }
+
+        catch(\Exception $e)
+        {
+            //do nothing. just die trying.
+        }
+
+        foreach($imageTags as $tag)
+        {
+            $alt = $tag->getAttribute('alt');
+
+            if( in_array($alt , array('', 'Image is not available', 'Image not available')) )
+            {
+                continue;
+            }
+
+            $data[] = array(
+                'src' => $tag->getAttribute('src'),
+                'title' => $tag->getAttribute('title'),
+                'alt' => $alt
+            );
+        }
+
+        return $data;
     }
 
     protected function checkAndPrepareIndex()
