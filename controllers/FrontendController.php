@@ -545,10 +545,15 @@ class LuceneSearch_FrontendController extends Action
                         $signs[] = null;
                     }
                 }
-            }
 
-            $restrictionQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm($restrictionTerms, $signs);
-            $query->addSubquery($restrictionQuery, true);
+                $restrictionQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm($restrictionTerms, $signs);
+                $query->addSubquery($restrictionQuery, true);
+
+            }
+            else
+            {
+                throw new \Exception('Method "' . $method . '" in "' . $class . '" not callable');
+            }
 
         }
 
