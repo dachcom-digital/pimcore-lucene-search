@@ -84,7 +84,6 @@ class Configuration extends Model\AbstractModel
     {
         $cacheKey = $key . '~~~';
 
-        // check if pimcore already knows the id for this $name, if yes just return it
         if (array_key_exists($cacheKey, self::$nameIdMappingCache))
         {
             $entry = self::getById(self::$nameIdMappingCache[$cacheKey]);
@@ -96,7 +95,6 @@ class Configuration extends Model\AbstractModel
             return $entry instanceof Configuration ? $entry->getData() : null;
         }
 
-        // create a tmp object to obtain the id
         $configurationEntry = new self();
 
         try
@@ -108,10 +106,8 @@ class Configuration extends Model\AbstractModel
             return null;
         }
 
-        // to have a singleton in a way. like all instances of Element\ElementInterface do also, like Object\AbstractObject
         if ($configurationEntry->getId() > 0)
         {
-            // add it to the mini-per request cache
             self::$nameIdMappingCache[$cacheKey] = $configurationEntry->getId();
             $entry = self::getById($configurationEntry->getId());
 
@@ -122,6 +118,92 @@ class Configuration extends Model\AbstractModel
 
             return $entry instanceof Configuration ? $entry->getData() : null;
         }
+    }
+
+    /**
+     * @param $key
+     *
+     * @return bool
+     */
+    public static function getCoreSetting($key)
+    {
+        $arrayData = self::getCoreSettings();
+
+        try
+        {
+            if( isset($arrayData[ $key ]) )
+            {
+                return $arrayData[ $key ];
+            }
+            else
+            {
+                return FALSE;
+            }
+        }
+        catch(\Exception $e)
+        {
+            return FALSE;
+        }
+    }
+
+    /**
+     * Get CoreSettings
+     */
+    private static function getCoreSettings()
+    {
+        $configFile = PIMCORE_SYSTEM_TEMP_DIRECTORY . '/lucene_timings';
+
+        if( !file_exists( $configFile ))
+        {
+            return array();
+        }
+
+        try
+        {
+            $data = file_get_contents($configFile);
+            $arrayData = unserialize($data);
+
+            if( is_array( $arrayData ) )
+            {
+                return $arrayData;
+            }
+
+            return array();
+
+        }  catch(\Exception $e) { }
+
+        return array();
+
+    }
+
+    /**
+     * @param $key
+     * @param $value
+     */
+    public static function setCoreSetting($key, $value)
+    {
+        $arrayData = self::getCoreSettings();
+
+        $arrayData[ $key ] = $value;
+
+        self::setCoreSettings($arrayData);
+    }
+
+    /**
+     * @param array $dataArray
+     *
+     * @return bool
+     */
+    public static function setCoreSettings( $dataArray = array() )
+    {
+        $configFile = PIMCORE_SYSTEM_TEMP_DIRECTORY . '/lucene_timings';
+
+        $data = serialize($dataArray);
+
+        file_put_contents($configFile, $data);
+
+        return TRUE;
+
     }
 
     /**

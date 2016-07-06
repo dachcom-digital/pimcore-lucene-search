@@ -47,7 +47,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
             if (Configuration::get('frontend.enabled'))
             {
-                if(Configuration::get('frontend.crawler.running'))
+                if(Configuration::getCoreSetting('running'))
                 {
                     $message .= self::getTranslate()->_('lucenesearch_frontend_crawler_running') . '. ';
                 } else {
@@ -57,14 +57,14 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
                 $started = 'never';
                 $finished = 'never';
 
-                if( !is_bool( Configuration::get('frontend.crawler.started')))
+                if( !is_bool( Configuration::getCoreSetting('started')))
                 {
-                    $started = date('d.m.Y H:i', (double)Configuration::get('frontend.crawler.started'));
+                    $started = date('d.m.Y H:i', (double)Configuration::getCoreSetting('started'));
                 }
 
-                if( !is_bool( Configuration::get('frontend.crawler.finished')))
+                if( !is_bool( Configuration::getCoreSetting('finished')))
                 {
-                    $finished = date('d.m.Y H:i', (double) Configuration::get('frontend.crawler.finished'));
+                    $finished = date('d.m.Y H:i', (double) Configuration::getCoreSetting('finished'));
                 }
 
                 $message .= self::getTranslate()->_('lucenesearch_frontend_crawler_last_started') . ': ' . $started . '. ';
@@ -76,7 +76,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
                 }
                 else
                 {
-                    if (Configuration::get('frontend.crawler.forceStart'))
+                    if (Configuration::getCoreSetting('forceStart'))
                     {
                         $message .= self::getTranslate()->_('lucenesearch_frontend_crawler') . ': ';
                         $message .= self::getTranslate()->_('lucenesearch_frontend_crawler_start_on_next_maintenance');
@@ -98,7 +98,6 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     public static function isInstalled()
     {
         $indexDir = self::getFrontendSearchIndex();
-
         return (!is_null($indexDir) && is_dir($indexDir));
     }
 
@@ -253,8 +252,14 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function frontendCrawlerStopLocked()
     {
-        if (Configuration::get('frontend.crawler.forceStop')) return true;
-        else return false;
+        if (Configuration::getCoreSetting('forceStop'))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /**
@@ -262,8 +267,14 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function frontendCrawlerScheduledForStart()
     {
-        if (Configuration::get('frontend.crawler.forceStart')) return true;
-        else return false;
+        if (Configuration::getCoreSetting('forceStart'))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /**
@@ -313,9 +324,8 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function forceCrawlerStartOnNextMaintenance( $crawler )
     {
-        Configuration::set($crawler .'.crawler.forceStart', TRUE);
+        Configuration::setCoreSetting('forceStart', TRUE);
         \Logger::debug('LuceneSearch: forced to starting crawl');
-
     }
 
     /**
@@ -330,12 +340,11 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
             //Frontend recrawl
             $running = self::frontendCrawlerRunning();
 
-            $lastStarted = Configuration::get('frontend.crawler.started');
-            $lastFinished = Configuration::get('frontend.crawler.finished');
-            $aDayAgo = time() - (24 * 60 * 60);
-            $forceStart = Configuration::get('frontend.crawler.forceStart');
-
             $enabled = Configuration::get('frontend.enabled');
+            $lastStarted = Configuration::getCoreSetting('started');
+            $lastFinished = Configuration::getCoreSetting('finished');
+            $forceStart = Configuration::getCoreSetting('forceStart');
+            $aDayAgo = time() - (24 * 60 * 60);
 
             /**
              * + If Crawler is enabled

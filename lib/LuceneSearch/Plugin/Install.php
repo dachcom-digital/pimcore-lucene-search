@@ -6,12 +6,16 @@ use LuceneSearch\Model\Configuration;
 
 class Install {
 
-    public function __construct()
-    {
-    }
-
     public function installConfigFile()
     {
+        $configFile = \Pimcore\Config::locateConfigFile('lucenesearch_configurations');
+
+        if (is_file($configFile . '.BACKUP'))
+        {
+            rename($configFile . '.BACKUP', $configFile . '.php');
+            return TRUE;
+        }
+
         Configuration::set('frontend.index', 'website/var/search/frontend/index/');
 
         Configuration::set('frontend.ignoreLanguage', FALSE);
@@ -38,13 +42,18 @@ class Install {
         Configuration::set('frontend.crawler.maxDownloadLimit', 0);
         Configuration::set('frontend.crawler.contentStartIndicator', '');
         Configuration::set('frontend.crawler.contentEndIndicator', '');
-        Configuration::set('frontend.crawler.forceStart', FALSE);
-        Configuration::set('frontend.crawler.running', FALSE);
-        Configuration::set('frontend.crawler.started', FALSE);
-        Configuration::set('frontend.crawler.finished', FALSE);
-        Configuration::set('frontend.crawler.forceStop', FALSE);
-        Configuration::set('frontend.crawler.forceStopInitiated', FALSE);
         Configuration::set('frontend.sitemap.render', FALSE);
+
+        Configuration::setCoreSettings(
+
+            array(
+                'forceStart' => FALSE,
+                'forceStop' => FALSE,
+                'running' => FALSE,
+                'started' => FALSE,
+                'finished' => FALSE
+            )
+        );
 
         return TRUE;
     }
@@ -71,6 +80,15 @@ class Install {
 
     public function createRedirect()
     {
+        $redirects = new \Pimcore\Model\Redirect\Listing();
+
+        $redirects->setCondition('source = ?', '/\/sitemap.xml/');
+        $redirects->load();
+
+        foreach ($redirects->getRedirects() as $redirect) {
+            $redirect->delete();
+        }
+
         //add redirect for sitemap.xml
         $redirect = new \Pimcore\Model\Redirect();
         $redirect->setValues(array('source' => '/\/sitemap.xml/', 'target' => '/plugin/LuceneSearch/frontend/sitemap', 'statusCode' => 301, 'priority' => 10));
@@ -81,9 +99,9 @@ class Install {
 
     public function removeConfig()
     {
-        $configFile = \Pimcore\Config::locateConfigFile('lucenesearch_configurations.php');
+        $configFile = \Pimcore\Config::locateConfigFile('lucenesearch_configurations');
 
-        if (is_file( $configFile ))
+        if (is_file( $configFile . '.php' ))
         {
             rename($configFile, $configFile  . '.BACKUP');
         }

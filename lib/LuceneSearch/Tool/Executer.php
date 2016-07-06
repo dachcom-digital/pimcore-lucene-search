@@ -10,7 +10,7 @@ class Executer {
 
     public static function runCrawler()
     {
-        $running = Configuration::get('frontend.crawler.running');
+        $running = Configuration::getCoreSetting('running');
 
         if( $running === TRUE)
         {
@@ -135,8 +135,8 @@ class Executer {
      */
     public static function setCrawlerState($crawler, $action, $running, $setTime = true)
     {
-        Configuration::set($crawler .'.crawler.forceStart', FALSE);
-        Configuration::set($crawler .'.crawler.running', $running);
+        Configuration::setCoreSetting('forceStart', FALSE);
+        Configuration::setCoreSetting('running', $running);
 
         if( $action == 'started' && $running == TRUE )
         {
@@ -153,7 +153,7 @@ class Executer {
 
         if ($setTime)
         {
-            Configuration::set($crawler .'.crawler.' . $action, time());
+            Configuration::setCoreSetting($action, time());
         }
     }
 
@@ -166,12 +166,7 @@ class Executer {
             $stop = FALSE;
         }
 
-        Configuration::set($crawler .'.crawler.forceStop', $stop);
-
-        if ($stop)
-        {
-            Configuration::set($crawler .'.crawler.forceStopInitiated', time());
-        }
+        Configuration::setCoreSetting('forceStop', $stop);
     }
 
     public static function generateSitemap()

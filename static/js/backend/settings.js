@@ -77,7 +77,6 @@ pimcore.plugin.luceneSearch.settings = Class.create({
 
                 id: 'LSstatusFormPanel',
                 border: false,
-                flex: 2,
                 bodyStyle: 'background-color: #F7F7F7; padding:5px 10px;',
                 autoScroll: false,
 
