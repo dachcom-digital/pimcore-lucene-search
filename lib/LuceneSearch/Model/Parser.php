@@ -780,9 +780,16 @@ class Parser {
         $data = array();
         $imageTags = array();
 
+        $html = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
+
+        if( empty( $html) )
+        {
+            return array();
+        }
+
         try
         {
-            $doc->loadHTML( mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+            $doc->loadHTML( $html );
             $imageTags = $doc->getElementsByTagName('img');
         }
 
