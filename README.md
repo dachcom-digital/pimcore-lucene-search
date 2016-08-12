@@ -1,6 +1,6 @@
 # Pimcore Lucene Search
 
-Just download and install it into your plugin folder.
+Just download and install it into your plugin folder into a folder called LuceneSearch. Run composer update for this folder.
 
 ### Requirements
 * Pimcore 4.0
