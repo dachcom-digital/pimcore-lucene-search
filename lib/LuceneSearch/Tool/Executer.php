@@ -23,8 +23,8 @@ class Executer {
         {
             exec('rm -Rf ' . str_replace('/index/', '/tmpindex', $indexDir));
 
-            \Logger::debug('LuceneSearch: rm -Rf ' . str_replace('/index/', '/tmpindex', $indexDir));
-            \Logger::debug('LuceneSearch: Starting crawl');
+            \Pimcore\Logger::debug('LuceneSearch: rm -Rf ' . str_replace('/index/', '/tmpindex', $indexDir));
+            \Pimcore\Logger::debug('LuceneSearch: Starting crawl');
 
             try
             {
@@ -87,23 +87,23 @@ class Executer {
                 if( is_dir( $tmpIndex ) )
                 {
                     exec('rm -Rf ' . $indexDir);
-                    \Logger::debug('LuceneSearch: rm -Rf ' . $indexDir);
+                    \Pimcore\Logger::debug('LuceneSearch: rm -Rf ' . $indexDir);
 
                     exec('cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
 
-                    \Logger::debug('LuceneSearch: cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
-                    \Logger::debug('LuceneSearch: replaced old index');
-                    \Logger::info('LuceneSearch: Finished crawl');
+                    \Pimcore\Logger::debug('LuceneSearch: cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
+                    \Pimcore\Logger::debug('LuceneSearch: replaced old index');
+                    \Pimcore\Logger::info('LuceneSearch: Finished crawl');
                 }
                 else
                 {
-                    \Logger::err('LuceneSearch: skipped index replacing. no tmp index found.');
+                    \Pimcore\Logger::err('LuceneSearch: skipped index replacing. no tmp index found.');
                 }
 
             }
             catch (\Exception $e)
             {
-                \Logger::err($e);
+                \Pimcore\Logger::err($e);
                 throw $e;
             }
 
@@ -117,7 +117,7 @@ class Executer {
      */
     public static function stopCrawler()
     {
-        \Logger::debug('LuceneSearch: forcing frontend crawler stop');
+        \Pimcore\Logger::debug('LuceneSearch: forcing frontend crawler stop');
 
         self::setStopLock('frontend', false);
         self::setCrawlerState('frontend', 'finished', false);

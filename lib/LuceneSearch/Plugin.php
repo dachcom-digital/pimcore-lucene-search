@@ -169,7 +169,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         }
         catch (\Exception $e)
         {
-            \Logger::crit($e);
+            \Pimcore\Logger::crit($e);
             return self::getTranslate()->_('lucenesearch_install_failed');
         }
 
@@ -314,7 +314,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         }
         else
         {
-            \Logger::info('LuceneSearch_Plugin: Did not start frontend crawler, because config incomplete');
+            \Pimcore\Logger::info('LuceneSearch_Plugin: Did not start frontend crawler, because config incomplete');
         }
     }
 
@@ -325,7 +325,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     public static function forceCrawlerStartOnNextMaintenance( $crawler )
     {
         Configuration::setCoreSetting('forceStart', TRUE);
-        \Logger::debug('LuceneSearch: forced to starting crawl');
+        \Pimcore\Logger::debug('LuceneSearch: forced to starting crawl');
     }
 
     /**
@@ -356,7 +356,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
              */
             if ($enabled && !$running && ( ( (is_bool($lastStarted) || $lastStarted <= $aDayAgo) && $currentHour > 1 && $currentHour < 3) || $forceStart))
             {
-                \Logger::debug('starting frontend recrawl...');
+                \Pimcore\Logger::debug('starting frontend recrawl...');
                 $this->frontendCrawl();
 
                 /**
@@ -367,14 +367,14 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
                  */
             } else if( $running && $lastFinished < $lastStarted && $lastStarted <= $aDayAgo)
             {
-                \Logger::err('LuceneSearch: There seems to be a problem with the search crawler! Trying to stop it.');
+                \Pimcore\Logger::err('LuceneSearch: There seems to be a problem with the search crawler! Trying to stop it.');
                 $this->stopFrontendCrawler();
             }
 
         }
         else
         {
-            \Logger::debug('LuceneSearch: Plugin is not installed - no maintenance to do for this plugin.');
+            \Pimcore\Logger::debug('LuceneSearch: Plugin is not installed - no maintenance to do for this plugin.');
         }
     }
 

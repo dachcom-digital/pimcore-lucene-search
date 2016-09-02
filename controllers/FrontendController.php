@@ -14,29 +14,57 @@ class LuceneSearch_FrontendController extends Action
     protected $frontendIndex;
 
     /**
-     * @var
+     * query, incoming argument
+     * @var String
      */
-    protected $searchLanguage;
+    protected $query = '';
+
+    /**
+     * query, incoming argument, unmodified
+     * @var String
+     */
+    protected $untouchedQuery = '';
+
+    /**
+     * category, to restrict query, incoming argument
+     * @var array
+     */
+    protected $category = array();
 
     /**
      * @var
      */
-    protected $searchCountry;
+    protected $searchLanguage = NULL;
 
     /**
      * @var
      */
-    protected $searchRestriction = false;
+    protected $searchCountry = NULL;
+
+    /**
+     * @var
+     */
+    protected $searchRestriction = FALSE;
 
     /**
      * @var bool
      */
-    protected $ownHostOnly = false;
+    protected $ownHostOnly = FALSE;
 
     /**
-     * @var array
+     * @var bool
      */
-    protected $categories = array();
+    protected $fuzzySearch = FALSE;
+
+    /**
+     * @var int
+     */
+    protected $perPage = 10;
+
+    /**
+     * @var int
+     */
+    protected $currentPage = 1;
 
     /**
      * @throws \Exception
@@ -45,76 +73,113 @@ class LuceneSearch_FrontendController extends Action
     {
         parent::init();
 
-        if (Configuration::get('frontend.enabled'))
+        if ( !Configuration::get('frontend.enabled') )
         {
-            try
+            return FALSE;
+        }
+
+        try
+        {
+            \Zend_Search_Lucene_Analysis_Analyzer::setDefault(new \Zend_Search_Lucene_Analysis_Analyzer_Common_Utf8Num_CaseInsensitive() );
+
+            $this->frontendIndex = \Zend_Search_Lucene::open(Plugin::getFrontendSearchIndex());
+            $this->categories = Configuration::get('frontend.categories');
+
+            //set search term query
+            $searchQuery = $this->cleanRequestString($this->getParam('q'));
+
+            if( !empty( $searchQuery ) )
             {
-                \Zend_Search_Lucene_Analysis_Analyzer::setDefault(new \Zend_Search_Lucene_Analysis_Analyzer_Common_Utf8Num_CaseInsensitive());
-
-                $this->frontendIndex = \Zend_Search_Lucene::open(Plugin::getFrontendSearchIndex());
-                $this->categories = Configuration::get('frontend.categories');
-
-                if (Configuration::get('frontend.ignoreLanguage') !== TRUE)
-                {
-                    $this->searchLanguage = $this->getParam('language');
-
-                    if (empty($this->searchLanguage))
-                    {
-                        try
-                        {
-                            $this->searchLanguage = \Zend_Registry::get('Zend_Locale');
-                        }
-                        catch (Exception $e)
-                        {
-                            $this->searchLanguage = 'en';
-                        }
-                    }
-                }
-                else
-                {
-                    $this->searchLanguage = null;
-                }
-
-                if (Configuration::get('frontend.ignoreCountry') !== TRUE)
-                {
-                    $this->searchCountry = $this->getParam('country');
-
-                    if( $this->searchCountry == 'global')
-                    {
-                        $this->searchCountry = 'international';
-                    }
-                    else if (empty($this->searchCountry))
-                    {
-                        $this->searchCountry = 'international';
-                    }
-                }
-                else
-                {
-                    $this->searchCountry = null;
-                }
-
-                if (Configuration::get('frontend.ignoreRestriction') === FALSE)
-                {
-                    $this->searchRestriction = TRUE;
-                }
-
-                $this->fuzzySearch = false;
-
-                if (Configuration::get('frontend.fuzzySearch') == TRUE)
-                {
-                    $this->fuzzySearch = true;
-                }
-
-                if (Configuration::get('frontend.ownHostOnly') == TRUE)
-                {
-                    $this->ownHostOnly = true;
-                }
-            }
-            catch (Exception $e)
-            {
-                throw new Exception('could not open index');
+                $this->query = strtolower( $searchQuery );
+                $this->untouchedQuery = $this->query;
             }
 
+            //set Language
+            if (Configuration::get('frontend.ignoreLanguage') !== TRUE)
+            {
+                $this->searchLanguage = $this->getParam('language');
+
+                if (empty($this->searchLanguage))
+                {
+                    try
+                    {
+                        $this->searchLanguage = \Zend_Registry::get('Zend_Locale');
+                    }
+                    catch (Exception $e)
+                    {
+                        $this->searchLanguage = 'en';
+                    }
+                }
+            }
+            else
+            {
+                $this->searchLanguage = NULL;
+            }
+
+            //Set Category
+            $queryCategory = $this->cleanRequestString( $this->getParam('cat') );
+
+            if( !empty( $queryCategory ) )
+            {
+                $this->category = $queryCategory;
+            }
+
+            //Set Country
+            if (Configuration::get('frontend.ignoreCountry') !== TRUE)
+            {
+                $this->searchCountry = $this->getParam('country');
+
+                if( $this->searchCountry == 'global')
+                {
+                    $this->searchCountry = 'international';
+                }
+                else if (empty($this->searchCountry))
+                {
+                    $this->searchCountry = 'international';
+                }
+            }
+            else
+            {
+                $this->searchCountry = NULL;
+            }
+
+            //Set Restrictions (Auth)
+            if (Configuration::get('frontend.ignoreRestriction') === FALSE)
+            {
+                $this->searchRestriction = TRUE;
+            }
+
+            //Set Fuzzy Search (Auth)
+            $fuzzySearchRequest = $this->getParam('fuzzy');
+            if (Configuration::get('frontend.fuzzySearch') == TRUE || ( !empty($fuzzySearchRequest)) && $fuzzySearchRequest !== 'false' )
+            {
+                $this->fuzzySearch = TRUE;
+            }
+
+            //Set own Host Only
+            if (Configuration::get('frontend.ownHostOnly') == TRUE)
+            {
+                $this->ownHostOnly = TRUE;
+            }
+
+            //Set Per Page
+            $perPage = $this->getParam('perPage');
+            if( !empty($perPage ) )
+            {
+                $this->perPage = $perPage;
+            }
+
+            //Set Current Page
+            $currentPage = $this->getParam('page');
+            if( !empty($perPage ) )
+            {
+                $this->currentPage = $currentPage;
+            }
+
+        }
+        catch (\Exception $e)
+        {
+            throw new \Exception('could not open index');
         }
 
     }
@@ -161,23 +226,28 @@ class LuceneSearch_FrontendController extends Action
         }
         else
         {
-            \Logger::debug('LuceneSearch: sitemap request - but no sitemap available to deliver');
+            \Pimcore\Logger::debug('LuceneSearch: sitemap request - but no sitemap available to deliver');
             exit;
 
         }
 
     }
 
-    public function autocompleteAction()
+    /**
+     * Use this Method the get some results for your ajax autoCompleter.
+     *
+     * @throws \Exception
+     * @throws \Zend_Search_Lucene_Exception
+     */
+    public function autoCompleteAction()
     {
-        $queryFromRequest = $this->cleanRequestString($this->_getParam('q'));
-        $categoryFromRequest = $this->cleanRequestString($this->_getParam('cat'));
+        $this->removeViewRenderer();
 
-        $terms = Plugin::wildcardFindTerms(strtolower($queryFromRequest), $this->frontendIndex);
+        $terms = Plugin::wildcardFindTerms($this->query, $this->frontendIndex);
 
-        if (empty($terms))
+        if ( empty($terms) )
         {
-            $terms = Plugin::fuzzyFindTerms(strtolower($queryFromRequest), $this->frontendIndex);
+            $terms = Plugin::fuzzyFindTerms($this->query, $this->frontendIndex);
         }
 
         $suggestions = array();
@@ -188,33 +258,31 @@ class LuceneSearch_FrontendController extends Action
             $t = $term->text;
 
             //check if term can be found for current language
-            $hits = null;
+            $hits = NULL;
 
             $query = new \Zend_Search_Lucene_Search_Query_Boolean();
-
             $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($t, 'utf-8');
-            $query->addSubquery($userQuery, true);
+            $query->addSubquery($userQuery, TRUE);
 
             $this->addLanguageQuery( $query );
-
-            $this->addCategoryQuery( $query, $categoryFromRequest );
-
+            $this->addCategoryQuery( $query );
             $this->addCountryQuery( $query );
-
             $this->addRestrictionQuery( $query );
 
-            $validHits = $this->getValidHits( $this->frontendIndex->find($query) );
+            $validHits = $this->getValidHits( $this->frontendIndex->find( $query ) );
 
             if (count($validHits) > 0 and !in_array($t, $suggestions))
             {
                 $suggestions[] = $t;
-                if ($counter >= 10) break;
+
+                if ($counter >= 10) {
+                    break;
+                }
+
                 $counter++;
 
             }
         }
-
-        $this->removeViewRenderer();
 
         $data = [];
 
@@ -228,43 +296,8 @@ class LuceneSearch_FrontendController extends Action
 
     public function findAction()
     {
-        $queryFromRequest = $this->cleanRequestString($_REQUEST['query']);
-        $categoryFromRequest = $this->cleanRequestString($_REQUEST['cat']);
-
-        $searcher = new Searcher();
-
-        $this->view->groupByCategory = $this->getParam('groupByCategory');
-        $this->view->omitSearchForm = $this->getParam('omitSearchForm');
-        $this->view->categoryOrder = $this->getParam('categoryOrder');
-        $this->view->omitJsIncludes = $this->getParam('omitJsIncludes');
-
-        $perPage = $this->getParam('perPage');
-
-        if (empty($perPage))
-        {
-            $perPage = 10;
-        }
-
-        $page = $this->getParam('page');
-
-        if (empty($page))
-        {
-            $page = 1;
-        }
-
-        $queryStr = strtolower($queryFromRequest);
-        $this->view->category = $categoryFromRequest;
-        $this->view->language = $this->searchLanguage;
-        $this->view->country = $this->searchCountry;
-
         $categories = Configuration::get('frontend.categories');
-
-        if (!empty($categories))
-        {
-            $this->view->availableCategories = $categories;
-        }
-
-        $doFuzzy = $this->getParam('fuzzy');
+        $searcher = new Searcher();
 
         try
         {
@@ -280,30 +313,27 @@ class LuceneSearch_FrontendController extends Action
             $searchResults = array();
             $validHits = array();
 
-            if (!empty($queryStr))
+            if ( !empty($this->query) )
             {
-                if ($doFuzzy)
+                if ($this->fuzzySearch)
                 {
-                    $queryStr = str_replace(' ', '~ ', $queryStr);
-                    $queryStr .= '~';
+                    $this->query = str_replace(' ', '~ ', $this->query);
+                    $this->query .= '~';
                     \Zend_Search_Lucene_Search_Query_Fuzzy::setDefaultPrefixLength(3);
                 }
 
-                $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($queryStr, 'utf-8');
-                $query->addSubquery($userQuery, true);
+                $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($this->query, 'utf-8');
+                $query->addSubquery($userQuery, TRUE);
 
                 $this->addLanguageQuery( $query );
-
                 $this->addCountryQuery( $query );
-
-                $this->addCategoryQuery( $query, $this->view->category );
-
+                $this->addCategoryQuery( $query );
                 $this->addRestrictionQuery( $query );
 
-                $validHits = $this->getValidHits( $this->frontendIndex->find($query) );
+                $validHits = $this->getValidHits( $this->frontendIndex->find( $query ) );
 
-                $start = $perPage * ($page - 1);
-                $end = $start + ($perPage - 1);
+                $start = $this->perPage * ( $this->currentPage - 1 );
+                $end = $start + ($this->perPage - 1);
 
                 if ($end > count($validHits) - 1)
                 {
@@ -317,14 +347,14 @@ class LuceneSearch_FrontendController extends Action
                     $url = $hit->getDocument()->getField('url');
                     $title = $hit->getDocument()->getField('title');
                     $content = $hit->getDocument()->getField('content');
-                    //$imageTags = $hit->getDocument()->getField('imageTags');
+                    $imageTags = $hit->getDocument()->getField('imageTags');
 
                     $searchResult['boost'] = $hit->getDocument()->boost;
                     $searchResult['title'] = $title->value;
-                    //$searchResult['imageTags'] = $imageTags->value;
+                    $searchResult['imageTags'] = $imageTags->value;
 
                     $searchResult['url'] = $url->value;
-                    $searchResult['summary'] = $searcher->getSummaryForUrl($content->value, $queryStr);
+                    $searchResult['summary'] = $searcher->getSummaryForUrl($content->value, $this->query);
 
                     try
                     {
@@ -338,7 +368,7 @@ class LuceneSearch_FrontendController extends Action
                     {
                     }
 
-                    foreach ($this->categories as $category)
+                    foreach ($categories as $category)
                     {
                         try
                         {
@@ -356,84 +386,64 @@ class LuceneSearch_FrontendController extends Action
 
             }
 
+            $suggestions = FALSE;
+            if($this->fuzzySearch )
+            {
+                $suggestions = $this->getFuzzySuggestions($searchResults);
+            }
+
+            $currentPageResultStart = $this->perPage * ( $this->currentPage-1 );
+            $currentPageResultEnd = $currentPageResultStart + $this->perPage;
+
+            if( $currentPageResultEnd > count($validHits) ) {
+                $currentPageResultEnd = count($validHits);
+            }
+
             if (count($validHits) < 1)
             {
                 $this->view->pages = 0;
-            } else
+            }
+            else
             {
-                $this->view->pages = ceil(count($validHits) / $perPage);
+                $this->view->pages = ceil( count( $validHits ) / $this->perPage );
             }
 
-            $this->view->perPage = $perPage;
-            $this->view->page = $page;
-            $this->view->total = count($validHits);
-            $this->view->query = $queryStr;
 
+            if ( !empty($categories) )
+            {
+                $this->view->availableCategories = $categories;
+            }
+
+            $this->view->suggestions = $suggestions;
+
+            $this->view->category = $this->category;
+            $this->view->language = $this->searchLanguage;
+            $this->view->country = $this->searchCountry;
+
+            $this->view->perPage = $this->perPage;
+            $this->view->page = $this->currentPage;
+            $this->view->total = count($validHits);
+            $this->view->query = $this->untouchedQuery;
+
+            $this->view->hasSearchResults = count($searchResults) > 0;
             $this->view->searchResults = $searchResults;
 
-            if ($this->fuzzySearch)
-            {
-                //look for similar search terms
-                if (!empty($queryStr) and (empty($searchResults) or count($searchResults) < 1))
-                {
-                    $terms = Plugin::fuzzyFindTerms($queryStr, $this->frontendIndex, 3);
-                    if (empty($terms) or count($terms) < 1)
-                    {
-                        $terms = Plugin::fuzzyFindTerms($queryStr, $this->frontendIndex, 0);
-                    }
-
-                    $suggestions = array();
-
-                    if (is_array($terms))
-                    {
-                        $counter = 0;
-                        foreach ($terms as $term)
-                        {
-                            $t = $term->text;
-
-                            $hits = null;
-
-                            $query = new \Zend_Search_Lucene_Search_Query_Boolean();
-
-                            $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($t, 'utf-8');
-                            $query->addSubquery($userQuery, true);
-
-                            $this->addLanguageQuery( $query );
-
-                            $this->addCategoryQuery( $query, $categoryFromRequest );
-
-                            $this->addCountryQuery( $query );
-
-                            $this->addRestrictionQuery( $query );
-
-                            $validHits = $this->getValidHits( $this->frontendIndex->find($query) );
-
-                            if (count($validHits) > 0 and!in_array($t, $suggestions))
-                            {
-                                $suggestions[] = $t;
-                                if ($counter >= 20) break;
-                                $counter++;
-                            }
-
-                        }
-                    }
-
-                    $this->view->suggestions = $suggestions;
-
-                }
-            }
+            $this->view->currentPageResultStart = $currentPageResultStart + 1;
+            $this->view->currentPageResultEnd = $currentPageResultEnd;
 
         }
-        catch (Exception $e)
+        catch (\Exception $e)
         {
-            \Logger::log('An Exception occured during search:', \Zend_Log::ERR);
-            \Logger::log($e, \Zend_Log::ERR);
+            \Pimcore\Logger::log('An Exception occurred during search:', \Zend_Log::ERR);
+            \Pimcore\Logger::log($e, \Zend_Log::ERR);
+
             $this->view->searchResults = array();
+            $this->view->hasSearchResults = FALSE;
         }
 
-        if ($this->getParam('viewscript'))
+        if ($this->getParam('viewScript'))
         {
-            $this->renderScript($this->_getParam('viewscript'));
+            $this->renderScript($this->_getParam('viewScript'));
         }
 
     }
@@ -445,12 +455,12 @@ class LuceneSearch_FrontendController extends Action
         if ($this->ownHostOnly and $queryHits != null)
         {
             //get rid of hits from other hosts
-            $currenthost = $_SERVER['HTTP_HOST'];
+            $currentHost = $_SERVER['HTTP_HOST'];
 
             if (count($queryHits) == 1)
             {
                 $url = $queryHits[0]->getDocument()->getField('url');
-                if (strpos($url->value, 'http://' . $currenthost) !== FALSE || strpos($url->value, 'https://' . $currenthost) !== FALSE)
+                if (strpos($url->value, 'http://' . $currentHost) !== FALSE || strpos($url->value, 'https://' . $currentHost) !== FALSE)
                 {
                     $validHits[] = $queryHits[0];
                 }
@@ -459,7 +469,7 @@ class LuceneSearch_FrontendController extends Action
             for ($i = 0; $i < (count($queryHits)); $i++)
             {
                 $url = $queryHits[$i]->getDocument()->getField('url');
-                if (strpos($url->value, 'http://' . $currenthost) !== FALSE)
+                if (strpos($url->value, 'http://' . $currentHost) !== FALSE)
                 {
                     $validHits[] = $queryHits[$i];
                 }
@@ -487,11 +497,11 @@ class LuceneSearch_FrontendController extends Action
         return $query;
     }
 
-    private function addCategoryQuery( $query, $category = NULL )
+    private function addCategoryQuery( $query )
     {
-        if ( !empty( $category ) )
+        if ( !empty( $this->category ) )
         {
-            $categoryTerm = new \Zend_Search_Lucene_Index_Term($category, 'cat');
+            $categoryTerm = new \Zend_Search_Lucene_Index_Term($this->category, 'cat');
             $categoryQuery = new \Zend_Search_Lucene_Search_Query_Term($categoryTerm);
             $query->addSubquery($categoryQuery, true);
         }
@@ -561,6 +571,60 @@ class LuceneSearch_FrontendController extends Action
 
         return $query;
 
+    }
+
+    private function getFuzzySuggestions( $searchResults = array() )
+    {
+        $suggestions = array();
+
+        //look for similar search terms
+        if ( !empty($this->query) && ( empty($searchResults) || count( $searchResults ) < 1 ) )
+        {
+            $terms = Plugin::fuzzyFindTerms( $this->query, $this->frontendIndex, 3);
+
+            if ( empty($terms) || count($terms) < 1 )
+            {
+                $terms = Plugin::fuzzyFindTerms($this->query, $this->frontendIndex, 0);
+            }
+
+            if ( is_array($terms) )
+            {
+                $counter = 0;
+
+                foreach ($terms as $term)
+                {
+                    $t = $term->text;
+
+                    $hits = NULL;
+
+                    $query = new \Zend_Search_Lucene_Search_Query_Boolean();
+                    $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($t, 'utf-8');
+                    $query->addSubquery($userQuery, TRUE);
+
+                    $this->addLanguageQuery( $query );
+                    $this->addCategoryQuery( $query );
+                    $this->addCountryQuery( $query );
+                    $this->addRestrictionQuery( $query );
+
+                    $validHits = $this->getValidHits( $this->frontendIndex->find($query) );
+
+                    if ( count($validHits) > 0 && !in_array($t, $suggestions) )
+                    {
+                        $suggestions[] = $t;
+
+                        if ($counter >= 20) {
+                            break;
+                        }
+
+                        $counter++;
+                    }
+
+                }
+            }
+
+        }
+
+        return $suggestions;
     }
 
     /**

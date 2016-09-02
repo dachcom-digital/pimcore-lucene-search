@@ -276,21 +276,21 @@ class Parser {
         // Execute the crawl
         $result = $spider->crawl();
 
-        \Logger::debug("SPIDER ID: " . $statsHandler->getSpiderId());
-        \Logger::debug("SPIDER ID: " . $statsHandler->getSpiderId());
+        \Pimcore\Logger::debug("SPIDER ID: " . $statsHandler->getSpiderId());
+        \Pimcore\Logger::debug("SPIDER ID: " . $statsHandler->getSpiderId());
 
-        \Logger::debug("ENQUEUED:  " . count($statsHandler->getQueued()));
-        \Logger::debug("SKIPPED:   " . count($statsHandler->getFiltered()));
-        \Logger::debug("FAILED:    " . count($statsHandler->getFailed()));
-        \Logger::debug("PERSISTED: " . count($statsHandler->getPersisted()));
+        \Pimcore\Logger::debug("ENQUEUED:  " . count($statsHandler->getQueued()));
+        \Pimcore\Logger::debug("SKIPPED:   " . count($statsHandler->getFiltered()));
+        \Pimcore\Logger::debug("FAILED:    " . count($statsHandler->getFailed()));
+        \Pimcore\Logger::debug("PERSISTED: " . count($statsHandler->getPersisted()));
 
         $peakMem = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
         $totalTime = round(microtime(true) - $start, 2);
         $totalDelay = round($politenessPolicyEventListener->totalDelay / 1000 / 1000, 2);
 
-        \Logger::debug("PEAK MEM USAGE:       " . $peakMem . 'MB');
-        \Logger::debug("TOTAL TIME:           " . $totalTime . 's');
-        \Logger::debug("POLITENESS WAIT TIME: " . $totalDelay . 's');
+        \Pimcore\Logger::debug("PEAK MEM USAGE:       " . $peakMem . 'MB');
+        \Pimcore\Logger::debug("TOTAL TIME:           " . $totalTime . 's');
+        \Pimcore\Logger::debug("POLITENESS WAIT TIME: " . $totalDelay . 's');
 
         $downloaded = $spider->getDownloader()->getPersistenceHandler();
 
@@ -331,12 +331,12 @@ class Parser {
             }
             else
             {
-                \Logger::log('LuceneSearch: Cannot parse mime type [ ' . $mimeType. ' ] provided by link [ ' . $link . ' ] ' . \Zend_Log::ERR);
+                \Pimcore\Logger::log('LuceneSearch: Cannot parse mime type [ ' . $mimeType. ' ] provided by link [ ' . $link . ' ] ' . \Zend_Log::ERR);
             }
         }
         else
         {
-            \Logger::log('LuceneSearch: Could not determine content type of [ ' . $link. ' ] ' . \Zend_Log::ERR);
+            \Pimcore\Logger::log('LuceneSearch: Could not determine content type of [ ' . $link. ' ] ' . \Zend_Log::ERR);
         }
 
     }
@@ -356,7 +356,7 @@ class Parser {
 
         if( $hasCanonicalLink === TRUE )
         {
-            \Logger::debug('LuceneSearch: not indexing [ ' . $link. ' ] because it has canonical links');
+            \Pimcore\Logger::debug('LuceneSearch: not indexing [ ' . $link. ' ] because it has canonical links');
             return FALSE;
         }
 
@@ -365,7 +365,7 @@ class Parser {
 
         if( $hasNoFollow === TRUE )
         {
-            \Logger::debug('LuceneSearch: not indexing [ ' . $link. ' ] because it has robots noindex');
+            \Pimcore\Logger::debug('LuceneSearch: not indexing [ ' . $link. ' ] because it has robots noindex');
             return FALSE;
         }
 
@@ -421,7 +421,7 @@ class Parser {
 
         $this->addHtmlToIndex($html, $title, $link, $language, $country, $restrictions, $encoding, $host);
 
-        \Logger::info('LuceneSearch: Added to indexer stack [ ' . $link. ' ]');
+        \Pimcore\Logger::info('LuceneSearch: Added to indexer stack [ ' . $link. ' ]');
 
         return true;
 
@@ -433,7 +433,7 @@ class Parser {
         $html = $resource->getBody();
         $language = $this->getLanguageFromResponse($resource, $html);
 
-        \Logger::log('LuceneSearch: Added pdf to index [ ' . $link . ' ]', \Zend_Log::INFO);
+        \Pimcore\Logger::log('LuceneSearch: Added pdf to index [ ' . $link . ' ]', \Zend_Log::INFO);
 
         return $this->addPdfToIndex($link, $language, $host);
 
@@ -486,7 +486,7 @@ class Parser {
         }
         catch( \Exception $e )
         {
-            \Logger::log($e->getMessage());
+            \Pimcore\Logger::log($e->getMessage());
         }
 
         if( is_file( $tmpFile ) )
@@ -514,7 +514,7 @@ class Parser {
             }
             catch (\Exception $e)
             {
-                \Logger::log($e->getMessage());
+                \Pimcore\Logger::log($e->getMessage());
             }
 
             @unlink( $tmpFile );
@@ -603,7 +603,7 @@ class Parser {
         }
         catch (\Exception $e)
         {
-            \Logger::log('LuceneSearch: ' . $e->getMessage(), \Zend_Log::ERR);
+            \Pimcore\Logger::log('LuceneSearch: ' . $e->getMessage(), \Zend_Log::ERR);
         }
     }
 
@@ -615,11 +615,11 @@ class Parser {
         if ($doc instanceof \Zend_Search_Lucene_Document)
         {
             $this->index->addDocument($doc);
-            \Logger::debug('LuceneSearch: Added to lucene index db entry', \Zend_Log::DEBUG);
+            \Pimcore\Logger::debug('LuceneSearch: Added to lucene index db entry', \Zend_Log::DEBUG);
         }
         else
         {
-            \Logger::error('LuceneSearch: could not parse lucene document ', \Zend_Log::DEBUG);
+            \Pimcore\Logger::error('LuceneSearch: could not parse lucene document ', \Zend_Log::DEBUG);
         }
 
     }
@@ -833,7 +833,7 @@ class Parser {
             }
             catch (\Exception $e)
             {
-                \Logger::log('LuceneSearch: could not open frontend index, creating new one.', \Zend_Log::DEBUG);
+                \Pimcore\Logger::log('LuceneSearch: could not open frontend index, creating new one.', \Zend_Log::DEBUG);
                 \Zend_Search_Lucene::create($indexDir);
                 $this->index = \Zend_Search_Lucene::open($indexDir);
             }
@@ -851,9 +851,9 @@ class Parser {
         {
             $this->index->removeReference();
             unset($this->index);
-            \Logger::log('LuceneSearch: Closed frontend index references',\Zend_Log::DEBUG);
+            \Pimcore\Logger::log('LuceneSearch: Closed frontend index references',\Zend_Log::DEBUG);
         }
 
-        \Logger::debug('LuceneSearch: optimizeIndex.');
+        \Pimcore\Logger::debug('LuceneSearch: optimizeIndex.');
     }
 }

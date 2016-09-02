@@ -48,7 +48,7 @@ class Logger implements EventSubscriberInterface
     {
         if ($this->debug === true
         ) {
-            \Logger::log('LuceneSearch [' . $name . ']: ' . $event->getArgument('uri')->toString() );
+            \Pimcore\Logger::log('LuceneSearch [' . $name . ']: ' . $event->getArgument('uri')->toString() );
         }
     }
 }

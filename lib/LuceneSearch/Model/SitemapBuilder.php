@@ -84,7 +84,7 @@ class SitemapBuilder {
                     fwrite($fh, '    <loc>http://' . $currenthost . '/plugin/LuceneSearch/frontend/sitemap/?sitemap=sitemap-' . $name . '.xml' . '</loc>' . "\r\n");
                     fwrite($fh, '</sitemap>' . "\r\n");
 
-                    \Logger::log('LuceneSearch: ' . $hostName . ' for sitemap.xml added.');
+                    \Pimcore\Logger::log('LuceneSearch: ' . $hostName . ' for sitemap.xml added.');
 
                 }
 
@@ -94,12 +94,12 @@ class SitemapBuilder {
 
             } else
             {
-                \Logger::log('LuceneSearch: could not generate sitemaps, did not find any hosts in index.');
+                \Pimcore\Logger::log('LuceneSearch: could not generate sitemaps, did not find any hosts in index.');
             }
 
         } else
         {
-            \Logger::emerg('LuceneSearch: Cannot generate sitemap. Sitemap directory [ '. $this->sitemapDir .' ]  not available/not writeable and cannot be created');
+            \Pimcore\Logger::emerg('LuceneSearch: Cannot generate sitemap. Sitemap directory [ '. $this->sitemapDir .' ]  not available/not writeable and cannot be created');
         }
 
     }
