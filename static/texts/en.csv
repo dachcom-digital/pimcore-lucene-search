@@ -22,7 +22,7 @@
 "lucenesearch_sitemap_render","Sitemap"
 "lucenesearch_sitemap_allow_render","generate sitemap.xml"
 "lucenesearch_frontend_categories_empty_text","Please enter category and and hit enter"
-"lucenesearch_urlfilter","Regexes for valid URIs - separate Regexes with ";""
+"lucenesearch_urlfilter","Regexes for valid URIs - separate Regexes with ';'"
 "lucenesearch_not_ready_for_install","Plugin is not ready for installation. Please check permissions of plugin and website directories and the /tmp directory. (rwx for php user!)"
 "lucenesearch_search_index_optimization","Search Index Optimization"
 "lucenesearch_search_index_optimization_success","The search index could be optimized successfully."
