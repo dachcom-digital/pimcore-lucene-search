@@ -3,9 +3,10 @@
 "lucenesearch_installed_already","Search plugin is installed already."
 "lucenesearch_could_not_create_dir","Could not install Search plugin, could not create directory "
 "lucenesearch_index_dir_not_configured","Could not install Search plugin, index directory is not configured."
-"lucenesearch_uninstalled_successfully","Successfully uninstalled Search plugin"
+"lucenesearch_install_successfully","Lucene Search has been successfully installed"
+"lucenesearch_uninstalled_successfully","Lucene Search has been successfully uninstalled"
 "lucenesearch_settings_save_success","Settings successfully saved."
-"lucenesearch_settings_save_error","There was an error while storing settings.",
+"lucenesearch_settings_save_error","There was an error while storing settings."
 "lucenesearch_uninstall_failed","Could not uninstall search plugin"
 "lucenesearch_installed_successfully","Search plugin installed successfully. Please reload UI to activate plugin."
 "lucenesearch_index_warning","Warning: Plugin indexes all documents, objects and assets during installation.<br/>If you already have a lot of content, please disable this functionality in search.xml. The installation might take very long or even fail if there ist too much data to index initially."
@@ -52,17 +53,13 @@
 "lucenesearch_country","Country"
 "lucenesearch_restriction","Document Restriction"
 "lucenesearch_frontend_ignoreRestriction","Ignore Document Restriction"
-
 "lucenesearch_use_auth_enabled_description","Set a crawler login, so protected pages can be crawled. logged in users can than find their protected pages. You also need to define a static class & method to get the current users valid groups."
-
 "lucenesearch_restriction_settings","Restriction Settings"
 "lucenesearch_restriction_static_class","Restriction Class"
 "lucenesearch_restriction_method","Restriction Method"
-
 "lucenesearch_use_auth","Enable crawler authentication"
 "lucenesearch_auth_username","Username"
 "lucenesearch_auth_password","Password"
-
 "lucenesearch_backend_excludeassets","exclude assets"
 "lucenesearch_backend_excludedocuments","exclude documents"
 "lucenesearch_backend_excludeobjects","exclude objects"
