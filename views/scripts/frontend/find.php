@@ -41,10 +41,17 @@
                                 <?php } ?>
 
                                 <span class="result-summary-<?= $i ?>">
-                                    <?= $searchResult['summary']?> ...
+
+                                    <?php if( !empty($searchResult['description']) ) { ?>
+                                        <p><?= $searchResult['description'] ?></p>
+                                    <?php } else if( !empty($searchResult['summary']) ) { ?>
+                                        <p><?= $searchResult['summary'] ?> ...</p>
+                                    <?php } ?>
+
                                 </span>
 
                                 <a href="<?= $searchResult['url']?>" class="more"><?=$this->translate('read more')?></a>
+
                             </li>
 
                         <?php } ?>

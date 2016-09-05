@@ -371,6 +371,7 @@ class Parser {
 
         $hasCountryMeta = $crawler->filterXpath('//meta[@name="country"]')->count() > 0;
         $hasTitle = $response->getCrawler()->filterXpath('//title')->count() > 0;
+        $hasDescription = $response->getCrawler()->filterXpath('//meta[@name="description"]')->count() > 0;
         $hasRestriction = $response->getCrawler()->filterXpath('//meta[@name="m:groups"]')->count() > 0;
 
         $country = FALSE;
@@ -381,10 +382,16 @@ class Parser {
         }
 
         $title = '';
+        $description = '';
 
         if( $hasTitle === TRUE )
         {
             $title = $response->getCrawler()->filterXpath('//title')->text();
+        }
+
+        if( $hasDescription === TRUE )
+        {
+            $description = $response->getCrawler()->filterXpath('//meta[@name="description"]')->attr('content');
         }
 
         $restrictions = FALSE;
@@ -419,7 +426,7 @@ class Parser {
             }
         }
 
-        $this->addHtmlToIndex($html, $title, $link, $language, $country, $restrictions, $encoding, $host);
+        $this->addHtmlToIndex($html, $title, $description, $link, $language, $country, $restrictions, $encoding, $host);
 
         \Pimcore\Logger::info('LuceneSearch: Added to indexer stack [ ' . $link. ' ]');
 
@@ -531,6 +538,7 @@ class Parser {
      * adds a HTML page to lucene index and mysql table for search result summaries
      * @param  string $html
      * @param  string $title
+     * @param  string $description
      * @param  string $url
      * @param  string $language
      * @param  string $country
@@ -539,7 +547,7 @@ class Parser {
      * @param  string $host
      * @return void
      */
-    protected function addHtmlToIndex($html, $title, $url, $language, $country, $restrictions, $encoding, $host)
+    protected function addHtmlToIndex($html, $title, $description, $url, $language, $country, $restrictions, $encoding, $host)
     {
         try
         {
@@ -582,6 +590,8 @@ class Parser {
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $host));
 
             $doc->addField(\Zend_Search_Lucene_Field::Text('title', $title, $encoding));
+            $doc->addField(\Zend_Search_Lucene_Field::Text('description', $description, $encoding));
+
             $doc->addField(\Zend_Search_Lucene_Field::Text('content', $content, $encoding));
             $doc->addField(\Zend_Search_Lucene_Field::Text('imageTags', join(',', $tags)));
 

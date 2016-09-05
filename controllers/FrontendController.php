@@ -350,6 +350,7 @@ class LuceneSearch_FrontendController extends Action
 
                     $url = $hit->getDocument()->getField('url');
                     $title = $hit->getDocument()->getField('title');
+                    $description = $hit->getDocument()->getField('description');
                     $content = $hit->getDocument()->getField('content');
                     $imageTags = $hit->getDocument()->getField('imageTags');
 
@@ -358,7 +359,8 @@ class LuceneSearch_FrontendController extends Action
                     $searchResult['imageTags'] = $imageTags->value;
 
                     $searchResult['url'] = $url->value;
-                    $searchResult['summary'] = $searcher->getSummaryForUrl($content->value, $this->query);
+                    $searchResult['description'] = $searcher->getSummaryForUrl($description->value, $this->untouchedQuery, FALSE);
+                    $searchResult['summary'] = $searcher->getSummaryForUrl($content->value, $this->untouchedQuery);
 
                     try
                     {
