@@ -14,6 +14,11 @@ class LuceneSearch_FrontendController extends Action
     protected $frontendIndex;
 
     /**
+     * @var
+     */
+    protected $categories = array();
+
+    /**
      * query, incoming argument
      * @var String
      */
@@ -29,7 +34,7 @@ class LuceneSearch_FrontendController extends Action
      * category, to restrict query, incoming argument
      * @var array
      */
-    protected $category = array();
+    protected $category = '';
 
     /**
      * @var
@@ -296,7 +301,6 @@ class LuceneSearch_FrontendController extends Action
 
     public function findAction()
     {
-        $categories = Configuration::get('frontend.categories');
         $searcher = new Searcher();
 
         try
@@ -368,7 +372,7 @@ class LuceneSearch_FrontendController extends Action
                     {
                     }
 
-                    foreach ($categories as $category)
+                    foreach ($this->categories as $category)
                     {
                         try
                         {
@@ -409,9 +413,9 @@ class LuceneSearch_FrontendController extends Action
             }
 
 
-            if ( !empty($categories) )
+            if ( !empty($this->categories) )
             {
-                $this->view->availableCategories = $categories;
+                $this->view->availableCategories = $this->categories;
             }
 
             $this->view->suggestions = $suggestions;
@@ -513,6 +517,12 @@ class LuceneSearch_FrontendController extends Action
     {
         if (!empty($this->searchLanguage))
         {
+            $searchTerms = array(
+                new \Zend_Search_Lucene_Index_Term('all', 'lang')
+            );
+
+            $signs = array( null );
+
             if (is_object($this->searchLanguage))
             {
                 $lang = $this->searchLanguage->toString();
@@ -522,9 +532,11 @@ class LuceneSearch_FrontendController extends Action
                 $lang = $this->searchLanguage;
             }
 
+
             $lang = str_replace(array('_', '-'), '', $lang);
-            $languageTerm = new \Zend_Search_Lucene_Index_Term($lang, 'lang');
-            $languageQuery = new \Zend_Search_Lucene_Search_Query_Term($languageTerm);
+            $searchTerms[] = new \Zend_Search_Lucene_Index_Term($lang, 'lang');
+
+            $languageQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm($searchTerms, $signs);
             $query->addSubquery($languageQuery, true);
         }
 

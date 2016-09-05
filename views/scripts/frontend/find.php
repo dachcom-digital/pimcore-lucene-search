@@ -94,14 +94,16 @@
 
                             <?php if( !empty($this->suggestions) ) { ?>
 
-                                <?= $this->translate('search suggestions') ?>
+                                <h4><?= $this->translate('search suggestions') ?></h4>
+                                <ul>
+                                    <?php for($i=0; $i<5; $i++ ) { ?>
 
-                                <?php for($i=0; $i<5; $i++ ) { ?>
+                                        <?php $suggestion = $this->suggestions[$i]; ?>
+                                        <?php if(empty($suggestion)) { continue; } ?>
+                                        <li><a href="?cat=<?= $this->category ?>&q=<?= $suggestion ?>"><?= $suggestion ?></a></li>
 
-                                    <?php $suggestion = $this->suggestions[$i]; ?>
-                                    <a href="?cat=<?= $this->category ?>&query=<?= $suggestion ?>"><?= $suggestion ?></a>&nbsp;
-
-                                <?php } ?>
+                                    <?php } ?>
+                                </ul>
 
                             <?php } ?>
 

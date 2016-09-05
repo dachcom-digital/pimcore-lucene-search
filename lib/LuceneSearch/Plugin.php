@@ -164,6 +164,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         {
             $install = new Install();
             $install->installConfigFile();
+            $install->installProperties();
             $install->createDirectories();
             $install->createRedirect();
         }

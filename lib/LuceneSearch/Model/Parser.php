@@ -429,9 +429,7 @@ class Parser {
 
     private function parsePdf( $link, $response, $host )
     {
-        $resource = $response->getResponse();
-        $html = $resource->getBody();
-        $language = $this->getLanguageFromResponse($resource, $html);
+        $language = $this->getLanguageFromAsset($link);
 
         \Pimcore\Logger::log('LuceneSearch: Added pdf to index [ ' . $link . ' ]', \Zend_Log::INFO);
 
@@ -445,7 +443,7 @@ class Parser {
      * @param  string $url
      * @param  string $language
      * @param string $host
-     * @return void
+     * @return bool
      */
     protected function addPdfToIndex($url, $language, $host)
     {
@@ -497,16 +495,20 @@ class Parser {
             {
                 $doc = new \Zend_Search_Lucene_Document();
 
-                $text = preg_replace('/[^ ]{14}[^ ]*/', '', $fileContent);
-                $text = preg_replace('/[^a-zA-Z0-9\s]/', "", $text);
+                $text = preg_replace("/\r|\n/", ' ', $fileContent);
+                //$text = preg_replace('/[^ ]{14}[^ ]*/', '', $fileContent);
+
+                $text = preg_replace('/[^\p{Latin}\d ]/u', "", $text);
                 $text = preg_replace('/\n[\s]*/',"\n",$text); // remove all leading blanks]
 
-                $doc->addField(\Zend_Search_Lucene_Field::Text('title', basename($url)));
-                $doc->addField(\Zend_Search_Lucene_Field::Text('content', $text));
+                $doc->addField(\Zend_Search_Lucene_Field::Text('title', basename($url)), 'utf-8');
+                $doc->addField(\Zend_Search_Lucene_Field::Text('content', $text, 'utf-8'));
 
-                $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $language));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $url));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $host));
+
+                $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_default', TRUE));
+                $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $language));
 
                 //no add document to lucene index!
                 $this->addDocumentToIndex( $doc );
@@ -579,8 +581,8 @@ class Parser {
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $url));
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $host));
 
-            $doc->addField(\Zend_Search_Lucene_Field::Text('title', $title));
-            $doc->addField(\Zend_Search_Lucene_Field::Text('content', $content));
+            $doc->addField(\Zend_Search_Lucene_Field::Text('title', $title, $encoding));
+            $doc->addField(\Zend_Search_Lucene_Field::Text('content', $content, $encoding));
             $doc->addField(\Zend_Search_Lucene_Field::Text('imageTags', join(',', $tags)));
 
             if( $country !== FALSE )
@@ -625,6 +627,41 @@ class Parser {
     }
 
     /**
+     * Because Assets are not language restricted, we need to get them from db
+     * @param string $url
+     *
+     * @return string|bool
+     */
+    protected function getLanguageFromAsset($url = '')
+    {
+        $urlData = parse_url($url);
+        $language = 'all';
+
+        if( empty( $urlData['path'] ) )
+        {
+            return $language;
+        }
+
+        $asset = \Pimcore\Model\Asset::getByPath( $urlData['path'] );
+
+        if( $asset instanceof \Pimcore\Model\Asset )
+        {
+            $languageProperty = $asset->getProperty('assignedLanguage');
+
+            if( !is_null($languageProperty))
+            {
+                return $languageProperty;
+            }
+
+            return $language;
+
+        }
+
+        return $language;
+
+    }
+
+    /**
      * Try to find the document's language by first looking for Content-Language in Http headers than in html
      * attribute and last in content-language meta tag
      * @return string
@@ -642,7 +679,7 @@ class Parser {
                 $l = $cl->__toString();
             }
         }
-        catch( \Exception $e)
+        catch(\Exception $e)
         {
 
         }

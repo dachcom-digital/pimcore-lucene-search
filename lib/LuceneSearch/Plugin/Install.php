@@ -3,6 +3,7 @@
 namespace LuceneSearch\Plugin;
 
 use LuceneSearch\Model\Configuration;
+use Pimcore\Model\Property;
 
 class Install {
 
@@ -56,6 +57,37 @@ class Install {
         );
 
         return TRUE;
+    }
+
+    public function installProperties()
+    {
+        $defProperty = Property\Predefined::getByKey('assignedLanguage');
+
+        if( !$defProperty instanceof Property\Predefined)
+        {
+            $languages = \Pimcore\Tool::getValidLanguages();
+
+            $data = 'all,';
+
+            foreach( $languages as $language )
+            {
+                $data .= $language . ',';
+            }
+
+            $data = rtrim($data, ',');
+
+            $property = new Property\Predefined();
+            $property->setType('select');
+            $property->setName('Assigned Language');
+            $property->setKey('assignedLanguage');
+            $property->setDescription('set a specific language which lucene search should respect while crawling.');
+            $property->setCtype('asset');
+            $property->setData('all');
+            $property->setConfig($data);
+            $property->setInheritable(FALSE);
+            $property->save();
+        }
+
     }
 
     public function createDirectories()

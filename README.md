@@ -26,7 +26,11 @@ To allow the crawler to follow all the restricted documents, you need to configu
 
 If the document is restricted to a specific usergroup, the meta `content` contains its id. Otherwise, the meta property needs to be filled with a `default` value.
 
-### Setup Search Page
+## Asset Language restriction
+Because Assets does not have any language hierarchy, you need to add a property called `assignedLanguage`. This Property will be installed during the install process of LuceneSearch.
+If you add some additional language afterwards, you need to add this language to the property. if you do not set any information at all, the asset will be found in any language context.
+
+## Setup Search Page
 
 - Create a document, call it "search".
 - Define a new method in your Controller (eg. search). 
@@ -39,7 +43,7 @@ $this->action('find', 'frontend', 'LuceneSearch', array('viewScript' => 'fronten
 
 You'll find the `frontend/find.php` Template in `LuceneSearch/views/scripts/`. If you want to change the markup, just copy the template into your website script folder and change the `viewScript` parameter.
 
-### Using Ajax AutoComplete
+## Using Ajax AutoComplete
 
 Use this snippet to allow ajax driven autocomplete search. you may want to use this [plugin](https://github.com/devbridge/jQuery-Autocomplete) to do the job.
 
@@ -50,6 +54,7 @@ var $el = $('input.search-field'),
 
 $el.autocomplete({
     minChars: 3,
+    triggerSelectOnValidInput: false,
     lookup: function(term, done) {
 
         $.getJSON(
