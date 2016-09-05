@@ -517,11 +517,8 @@ class LuceneSearch_FrontendController extends Action
     {
         if (!empty($this->searchLanguage))
         {
-            $searchTerms = array(
-                new \Zend_Search_Lucene_Index_Term('all', 'lang')
-            );
-
-            $signs = array( null );
+            $languageQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm();
+            $languageQuery->addTerm(new Zend_Search_Lucene_Index_Term('all', 'lang'));
 
             if (is_object($this->searchLanguage))
             {
@@ -532,11 +529,9 @@ class LuceneSearch_FrontendController extends Action
                 $lang = $this->searchLanguage;
             }
 
-
             $lang = str_replace(array('_', '-'), '', $lang);
-            $searchTerms[] = new \Zend_Search_Lucene_Index_Term($lang, 'lang');
+            $languageQuery->addTerm(new Zend_Search_Lucene_Index_Term($lang, 'lang'));
 
-            $languageQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm($searchTerms, $signs);
             $query->addSubquery($languageQuery, true);
         }
 
