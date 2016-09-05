@@ -9,9 +9,9 @@ use VDB\Spider\Event\SpiderEvents;
 
 class Logger implements EventSubscriberInterface
 {
-    private $debug = false;
+    private $debug = FALSE;
 
-    public function __construct($debug = false)
+    public function __construct($debug = FALSE)
     {
         $this->debug = $debug;
     }
@@ -46,8 +46,8 @@ class Logger implements EventSubscriberInterface
 
     protected function logEvent($name, GenericEvent $event)
     {
-        if ($this->debug === true
-        ) {
+        if ($this->debug === TRUE)
+        {
             \Pimcore\Logger::log('LuceneSearch [' . $name . ']: ' . $event->getArgument('uri')->toString() );
         }
     }

@@ -9,9 +9,9 @@ class SitemapBuilder {
     /**
      * @var \Zend_Search_Lucene
      */
-    protected $index = null;
+    protected $index = NULL;
 
-    protected $sitemapDir = null;
+    protected $sitemapDir = NULL;
 
     public function __construct() {
 
@@ -37,11 +37,11 @@ class SitemapBuilder {
 
                     $hostTerm = new \Zend_Search_Lucene_Index_Term($hostName, 'host');
                     $hostQuery = new \Zend_Search_Lucene_Search_Query_Term($hostTerm);
-                    $query->addSubquery($hostQuery, true);
+                    $query->addSubquery($hostQuery, TRUE);
 
                     $hostTerm = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default');
                     $hostQuery = new \Zend_Search_Lucene_Search_Query_Term($hostTerm);
-                    $query->addSubquery($hostQuery, true);
+                    $query->addSubquery($hostQuery, TRUE);
 
                     $hits = $this->index->find($query);
 
@@ -132,16 +132,16 @@ class SitemapBuilder {
 
         if(is_dir($sitemapDir) && !is_writable($sitemapDir))
         {
-            $sitemapDirAvailable = false;
+            $sitemapDirAvailable = FALSE;
         }
         else if( !is_dir($sitemapDir) )
         {
-            $sitemapDirAvailable = mkdir($sitemapDir, 0755, true);
+            $sitemapDirAvailable = mkdir($sitemapDir, 0755, TRUE);
             chmod($sitemapDir, 0755);
         }
         else
         {
-            $sitemapDirAvailable = true;
+            $sitemapDirAvailable = TRUE;
         }
 
         if( $sitemapDirAvailable == TRUE )

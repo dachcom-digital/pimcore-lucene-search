@@ -20,9 +20,9 @@ class Dao extends Model\Dao\PhpArrayTable
      * @param null $id
      * @throws \Exception
      */
-    public function getById($id = null)
+    public function getById($id = NULL)
     {
-        if ($id != null)
+        if ($id != NULL)
         {
             $this->model->setId($id);
         }
@@ -44,9 +44,9 @@ class Dao extends Model\Dao\PhpArrayTable
 
      * @throws \Exception
      */
-    public function getByKey($key = null)
+    public function getByKey($key = NULL)
     {
-        if ($key != null)
+        if ($key != NULL)
         {
             $this->model->setKey($key);
         }
@@ -55,11 +55,12 @@ class Dao extends Model\Dao\PhpArrayTable
 
         $data = $this->db->fetchAll(function ($row) use ($key)
         {
-            if ($row['key'] == $key) {
-                return true;
+            if ($row['key'] == $key)
+            {
+                return TRUE;
             }
 
-            return false;
+            return FALSE;
 
         });
 

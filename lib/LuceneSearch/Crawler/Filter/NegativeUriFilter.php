@@ -18,11 +18,14 @@ class NegativeUriFilter implements PreFetchFilterInterface
 
     public function match(UriInterface $uri)
     {
-        foreach ($this->regexes as $regex) {
-            if (preg_match($regex, $uri->toString())) {
-                return false;
+        foreach ($this->regexes as $regex)
+        {
+            if ( preg_match($regex, $uri->toString()) )
+            {
+                return FALSE;
             }
         }
-        return true;
+
+        return TRUE;
     }
 }

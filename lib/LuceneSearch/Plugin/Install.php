@@ -95,14 +95,14 @@ class Install {
         //create folder for search in website
         if( !is_dir( (PIMCORE_WEBSITE_PATH . '/var/search' ) ) )
         {
-            mkdir(PIMCORE_WEBSITE_PATH . '/var/search', 0755, true);
+            mkdir(PIMCORE_WEBSITE_PATH . '/var/search', 0755, TRUE);
         }
 
         $index = PIMCORE_DOCUMENT_ROOT . '/' . Configuration::get('frontend.index');
 
-        if (!empty($index) and !is_dir($index))
+        if (!empty($index) && !is_dir($index))
         {
-            mkdir($index, 0755, true);
+            mkdir($index, 0755, TRUE);
             chmod($index, 0755);
         }
 
@@ -117,7 +117,8 @@ class Install {
         $redirects->setCondition('source = ?', '/\/sitemap.xml/');
         $redirects->load();
 
-        foreach ($redirects->getRedirects() as $redirect) {
+        foreach ($redirects->getRedirects() as $redirect)
+        {
             $redirect->delete();
         }
 

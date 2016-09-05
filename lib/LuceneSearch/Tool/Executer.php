@@ -49,7 +49,7 @@ class Executer {
                     $invalidLinkRegexes = array();
                 }
 
-                self::setCrawlerState('frontend', 'started', true);
+                self::setCrawlerState('frontend', 'started', TRUE);
 
                 try
                 {
@@ -79,7 +79,7 @@ class Executer {
 
                 catch(\Exception $e) { }
 
-                self::setCrawlerState('frontend', 'finished', false);
+                self::setCrawlerState('frontend', 'finished', FALSE);
 
                 //only remove index, if tmp exists!
                 $tmpIndex = str_replace('/index', '/tmpindex', $indexDir);
@@ -119,10 +119,10 @@ class Executer {
     {
         \Pimcore\Logger::debug('LuceneSearch: forcing frontend crawler stop');
 
-        self::setStopLock('frontend', false);
-        self::setCrawlerState('frontend', 'finished', false);
+        self::setStopLock('frontend', FALSE);
+        self::setCrawlerState('frontend', 'finished', FALSE);
 
-        return true;
+        return TRUE;
 
     }
 
@@ -133,7 +133,7 @@ class Executer {
      * @param bool $setTime
      * @return void
      */
-    public static function setCrawlerState($crawler, $action, $running, $setTime = true)
+    public static function setCrawlerState($crawler, $action, $running, $setTime = TRUE)
     {
         Configuration::setCoreSetting('forceStart', FALSE);
         Configuration::setCoreSetting('running', $running);
@@ -157,7 +157,7 @@ class Executer {
         }
     }
 
-    public static function setStopLock($crawler, $flag = true)
+    public static function setStopLock($crawler, $flag = TRUE)
     {
         $stop = TRUE;
 

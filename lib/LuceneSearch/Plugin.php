@@ -14,7 +14,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     protected static $_translate;
 
-    public function __construct($jsPaths = null, $cssPaths = null, $alternateIndexDir = null)
+    public function __construct($jsPaths = NULL, $cssPaths = NULL, $alternateIndexDir = NULL)
     {
         define('LUCENESEARCH__PLUGIN_CONFIG', PIMCORE_PLUGINS_PATH . '/LuceneSearch/plugin.xml');
 
@@ -106,7 +106,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function readyForInstall()
     {
-        return true;
+        return TRUE;
     }
 
     /**
@@ -138,7 +138,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
         if( is_null( $searchConf ) )
         {
-            return null;
+            return NULL;
         }
 
         if (is_dir($searchConf))
@@ -150,7 +150,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
             return PIMCORE_DOCUMENT_ROOT . '/' . $searchConf;
         }
 
-        return null;
+        return NULL;
 
     }
 
@@ -194,7 +194,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         $install->removeConfig();
 
         $index = self::getFrontendSearchIndex();
-        $success = false;
+        $success = FALSE;
 
         if (!empty($index))
         {
@@ -213,9 +213,10 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     }
 
     /**
+     * @param String $lang
      * @return \Zend_Translate
      */
-    public static function getTranslate($lang = null)
+    public static function getTranslate($lang = NULL)
     {
         if (self::$_translate instanceof \Zend_Translate) {
             return self::$_translate;
@@ -243,8 +244,14 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     public static function frontendCrawlerRunning()
     {
         //do not use the configuration here!
-        if (is_file( PIMCORE_TEMPORARY_DIRECTORY . '/lucene-crawler.tmp' ) ) return true;
-        else return false;
+        if (is_file( PIMCORE_TEMPORARY_DIRECTORY . '/lucene-crawler.tmp' ) )
+        {
+            return TRUE;
+        }
+        else
+        {
+            return FALSE;
+        }
     }
 
     /**
@@ -255,11 +262,11 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     {
         if (Configuration::getCoreSetting('forceStop'))
         {
-            return true;
+            return TRUE;
         }
         else
         {
-            return false;
+            return FALSE;
         }
     }
 
@@ -270,11 +277,11 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     {
         if (Configuration::getCoreSetting('forceStart'))
         {
-            return true;
+            return TRUE;
         }
         else
         {
-            return false;
+            return FALSE;
         }
     }
 
@@ -289,11 +296,11 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
         if (!empty($frontEndUrls) && !empty($validLinkRegexes))
         {
-            return true;
+            return TRUE;
         }
         else
         {
-            return false;
+            return FALSE;
         }
     }
 
@@ -387,7 +394,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function wildcardFindTerms($queryStr, $index)
     {
-        if ($index != null)
+        if ($index != NULL)
         {
             $pattern = new \Zend_Search_Lucene_Index_Term($queryStr . '*');
             $userQuery = new \Zend_Search_Lucene_Search_Query_Wildcard($pattern);
@@ -409,7 +416,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function fuzzyFindTerms($queryStr, $index, $prefixLength = 0, $similarity = 0.5)
     {
-        if ($index != null)
+        if ($index != NULL)
         {
             \Zend_Search_Lucene_Search_Query_Fuzzy::setDefaultPrefixLength($prefixLength);
             $term = new \Zend_Search_Lucene_Index_Term($queryStr);

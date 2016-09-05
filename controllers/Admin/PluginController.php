@@ -26,18 +26,18 @@ class LuceneSearch_Admin_PluginController extends Admin {
             $valueArray[$c->getKey()] = $data;
         }
 
-        $frontendButtonDisabled = false;
+        $frontendButtonDisabled = FALSE;
 
         if(Plugin::frontendCrawlerRunning() || Plugin::frontendCrawlerScheduledForStart() or !Plugin::frontendConfigComplete())
         {
-            $frontendButtonDisabled = true;
+            $frontendButtonDisabled = TRUE;
         }
 
-        $frontendStopButtonDisabled = false;
+        $frontendStopButtonDisabled = FALSE;
 
         if(!Plugin::frontendConfigComplete() || !Plugin::frontendCrawlerRunning() or Plugin::frontendCrawlerStopLocked() )
         {
-            $frontendStopButtonDisabled = true;
+            $frontendStopButtonDisabled = TRUE;
         }
 
         $response = array(
@@ -50,23 +50,23 @@ class LuceneSearch_Admin_PluginController extends Admin {
         );
 
         $this->_helper->json($response);
-        $this->_helper->json(false);
+        $this->_helper->json(FALSE);
     }
 
     public function getStateAction()
     {
-        $frontendButtonDisabled = false;
+        $frontendButtonDisabled = FALSE;
 
         if(Plugin::frontendCrawlerRunning() || Plugin::frontendCrawlerScheduledForStart() || !Plugin::frontendConfigComplete())
         {
-            $frontendButtonDisabled = true;
+            $frontendButtonDisabled = TRUE;
         }
 
-        $frontendStopButtonDisabled = false;
+        $frontendStopButtonDisabled = FALSE;
 
         if(!Plugin::frontendConfigComplete() || !Plugin::frontendCrawlerRunning() || Plugin::frontendCrawlerStopLocked() )
         {
-            $frontendStopButtonDisabled = true;
+            $frontendStopButtonDisabled = TRUE;
         }
 
         $this->_helper->json(
@@ -87,7 +87,7 @@ class LuceneSearch_Admin_PluginController extends Admin {
     public function startFrontendCrawlerAction()
     {
         Plugin::forceCrawlerStartOnNextMaintenance('frontend');
-        $this->_helper->json(array('success' => true));
+        $this->_helper->json(array('success' => TRUE));
     }
 
     public function getFrontendUrlsAction() {
@@ -217,7 +217,7 @@ class LuceneSearch_Admin_PluginController extends Admin {
         Configuration::set('frontend.crawler.contentStartIndicator', $values['frontend.crawler.contentStartIndicator']);
         Configuration::set('frontend.crawler.contentEndIndicator', $values['frontend.crawler.contentEndIndicator']);
 
-        $this->_helper->json(array('success' => true));
+        $this->_helper->json(array('success' => TRUE));
 
     }
 

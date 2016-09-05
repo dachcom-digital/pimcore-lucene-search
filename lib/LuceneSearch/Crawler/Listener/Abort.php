@@ -7,7 +7,7 @@ use VDB\Spider\Event\SpiderEvents;
 
 class Abort {
 
-    var $spider = null;
+    var $spider = NULL;
 
     public function __construct( $spider )
     {

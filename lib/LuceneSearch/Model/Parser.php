@@ -25,7 +25,7 @@ class Parser {
     /**
      * @var \Zend_Search_Lucene
      */
-    protected $index = null;
+    protected $index = NULL;
 
     /**
      * @var string[]
@@ -284,8 +284,8 @@ class Parser {
         \Pimcore\Logger::debug("FAILED:    " . count($statsHandler->getFailed()));
         \Pimcore\Logger::debug("PERSISTED: " . count($statsHandler->getPersisted()));
 
-        $peakMem = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
-        $totalTime = round(microtime(true) - $start, 2);
+        $peakMem = round(memory_get_peak_usage(TRUE) / 1024 / 1024, 2);
+        $totalTime = round(microtime(TRUE) - $start, 2);
         $totalDelay = round($politenessPolicyEventListener->totalDelay / 1000 / 1000, 2);
 
         \Pimcore\Logger::debug("PEAK MEM USAGE:       " . $peakMem . 'MB');
@@ -430,7 +430,7 @@ class Parser {
 
         \Pimcore\Logger::info('LuceneSearch: Added to indexer stack [ ' . $link. ' ]');
 
-        return true;
+        return TRUE;
 
     }
 
@@ -800,7 +800,7 @@ class Parser {
      */
     protected function getPlainTextFromHtml($html)
     {
-        $doc = \Zend_Search_Lucene_Document_Html::loadHTML($html, false, 'utf-8');
+        $doc = \Zend_Search_Lucene_Document_Html::loadHTML($html, FALSE, 'utf-8');
         $html = $doc->getHTML();
 
         //remove scripts and stuff

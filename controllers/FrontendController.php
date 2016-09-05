@@ -458,7 +458,7 @@ class LuceneSearch_FrontendController extends Action
     {
         $validHits = array();
 
-        if ($this->ownHostOnly and $queryHits != null)
+        if ($this->ownHostOnly && $queryHits !== NULL)
         {
             //get rid of hits from other hosts
             $currentHost = $_SERVER['HTTP_HOST'];
@@ -497,7 +497,7 @@ class LuceneSearch_FrontendController extends Action
             $country = str_replace(array('_', '-'), '', $this->searchCountry);
             $countryTerm = new \Zend_Search_Lucene_Index_Term($country, 'country');
             $countryQuery = new \Zend_Search_Lucene_Search_Query_Term($countryTerm);
-            $query->addSubquery($countryQuery, true);
+            $query->addSubquery($countryQuery, TRUE);
         }
 
         return $query;
@@ -509,7 +509,7 @@ class LuceneSearch_FrontendController extends Action
         {
             $categoryTerm = new \Zend_Search_Lucene_Index_Term($this->category, 'cat');
             $categoryQuery = new \Zend_Search_Lucene_Search_Query_Term($categoryTerm);
-            $query->addSubquery($categoryQuery, true);
+            $query->addSubquery($categoryQuery, TRUE);
         }
 
         return $query;
@@ -534,7 +534,7 @@ class LuceneSearch_FrontendController extends Action
             $lang = str_replace(array('_', '-'), '', $lang);
             $languageQuery->addTerm(new Zend_Search_Lucene_Index_Term($lang, 'lang'));
 
-            $query->addSubquery($languageQuery, true);
+            $query->addSubquery($languageQuery, TRUE);
         }
 
         return $query;
@@ -548,14 +548,14 @@ class LuceneSearch_FrontendController extends Action
                 new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default')
             );
 
-            $signs = array( null );
+            $signs = array( NULL );
 
             $class = Configuration::get('frontend.restriction.class');
             $method = Configuration::get('frontend.restriction.method');
 
             $call = array($class, $method);
 
-            if( is_callable($call, false) )
+            if( is_callable($call, FALSE) )
             {
                 $allowedGroups = call_user_func( $call );
 
@@ -564,12 +564,12 @@ class LuceneSearch_FrontendController extends Action
                     foreach( $allowedGroups as $group)
                     {
                         $restrictionTerms[] = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_' . $group);
-                        $signs[] = null;
+                        $signs[] = NULL;
                     }
                 }
 
                 $restrictionQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm($restrictionTerms, $signs);
-                $query->addSubquery($restrictionQuery, true);
+                $query->addSubquery($restrictionQuery, TRUE);
             }
             else
             {

@@ -68,7 +68,7 @@ class Configuration extends Model\AbstractModel
             catch (\Exception $e)
             {
                 \Pimcore\Logger::error($e);
-                return null;
+                return NULL;
             }
         }
 
@@ -80,7 +80,7 @@ class Configuration extends Model\AbstractModel
      * @param boolean $returnObject
      * @return mixed|null
      */
-    public static function get($key, $returnObject = false)
+    public static function get($key, $returnObject = FALSE)
     {
         $cacheKey = $key . '~~~';
 
@@ -92,7 +92,7 @@ class Configuration extends Model\AbstractModel
                 return $entry;
             }
 
-            return $entry instanceof Configuration ? $entry->getData() : null;
+            return $entry instanceof Configuration ? $entry->getData() : NULL;
         }
 
         $configurationEntry = new self();
@@ -103,7 +103,7 @@ class Configuration extends Model\AbstractModel
         }
         catch (\Exception $e)
         {
-            return null;
+            return NULL;
         }
 
         if ($configurationEntry->getId() > 0)
@@ -116,7 +116,7 @@ class Configuration extends Model\AbstractModel
                 return $entry;
             }
 
-            return $entry instanceof Configuration ? $entry->getData() : null;
+            return $entry instanceof Configuration ? $entry->getData() : NULL;
         }
     }
 
@@ -214,7 +214,7 @@ class Configuration extends Model\AbstractModel
      */
     public static function set($key, $data)
     {
-        $configEntry = self::get($key, true);
+        $configEntry = self::get($key, TRUE);
 
         if (!$configEntry)
         {
@@ -232,7 +232,7 @@ class Configuration extends Model\AbstractModel
      */
     public static function getPluginConfig()
     {
-        $config = null;
+        $config = NULL;
 
         if (\Zend_Registry::isRegistered('lucenesearch_plugin_config'))
         {

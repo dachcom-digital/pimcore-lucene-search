@@ -27,7 +27,7 @@ class FrontendCrawlCommand extends AbstractCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $currentRevision = null;
+        $currentRevision = NULL;
 
         if( $input->getArgument('crawl') == 'crawl' )
         {

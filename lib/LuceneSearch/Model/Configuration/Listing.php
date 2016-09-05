@@ -13,7 +13,7 @@ class Listing extends Model\Listing\JsonListing
      *
      * @var array
      */
-    public $configurations = null;
+    public $configurations = NULL;
 
     /**
      * @return Configuration[]
