@@ -64,16 +64,20 @@
 
                             <?php
 
-                            if($this->page>3) {
+                            if($this->page > 3 ) {
                                 $pageStart = $this->page-2;
-                            } else $pageStart=1;
-                            $pageEnd = $pageStart+5;
-                            if($pageEnd > $this->pages){
+                            } else {
+                                $pageStart = 1;
+                            }
+
+                            $pageEnd = $pageStart + 5;
+                            if($pageEnd > $this->pages) {
                                 $pageEnd = $this->pages;
                             }
+
                             ?>
 
-                            <?php if (count($this->pages) > 1) { ?>
+                            <?php if ($this->pages > 1) { ?>
 
                                 <?php if( $this->page > 1 ) { ?>
                                     <a class="previous icon-arrow_left" href="?query=<?= $this->query?>&page=<?= $this->page-1 ?>"></a>

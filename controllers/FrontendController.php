@@ -169,16 +169,16 @@ class LuceneSearch_FrontendController extends Action
 
             //Set Per Page
             $perPage = $this->getParam('perPage');
-            if( !empty($perPage ) )
+            if( !empty( $perPage ) )
             {
-                $this->perPage = $perPage;
+                $this->perPage = (int) $perPage;
             }
 
             //Set Current Page
             $currentPage = $this->getParam('page');
-            if( !empty($perPage ) )
+            if( !empty( $currentPage ) )
             {
-                $this->currentPage = $currentPage;
+                $this->currentPage = (int) $currentPage;
             }
 
         }
