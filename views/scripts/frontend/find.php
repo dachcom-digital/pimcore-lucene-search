@@ -80,13 +80,13 @@
                             <?php if ($this->pages > 1) { ?>
 
                                 <?php if( $this->page > 1 ) { ?>
-                                    <a class="previous icon-arrow_left" href="?query=<?= $this->query?>&page=<?= $this->page-1 ?>"></a>
+                                    <a class="previous icon-arrow_left" href="?q=<?= $this->query?>&language=<?= $this->language; ?>&page=<?= $this->page-1 ?>"></a>
                                 <?php } ?>
                                 <?php for($i=$pageStart; $i<=$pageEnd; $i++) { ?>
-                                    <a <?php if($this->page == $i) { ?>class="active"<?php } ?> href="?query=<?= $this->query?>&page=<?= $i ?>"><?= $i ?></a>
+                                    <a <?php if($this->page == $i) { ?>class="active"<?php } ?> href="?q=<?= $this->query?>&language=<?= $this->language; ?>&page=<?= $i ?>"><?= $i ?></a>
                                 <?php } ?>
                                 <?php if($this->pages > $this->page) { ?>
-                                    <a class="next icon-arrow_right" href="?query=<?= $this->query ?>&page=<?= $this->page+1 ?>"></a>
+                                    <a class="next icon-arrow_right" href="?q=<?= $this->query ?>&language=<?= $this->language; ?>&page=<?= $this->page+1 ?>"></a>
                                 <?php } ?>
 
                             <?php } ?>
@@ -101,20 +101,16 @@
 
                         <div class="no-results">
 
-                            <?= $this->translate('no search results found'); ?>
+                            <h5><?= $this->translate('no search results found'); ?></h5>
 
-                            <?php if( !empty($this->suggestions) ) { ?>
+                            <?php if(!empty($this->suggestions)) { ?>
 
-                                <h4><?= $this->translate('search suggestions') ?></h4>
-                                <ul>
-                                    <?php for($i=0; $i<5; $i++ ) { ?>
+                                <br>
+                                <?= $this->translate('Did you mean') ?>
 
-                                        <?php $suggestion = $this->suggestions[$i]; ?>
-                                        <?php if(empty($suggestion)) { continue; } ?>
-                                        <li><a href="?cat=<?= $this->category ?>&q=<?= $suggestion ?>"><?= $suggestion ?></a></li>
-
-                                    <?php } ?>
-                                </ul>
+                                <?php foreach( $this->suggestions as $i => $suggestion) { ?>
+                                    <a href="?q=<?= $suggestion ?>&language=<?= $this->language; ?>"><?= $suggestion ?></a><?= count($this->suggestions)-1 !== $i ? ',' : ''; ?>
+                                <?php } ?>
 
                             <?php } ?>
 

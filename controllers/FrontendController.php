@@ -64,6 +64,11 @@ class LuceneSearch_FrontendController extends Action
     /**
      * @var int
      */
+    protected $maxSuggestions = 10;
+
+    /**
+     * @var int
+     */
     protected $perPage = 10;
 
     /**
@@ -195,7 +200,7 @@ class LuceneSearch_FrontendController extends Action
 
         if( Configuration::get('frontend.sitemap.render') === FALSE )
         {
-            header("HTTP/1.0 404 Not Found");
+            header('HTTP/1.0 404 Not Found');
             exit;
         }
 
@@ -280,7 +285,7 @@ class LuceneSearch_FrontendController extends Action
             {
                 $suggestions[] = $t;
 
-                if ($counter >= 10) {
+                if ($counter >= $this->maxSuggestions) {
                     break;
                 }
 
@@ -621,7 +626,7 @@ class LuceneSearch_FrontendController extends Action
                     {
                         $suggestions[] = $t;
 
-                        if ($counter >= 20) {
+                        if ($counter >= $this->maxSuggestions) {
                             break;
                         }
 
