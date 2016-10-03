@@ -353,25 +353,35 @@ class LuceneSearch_FrontendController extends Action
                 {
                     $hit = $validHits[$i];
 
-                    $url = $hit->getDocument()->getField('url');
-                    $title = $hit->getDocument()->getField('title');
-                    $description = $hit->getDocument()->getField('description');
-                    $content = $hit->getDocument()->getField('content');
-                    $imageTags = $hit->getDocument()->getField('imageTags');
+                    /** @var \Zend_Search_Lucene_Document $doc */
+                    $doc = $hit->getDocument();
 
-                    $searchResult['boost'] = $hit->getDocument()->boost;
+                    $url = $doc->getField('url');
+                    $title = $doc->getField('title');
+                    $content = $doc->getField('content');
+
+                    $searchResult['boost'] = $doc->boost;
                     $searchResult['title'] = $title->value;
-                    $searchResult['imageTags'] = $imageTags->value;
 
                     $searchResult['url'] = $url->value;
-                    $searchResult['description'] = $searcher->getSummaryForUrl($description->value, $this->untouchedQuery, FALSE);
                     $searchResult['summary'] = $searcher->getSummaryForUrl($content->value, $this->untouchedQuery);
 
+                    //H1, description and imageTags are not available in pdf files.
                     try
                     {
-                        if ($hit->getDocument()->getField('h1'))
+                        if ($doc->getField('h1'))
                         {
-                            $searchResult['h1'] = $hit->getDocument()->getField('h1')->value;
+                            $searchResult['h1'] = $doc->getField('h1')->value;
+                        }
+
+                        if ($doc->getField('description'))
+                        {
+                            $searchResult['description'] = $searcher->getSummaryForUrl($doc->getField('description')->value, $this->untouchedQuery, FALSE);
+                        }
+
+                        if ($doc->getField('imageTags'))
+                        {
+                            $searchResult['imageTags'] = $doc->getField('imageTags')->value;
                         }
 
                     }
