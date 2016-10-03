@@ -331,12 +331,12 @@ class Parser {
             }
             else
             {
-                \Pimcore\Logger::log('LuceneSearch: Cannot parse mime type [ ' . $mimeType. ' ] provided by link [ ' . $link . ' ] ' . \Zend_Log::ERR);
+                \Pimcore\Logger::debug('LuceneSearch: Cannot parse mime type [ ' . $mimeType. ' ] provided by link [ ' . $link . ' ]');
             }
         }
         else
         {
-            \Pimcore\Logger::log('LuceneSearch: Could not determine content type of [ ' . $link. ' ] ' . \Zend_Log::ERR);
+            \Pimcore\Logger::debug('LuceneSearch: Could not determine content type of [ ' . $link. ' ]');
         }
 
     }
@@ -428,7 +428,7 @@ class Parser {
 
         $this->addHtmlToIndex($html, $title, $description, $link, $language, $country, $restrictions, $encoding, $host);
 
-        \Pimcore\Logger::info('LuceneSearch: Added to indexer stack [ ' . $link. ' ]');
+        \Pimcore\Logger::debug('LuceneSearch: Added to indexer stack [ ' . $link. ' ]');
 
         return TRUE;
 
@@ -438,7 +438,7 @@ class Parser {
     {
         $language = $this->getLanguageFromAsset($link);
 
-        \Pimcore\Logger::log('LuceneSearch: Added pdf to index [ ' . $link . ' ]', \Zend_Log::INFO);
+        \Pimcore\Logger::debug('LuceneSearch: Added pdf to index [ ' . $link . ' ]');
 
         return $this->addPdfToIndex($link, $language, $host);
 
@@ -491,7 +491,7 @@ class Parser {
         }
         catch( \Exception $e )
         {
-            \Pimcore\Logger::log($e->getMessage());
+            \Pimcore\Logger::debug($e->getMessage());
         }
 
         if( is_file( $tmpFile ) )
@@ -523,7 +523,7 @@ class Parser {
             }
             catch (\Exception $e)
             {
-                \Pimcore\Logger::log($e->getMessage());
+                \Pimcore\Logger::debug($e->getMessage());
             }
 
             @unlink( $tmpFile );
@@ -615,7 +615,7 @@ class Parser {
         }
         catch (\Exception $e)
         {
-            \Pimcore\Logger::log('LuceneSearch: ' . $e->getMessage(), \Zend_Log::ERR);
+            \Pimcore\Logger::debug('LuceneSearch: ' . $e->getMessage());
         }
     }
 
@@ -627,11 +627,11 @@ class Parser {
         if ($doc instanceof \Zend_Search_Lucene_Document)
         {
             $this->index->addDocument($doc);
-            \Pimcore\Logger::debug('LuceneSearch: Added to lucene index db entry', \Zend_Log::DEBUG);
+            \Pimcore\Logger::debug('LuceneSearch: Added to lucene index db entry');
         }
         else
         {
-            \Pimcore\Logger::error('LuceneSearch: could not parse lucene document ', \Zend_Log::DEBUG);
+            \Pimcore\Logger::error('LuceneSearch: could not parse lucene document ');
         }
 
     }
@@ -880,7 +880,7 @@ class Parser {
             }
             catch (\Exception $e)
             {
-                \Pimcore\Logger::log('LuceneSearch: could not open frontend index, creating new one.', \Zend_Log::DEBUG);
+                \Pimcore\Logger::debug('LuceneSearch: could not open frontend index, creating new one.');
                 \Zend_Search_Lucene::create($indexDir);
                 $this->index = \Zend_Search_Lucene::open($indexDir);
             }
@@ -898,7 +898,7 @@ class Parser {
         {
             $this->index->removeReference();
             unset($this->index);
-            \Pimcore\Logger::log('LuceneSearch: Closed frontend index references',\Zend_Log::DEBUG);
+            \Pimcore\Logger::debug('LuceneSearch: Closed frontend index references');
         }
 
         \Pimcore\Logger::debug('LuceneSearch: optimizeIndex.');

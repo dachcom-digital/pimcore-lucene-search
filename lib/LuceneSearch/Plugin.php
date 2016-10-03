@@ -322,7 +322,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         }
         else
         {
-            \Pimcore\Logger::info('LuceneSearch_Plugin: Did not start frontend crawler, because config incomplete');
+            \Pimcore\Logger::debug('LuceneSearch_Plugin: Did not start frontend crawler, because config incomplete');
         }
     }
 
@@ -375,7 +375,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
                  */
             } else if( $running && $lastFinished < $lastStarted && $lastStarted <= $aDayAgo)
             {
-                \Pimcore\Logger::err('LuceneSearch: There seems to be a problem with the search crawler! Trying to stop it.');
+                \Pimcore\Logger::error('LuceneSearch: There seems to be a problem with the search crawler! Trying to stop it.');
                 $this->stopFrontendCrawler();
             }
 

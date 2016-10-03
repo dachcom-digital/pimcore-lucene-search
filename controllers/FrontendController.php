@@ -445,7 +445,7 @@ class LuceneSearch_FrontendController extends Action
         }
         catch (\Exception $e)
         {
-            \Pimcore\Logger::log('An Exception occurred during search:' . $e->getMessage(), \Zend_Log::ERR);
+            \Pimcore\Logger::debug('An Exception occurred during search: ' . $e->getMessage());
 
             $this->view->searchResults = array();
             $this->view->hasSearchResults = FALSE;

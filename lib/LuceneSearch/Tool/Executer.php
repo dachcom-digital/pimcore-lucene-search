@@ -97,13 +97,13 @@ class Executer {
                 }
                 else
                 {
-                    \Pimcore\Logger::err('LuceneSearch: skipped index replacing. no tmp index found.');
+                    \Pimcore\Logger::error('LuceneSearch: skipped index replacing. no tmp index found.');
                 }
 
             }
             catch (\Exception $e)
             {
-                \Pimcore\Logger::err($e);
+                \Pimcore\Logger::error($e);
                 throw $e;
             }
 

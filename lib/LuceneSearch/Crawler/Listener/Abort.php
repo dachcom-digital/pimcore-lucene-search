@@ -24,7 +24,7 @@ class Abort {
 
     public  function stopCrawler(Event $event)
     {
-        \Pimcore\Logger::log('LuceneSearch: Crawl aborted by user.');
+        \Pimcore\Logger::debug('LuceneSearch: Crawl aborted by user.');
         exit;
     }
 }
