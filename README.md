@@ -1,9 +1,25 @@
 # Pimcore Lucene Search
-
-Just download and install it into your plugin folder.
+Pimcore 4.0 Website Search (powered by Zend Search Lucene)
 
 ### Requirements
 * Pimcore 4.3
+
+## Installation
+**Handcrafted Installation**   
+1. Download Plugin  
+2. Rename it to `LuceneSearch`  
+3. Place it in your plugin directory  
+4. Activate & install it through backend 
+
+**Composer Installation**  
+1. Add code below to your `composer.json`    
+2. Activate & install it through backend
+
+```json
+"require" : {
+    "dachcom-digital/pimcore-lucene-search" : "1.1.1",
+}
+```
 
 ### Features
 * Maintenance driven indexing
