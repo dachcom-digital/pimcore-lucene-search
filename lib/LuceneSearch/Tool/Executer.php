@@ -53,31 +53,31 @@ class Executer {
 
                 try
                 {
-                    $parser = new Parser();
-
-                    $parser
-                        ->setDepth( Configuration::get('frontend.crawler.maxLinkDepth') )
-                        ->setValidLinkRegexes( Configuration::get('frontend.validLinkRegexes') )
-                        ->setInvalidLinkRegexes( $invalidLinkRegexes )
-                        ->setSearchStartIndicator(Configuration::get('frontend.crawler.contentStartIndicator'))
-                        ->setSearchEndIndicator(Configuration::get('frontend.crawler.contentEndIndicator'))
-                        ->setAllowSubdomain( FALSE )
-                        ->setAllowedSchemes( Configuration::get('frontend.allowedSchemes') )
-                        ->setDownloadLimit( Configuration::get('frontend.crawler.maxDownloadLimit') )
-                        ->setSeed( $urls[0] );
-
-                    if( Configuration::get('frontend.auth.useAuth') === TRUE )
+                    foreach( $urls as $seed )
                     {
-                        $parser->setAuth( Configuration::get('frontend.auth.username'), Configuration::get('frontend.auth.password') );
+                        $parser = new Parser();
+
+                        $parser
+                            ->setDepth( Configuration::get('frontend.crawler.maxLinkDepth') )
+                            ->setValidLinkRegexes( Configuration::get('frontend.validLinkRegexes') )
+                            ->setInvalidLinkRegexes( $invalidLinkRegexes )
+                            ->setSearchStartIndicator(Configuration::get('frontend.crawler.contentStartIndicator'))
+                            ->setSearchEndIndicator(Configuration::get('frontend.crawler.contentEndIndicator'))
+                            ->setAllowSubdomain( FALSE )
+                            ->setAllowedSchemes( Configuration::get('frontend.allowedSchemes') )
+                            ->setDownloadLimit( Configuration::get('frontend.crawler.maxDownloadLimit') )
+                            ->setSeed( $seed );
+
+                        if( Configuration::get('frontend.auth.useAuth') === TRUE )
+                        {
+                            $parser->setAuth( Configuration::get('frontend.auth.username'), Configuration::get('frontend.auth.password') );
+                        }
+
+                        $parser->startParser($urls);
+                        $parser->optimizeIndex();
                     }
 
-                    $parser->startParser($urls);
-
-                    $parser->optimizeIndex();
-
-                }
-
-                catch(\Exception $e) { }
+                } catch(\Exception $e) { }
 
                 self::setCrawlerState('frontend', 'finished', FALSE);
 
