@@ -208,9 +208,22 @@ class LuceneSearch_Admin_PluginController extends Admin {
             Configuration::set('frontend.crawler.maxDownloadLimit', 0);
         }
 
+        //Frontend Urls must end with an trailing slash
+        $_frontendUrls = $values['frontend.urls'];
+        $frontendUrls = array();
+
+        if( is_array( $_frontendUrls ) )
+        {
+            foreach( $_frontendUrls as $seedUrl)
+            {
+                $frontendUrls[] = rtrim($seedUrl, '/' ) . '/';
+            }
+        }
+
+        Configuration::set('frontend.urls', $frontendUrls);
+
         Configuration::set('frontend.allowedSchemes', $values['frontend.allowedSchemes']);
         Configuration::set('frontend.categories', $values['frontend.categories']);
-        Configuration::set('frontend.urls', $values['frontend.urls']);
         Configuration::set('frontend.validLinkRegexes', $values['frontend.validLinkRegexes']);
         Configuration::set('frontend.invalidLinkRegexesEditable', $values['frontend.invalidLinkRegexesEditable']);
 
