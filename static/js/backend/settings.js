@@ -421,7 +421,17 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                 boxLabel: t('lucenesearch_search_suggestions'),
                                 name: 'frontend.fuzzySearch',
                                 checked: this.getValue('frontend.fuzzySearch'),
-                                inputValue: '1'
+                                inputValue: '1',
+                                listeners:{
+                                    change: function(checkbox, checked) {
+                                        if (checked) {
+                                            Ext.getCmp('lucenesearch_frontend_view_max_suggestions').enable();
+                                        } else {
+                                            Ext.getCmp('lucenesearch_frontend_view_max_suggestions').disable();
+
+                                        }
+                                    }
+                                }
                             },
                             {
                                 xtype:'displayfield',
@@ -633,7 +643,37 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                 value:'*) ' + t('lucenesearch_frontend_mandatory_fields'),
                                 cls: 'mandatory_hint'
                             }
-                        ]}
+                        ]
+                    },
+                    {
+                        xtype:'fieldset',
+                        id: 'frontend_settings',
+                        title:t('lucenesearch_frontend'),
+                        collapsible: false,
+                        autoHeight:true,
+                        labelWidth: 100,
+                        items :[
+                            {
+                                xtype:'textfield',
+                                fieldLabel: t('lucenesearch_frontend_view_max_per_page'),
+                                id: 'lucenesearch_frontend_view_max_per_page',
+                                name: 'frontend.view.maxPerPage',
+                                collapsible: false,
+                                autoHeight:true,
+                                value:this.getValue('frontend.view.maxPerPage')
+                            },
+                            {
+                                xtype:'textfield',
+                                fieldLabel: t('lucenesearch_frontend_view_max_suggestions'),
+                                id: 'lucenesearch_frontend_view_max_suggestions',
+                                name: 'frontend.view.maxSuggestions',
+                                collapsible: false,
+                                autoHeight:true,
+                                disabled : !this.getValue('frontend.fuzzySearch'),
+                                value:this.getValue('frontend.view.maxSuggestions')
+                            }
+                        ]
+                    }
                 ]
             });
 

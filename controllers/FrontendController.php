@@ -172,12 +172,16 @@ class LuceneSearch_FrontendController extends Action
                 $this->ownHostOnly = TRUE;
             }
 
-            //Set Per Page
+            //Set Entries per Page
+            $this->perPage = Configuration::get('frontend.view.maxPerPage');
             $perPage = $this->getParam('perPage');
             if( !empty( $perPage ) )
             {
                 $this->perPage = (int) $perPage;
             }
+
+            //Set max Suggestions
+            $this->maxSuggestions = Configuration::get('frontend.view.maxSuggestions');
 
             //Set Current Page
             $currentPage = $this->getParam('page');
@@ -285,7 +289,8 @@ class LuceneSearch_FrontendController extends Action
             {
                 $suggestions[] = $t;
 
-                if ($counter >= $this->maxSuggestions) {
+                if ($counter >= $this->maxSuggestions)
+                {
                     break;
                 }
 
@@ -296,7 +301,7 @@ class LuceneSearch_FrontendController extends Action
 
         $data = [];
 
-        foreach ($suggestions as $suggestion)
+        foreach( $suggestions as $suggestion )
         {
             $data[] = $suggestion;
         }

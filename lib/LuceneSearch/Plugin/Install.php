@@ -47,6 +47,9 @@ class Install {
         Configuration::set('frontend.crawler.contentExcludeEndIndicator', '');
         Configuration::set('frontend.sitemap.render', FALSE);
 
+        Configuration::set('frontend.view.maxPerPage', 10);
+        Configuration::set('frontend.view.maxSuggestions', 10);
+
         Configuration::setCoreSettings(
 
             array(

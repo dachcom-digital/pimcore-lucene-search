@@ -233,7 +233,25 @@ class LuceneSearch_Admin_PluginController extends Admin {
         Configuration::set('frontend.crawler.contentExcludeStartIndicator', $values['frontend.crawler.contentExcludeStartIndicator']);
         Configuration::set('frontend.crawler.contentExcludeEndIndicator', $values['frontend.crawler.contentExcludeEndIndicator']);
 
-        $this->_helper->json(array('success' => TRUE));
+        if (is_numeric($values['frontend.view.maxPerPage']))
+        {
+            Configuration::set('frontend.view.maxPerPage', (int) $values['frontend.view.maxPerPage']);
+        }
+        else
+        {
+            Configuration::set('frontend.view.maxPerPage', 10);
+        }
+
+        if (is_numeric($values['frontend.view.maxSuggestions']))
+        {
+            Configuration::set('frontend.view.maxSuggestions', (int) $values['frontend.view.maxSuggestions']);
+        }
+        else
+        {
+            Configuration::set('frontend.view.maxSuggestions', 10);
+        }
+
+        $this->_helper->json( array('success' => TRUE) );
 
     }
 

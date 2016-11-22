@@ -99,3 +99,6 @@
 "lucenesearch_frontend_fuzzysearch_description","When checked, a fuzzy search for similar search terms is performed. If no results could be found for the search term entered by the user, similar search terms are presented as suggestions"
 "lucenesearch_frontend_fuzzysearch","Fuzzy Search"
 "lucenesearch_search_suggestions","Search Suggestions"
+"lucenesearch_frontend","Frontend and List View Settings"
+"lucenesearch_frontend_view_max_per_page","Max Results per Page"
+"lucenesearch_frontend_view_max_suggestions","Max Suggestions"
