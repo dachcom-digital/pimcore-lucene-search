@@ -472,30 +472,26 @@ class LuceneSearch_FrontendController extends Action
 
     }
 
+    /**
+     * @param $queryHits
+     *
+     * @return array
+     */
     private function getValidHits( $queryHits )
     {
-        $validHits = array();
+        $validHits = [];
 
         if ($this->ownHostOnly && $queryHits !== NULL)
         {
             //get rid of hits from other hosts
-            $currentHost = $_SERVER['HTTP_HOST'];
+            $currentHost = \Pimcore\Tool::getHostname();
 
-            if (count($queryHits) == 1)
+            foreach( $queryHits as $hit )
             {
-                $url = $queryHits[0]->getDocument()->getField('url');
-                if (strpos($url->value, 'http://' . $currentHost) !== FALSE || strpos($url->value, 'https://' . $currentHost) !== FALSE)
+                $url = $hit->getDocument()->getField('url');
+                if (strpos($url->value, '://' . $currentHost) !== FALSE)
                 {
-                    $validHits[] = $queryHits[0];
-                }
-            }
-
-            for ($i = 0; $i < (count($queryHits)); $i++)
-            {
-                $url = $queryHits[$i]->getDocument()->getField('url');
-                if (strpos($url->value, 'http://' . $currentHost) !== FALSE)
-                {
-                    $validHits[] = $queryHits[$i];
+                    $validHits[] = $hit;
                 }
             }
         }

@@ -73,7 +73,7 @@ class Executer {
                             $parser->setAuth( Configuration::get('frontend.auth.username'), Configuration::get('frontend.auth.password') );
                         }
 
-                        $parser->startParser($urls);
+                        $parser->startParser();
                         $parser->optimizeIndex();
                     }
 
