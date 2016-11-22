@@ -378,7 +378,7 @@ class LuceneSearch_FrontendController extends Action
 
                         if ($doc->getField('description'))
                         {
-                            $searchResult['description'] = $searcher->getSummaryForUrl($doc->getField('description')->value, $this->untouchedQuery, FALSE);
+                            $searchResult['description'] = $searcher->getSummaryForUrl($doc->getField('description')->value, $this->untouchedQuery);
                         }
 
                         if ($doc->getField('imageTags'))

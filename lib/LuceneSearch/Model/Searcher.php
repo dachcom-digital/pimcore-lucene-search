@@ -5,42 +5,38 @@ namespace LuceneSearch\Model;
 class Searcher {
 
     /**
+     * Integer | Summary Length
+     */
+    const SUMMARY_LENGTH = 255;
+
+    /**
      * @var \Zend_Db_Adapter_Abstract
      */
     protected $db;
 
-    public function __construct(){
+    public function __construct()
+    {
         $this->db = \Pimcore\Db::get();
-
     }
 
     /**
      * @param $content
      * @param $queryStr
-     * @param $trim
      *
      * @return mixed|string
      */
-    public function getSummaryForUrl($content, $queryStr, $trim = TRUE)
+    public function getSummaryForUrl($content, $queryStr)
     {
-        $summary =  $this->getHighlightedSummary($content, array($queryStr), $trim);
+        $queryElements = explode(' ', $queryStr);
 
-        if( empty($summary) )
+        //remove additional whitespaces
+        $content = preg_replace('/[\s]+/', ' ', $content);
+
+        $summary = $this->getHighlightedSummary($content, $queryElements);
+
+        if( $summary === FALSE )
         {
-            $tokens = explode(' ', $queryStr);
-
-            if( count($tokens) > 1 )
-            {
-                foreach($tokens as $token)
-                {
-                    $summary = $this->getHighlightedSummary($content, $tokens, $trim);
-
-                    if( !empty($summary) )
-                    {
-                        break;
-                    }
-                }
-            }
+            return substr($content, 0, self::SUMMARY_LENGTH);
         }
 
         return $summary;
@@ -92,57 +88,48 @@ class Searcher {
      * extracts summary with highlighted search word from source text
      * @param string $text
      * @param string[] $queryTokens
-     * @param bool $trim
      * @return string
     */
-    protected function getHighlightedSummary($text, $queryTokens, $trim = TRUE)
+    protected function getHighlightedSummary($text, $queryTokens)
     {
-        //remove additional whitespaces
-        $text = preg_replace('/[\s]+/', ' ', $text);
-
         $pos = FALSE;
         $tokenInUse = $queryTokens[0];
 
-        foreach($queryTokens as $queryStr)
+        foreach( $queryTokens as $queryStr )
         {
             $tokenInUse = $queryStr;
             $pos = $this->findPosInSummary($text,$queryStr);
 
-            if($pos !== FALSE)
+            if ($pos !== FALSE )
             {
                 break;
             }
         }
 
-        if ($pos !== FALSE)
+        if ( $pos !== FALSE )
         {
-            $trimmedSummary = $text;
+            $start = $pos - 100;
 
-            if( $trim !== FALSE )
+            if ($start < 0)
             {
-                $start = $pos - 100;
-
-                if ($start < 0)
-                {
-                    $start = 0;
-                }
-
-                $summary = substr($text, $start, 255 + strlen($tokenInUse) );
-                $summary = trim($summary);
-
-                $tokens = explode(' ', $summary);
-
-                if (strtolower($tokens[0]) != strtolower($tokenInUse))
-                {
-                    $tokens = array_slice($tokens, 1, - 1);
-                }
-                else
-                {
-                    $tokens = array_slice($tokens,0, - 1);
-                }
-
-                $trimmedSummary = implode(' ', $tokens);
+                $start = 0;
             }
+
+            $summary = substr($text, $start, self::SUMMARY_LENGTH + strlen($tokenInUse) );
+            $summary = trim($summary);
+
+            $tokens = explode(' ', $summary);
+
+            if (strtolower($tokens[0]) != strtolower($tokenInUse))
+            {
+                $tokens = array_slice($tokens, 1, - 1);
+            }
+            else
+            {
+                $tokens = array_slice($tokens,0, - 1);
+            }
+
+            $trimmedSummary = implode(' ', $tokens);
 
             foreach($queryTokens as $queryStr)
             {
@@ -151,11 +138,9 @@ class Searcher {
                 $trimmedSummary = preg_replace('@([ \'")(-:.,;])('.$queryStr.')$@si', " <span class=\"highlight\">\\1\\2</span>", $trimmedSummary);
             }
 
-            return $trimmedSummary;
+            return empty( $trimmedSummary ) ? FALSE : $trimmedSummary;
         }
-        else
-        {
-            return $trim === FALSE ? $text : substr($text, 0, 255);
-        }
+
+        return FALSE;
     }
 }
