@@ -218,7 +218,7 @@ class Parser {
         $queueManager->setTraversalAlgorithm(InMemoryQueueManager::ALGORITHM_BREADTH_FIRST);
         $spider->setQueueManager($queueManager);
 
-        $spider->getDiscovererSet()->set(new XPathExpressionDiscoverer("//link[@hreflang]|//a") );
+        $spider->getDiscovererSet()->set(new XPathExpressionDiscoverer("//link[@hreflang]|//a[not(@rel='nofollow')]") );
 
         $spider->getDiscovererSet()->addFilter(new AllowedSchemeFilter($this->allowedSchemes));
         $spider->getDiscovererSet()->addFilter(new AllowedHostsFilter(array($this->seed), $this->allowSubDomains));
