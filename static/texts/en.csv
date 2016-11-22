@@ -39,6 +39,8 @@
 "lucenesearch_plugin_description","Hier fehlt noch eine Beschreibung ... "
 "lucenesearch_frontend_content_start_indicator","String specifying content start for search"
 "lucenesearch_frontend_content_end_indicator","String specifying content end for search"
+"lucenesearch_frontend_content_exclude_start_indicator","String specifying exclude content start for search"
+"lucenesearch_frontend_content_exclude_end_indicator","String specifying exclude content end for search"
 "lucenesearch_settings","Settings"
 "lucenesearch_settings_save","Save Settings"
 "lucenesearch_frontend_categories","Categories"

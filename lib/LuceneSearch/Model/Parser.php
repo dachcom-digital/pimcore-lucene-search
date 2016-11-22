@@ -75,6 +75,18 @@ class Parser {
     protected $searchEndIndicator;
 
     /**
+     * indicates where the content irrelevant for search starts
+     * @var string
+     */
+    protected $searchExcludeStartIndicator;
+
+    /**
+     * indicates where the content irrelevant for search ends
+     * @var string
+     */
+    protected $searchExcludeEndIndicator;
+
+    /**
      * @var boolean
      */
     protected $readyToCrawl = FALSE;
@@ -159,6 +171,18 @@ class Parser {
     public function setSearchEndIndicator( $searchEndIndicator )
     {
         $this->searchEndIndicator = $searchEndIndicator;
+        return $this;
+    }
+
+    public function setSearchExcludeStartIndicator( $searchExcludeStartIndicator )
+    {
+        $this->searchExcludeStartIndicator = $searchExcludeStartIndicator;
+        return $this;
+    }
+
+    public function setSearchExcludeEndIndicator( $searchExcludeEndIndicator )
+    {
+        $this->searchExcludeEndIndicator = $searchExcludeEndIndicator;
         return $this;
     }
 
@@ -269,7 +293,7 @@ class Parser {
             SpiderEvents::SPIDER_CRAWL_POST_REQUEST,
             function (Event $event)
             {
-                //echo 'crawling: ' . $event->getArgument('uri')->toString() . "\n";
+                echo 'crawling: ' . $event->getArgument('uri')->toString() . "\n";
             }
         );
 
@@ -404,11 +428,18 @@ class Parser {
         \Zend_Search_Lucene_Document_Html::setExcludeNoFollowLinks(true);
 
         $documentHasDelimiter = FALSE;
+        $documentHasExcludeDelimiter = FALSE;
 
         //now limit to search content area if indicators are set and found in this document
         if (!empty($this->searchStartIndicator))
         {
             $documentHasDelimiter = strpos($html, $this->searchStartIndicator) !== FALSE;
+        }
+
+        //remove content between exclude indicators
+        if (!empty($this->searchExcludeStartIndicator))
+        {
+            $documentHasExcludeDelimiter = strpos($html, $this->searchExcludeStartIndicator) !== FALSE;
         }
 
         if ($documentHasDelimiter && !empty($this->searchStartIndicator) && !empty($this->searchEndIndicator))
@@ -417,10 +448,15 @@ class Parser {
 
             $html = '';
 
-            if (is_array($htmlSnippets[0]))
+            if (is_array($htmlSnippets[1]))
             {
-                foreach ($htmlSnippets[0] as $snippet)
+                foreach ($htmlSnippets[1] as $snippet)
                 {
+                    if ($documentHasExcludeDelimiter && !empty($this->searchExcludeStartIndicator) && !empty($this->searchExcludeEndIndicator))
+                    {
+                        $snippet = preg_replace('#(' . preg_quote($this->searchExcludeStartIndicator) . ')(.*?)(' . preg_quote($this->searchExcludeEndIndicator). ')#si',' ', $snippet);
+                    }
+
                     $html .= ' ' . $snippet;
                 }
             }
@@ -503,7 +539,6 @@ class Parser {
                 $doc = new \Zend_Search_Lucene_Document();
 
                 $text = preg_replace("/\r|\n/", ' ', $fileContent);
-                //$text = preg_replace('/[^ ]{14}[^ ]*/', '', $fileContent);
 
                 $text = preg_replace('/[^\p{Latin}\d ]/u', "", $text);
                 $text = preg_replace('/\n[\s]*/',"\n",$text); // remove all leading blanks]

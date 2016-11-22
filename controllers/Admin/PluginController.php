@@ -230,6 +230,9 @@ class LuceneSearch_Admin_PluginController extends Admin {
         Configuration::set('frontend.crawler.contentStartIndicator', $values['frontend.crawler.contentStartIndicator']);
         Configuration::set('frontend.crawler.contentEndIndicator', $values['frontend.crawler.contentEndIndicator']);
 
+        Configuration::set('frontend.crawler.contentExcludeStartIndicator', $values['frontend.crawler.contentExcludeStartIndicator']);
+        Configuration::set('frontend.crawler.contentExcludeEndIndicator', $values['frontend.crawler.contentExcludeEndIndicator']);
+
         $this->_helper->json(array('success' => TRUE));
 
     }

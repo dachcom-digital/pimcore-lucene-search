@@ -485,6 +485,22 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                 value: this.getValue('frontend.crawler.contentEndIndicator')
                             },
                             {
+                                xtype:'textfield',
+                                fieldLabel: t('lucenesearch_frontend_content_exclude_start_indicator'),
+                                name: 'frontend.crawler.contentExcludeStartIndicator',
+                                collapsible: false,
+                                autoHeight:true,
+                                value: this.getValue('frontend.crawler.contentExcludeStartIndicator')
+                            },
+                            {
+                                xtype:'textfield',
+                                fieldLabel: t('lucenesearch_frontend_content_exclude_end_indicator'),
+                                name: 'frontend.crawler.contentExcludeEndIndicator',
+                                collapsible: false,
+                                autoHeight:true,
+                                value: this.getValue('frontend.crawler.contentExcludeEndIndicator')
+                            },
+                            {
                                 xtype:'displayfield',
                                 value:t('lucenesearch_frontend_allowedschemes_description'),
                                 cls: 'description'

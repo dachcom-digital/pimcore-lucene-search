@@ -43,6 +43,8 @@ class Install {
         Configuration::set('frontend.crawler.maxDownloadLimit', 0);
         Configuration::set('frontend.crawler.contentStartIndicator', '');
         Configuration::set('frontend.crawler.contentEndIndicator', '');
+        Configuration::set('frontend.crawler.contentExcludeStartIndicator', '');
+        Configuration::set('frontend.crawler.contentExcludeEndIndicator', '');
         Configuration::set('frontend.sitemap.render', FALSE);
 
         Configuration::setCoreSettings(

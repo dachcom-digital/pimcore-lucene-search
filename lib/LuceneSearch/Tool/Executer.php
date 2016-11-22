@@ -63,6 +63,8 @@ class Executer {
                             ->setInvalidLinkRegexes( $invalidLinkRegexes )
                             ->setSearchStartIndicator(Configuration::get('frontend.crawler.contentStartIndicator'))
                             ->setSearchEndIndicator(Configuration::get('frontend.crawler.contentEndIndicator'))
+                            ->setSearchExcludeStartIndicator(Configuration::get('frontend.crawler.contentExcludeStartIndicator'))
+                            ->setSearchExcludeEndIndicator(Configuration::get('frontend.crawler.contentExcludeEndIndicator'))
                             ->setAllowSubdomain( FALSE )
                             ->setAllowedSchemes( Configuration::get('frontend.allowedSchemes') )
                             ->setDownloadLimit( Configuration::get('frontend.crawler.maxDownloadLimit') )
