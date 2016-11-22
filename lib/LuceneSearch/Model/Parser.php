@@ -293,7 +293,7 @@ class Parser {
             SpiderEvents::SPIDER_CRAWL_POST_REQUEST,
             function (Event $event)
             {
-                echo 'crawling: ' . $event->getArgument('uri')->toString() . "\n";
+                //echo 'crawling: ' . $event->getArgument('uri')->toString() . "\n";
             }
         );
 
