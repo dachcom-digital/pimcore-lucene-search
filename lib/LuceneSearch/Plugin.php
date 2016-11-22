@@ -22,6 +22,17 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
     }
 
+    /**
+     * @param \Zend_EventManager_Event $e
+     */
+    public function preDispatch(\Zend_EventManager_Event $e)
+    {
+        $e->getTarget()->registerPlugin(new Controller\Plugin\Frontend());
+    }
+
+    /**
+     * @throws \Zend_EventManager_Exception_InvalidArgumentException
+     */
     public function init()
     {
         parent::init();

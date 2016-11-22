@@ -16,7 +16,7 @@ class LuceneSearch_FrontendController extends Action
     /**
      * @var
      */
-    protected $categories = array();
+    protected $categories = [];
 
     /**
      * query, incoming argument
@@ -127,7 +127,7 @@ class LuceneSearch_FrontendController extends Action
             }
 
             //Set Category
-            $queryCategory = $this->cleanRequestString( $this->getParam('cat') );
+            $queryCategory = $this->cleanRequestString( $this->getParam('category') );
 
             if( !empty( $queryCategory ) )
             {
@@ -306,6 +306,8 @@ class LuceneSearch_FrontendController extends Action
 
     public function findAction()
     {
+        $this->disableViewAutoRender();
+
         $searcher = new Searcher();
 
         try
@@ -420,50 +422,52 @@ class LuceneSearch_FrontendController extends Action
                 $currentPageResultEnd = count($validHits);
             }
 
-            if (count($validHits) < 1)
+            $pages = 0;
+
+            if( count($validHits) > 0)
             {
-                $this->view->pages = 0;
-            }
-            else
-            {
-                $this->view->pages = ceil( count( $validHits ) / $this->perPage );
+                $pages = ceil( count( $validHits ) / $this->perPage );
             }
 
+            $this->view->assign([
 
-            if ( !empty($this->categories) )
-            {
-                $this->view->availableCategories = $this->categories;
-            }
+                'searchCurrentPage'             => $this->currentPage,
+                'searchAllPages'                => $pages,
 
-            $this->view->suggestions = $suggestions;
+                'searchCategory'                => $this->category,
+                'searchAvailableCategories'     => $this->categories,
 
-            $this->view->category = $this->category;
-            $this->view->language = $this->searchLanguage;
-            $this->view->country = $this->searchCountry;
+                'searchSuggestions'             => $suggestions,
+                'searchLanguage'                => $this->searchLanguage,
+                'searchCountry'                 => $this->searchCountry,
+                'searchPerPage'                 => $this->perPage,
+                'searchTotalHits'               => count($validHits),
+                'searchQuery'                   => $this->untouchedQuery,
+                'searchHasResults'              => count($searchResults) > 0,
+                'searchResults'                 => $searchResults,
+                'searchCurrentPageResultStart'  => $currentPageResultStart + 1,
+                'searchCurrentPageResultEnd'    => $currentPageResultEnd
 
-            $this->view->perPage = $this->perPage;
-            $this->view->page = $this->currentPage;
-            $this->view->total = count($validHits);
-            $this->view->query = $this->untouchedQuery;
-
-            $this->view->hasSearchResults = count($searchResults) > 0;
-            $this->view->searchResults = $searchResults;
-
-            $this->view->currentPageResultStart = $currentPageResultStart + 1;
-            $this->view->currentPageResultEnd = $currentPageResultEnd;
+            ]);
 
         }
         catch (\Exception $e)
         {
             \Pimcore\Logger::debug('An Exception occurred during search: ' . $e->getMessage());
 
-            $this->view->searchResults = array();
-            $this->view->hasSearchResults = FALSE;
+            $this->view->assign([
+                'searchResults' => [],
+                'searchHasResults' => FALSE
+            ]);
         }
 
         if ($this->getParam('viewScript'))
         {
             $this->renderScript($this->_getParam('viewScript'));
+        }
+        else
+        {
+            $this->renderScript('/search/find.php');
         }
 
     }

@@ -104,3 +104,6 @@ $el.autocomplete({
 
 });
 ```
+
+## Upgrade Info
+Before updating, please [check our upgrade notes!](UPGRADE.md)

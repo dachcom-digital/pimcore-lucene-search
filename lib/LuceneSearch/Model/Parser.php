@@ -274,7 +274,7 @@ class Parser {
         );
 
         // Execute the crawl
-        $result = $spider->crawl();
+        $spider->crawl();
 
         \Pimcore\Logger::debug("SPIDER ID: " . $statsHandler->getSpiderId());
         \Pimcore\Logger::debug("SPIDER ID: " . $statsHandler->getSpiderId());
