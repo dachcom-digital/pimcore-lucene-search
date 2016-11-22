@@ -27,7 +27,7 @@ class SearchHelper extends \Zend_View_Helper_Abstract {
         $searchCurrentPage = (int) $this->view->searchCurrentPage;
         $searchAllPages = (int) $this->view->searchAllPages;
 
-        if($searchCurrentPage > ceil( $params['paginationElements'] ))
+        if($searchCurrentPage > ceil( $params['paginationElements'] / 2 ))
         {
             $pageStart = $searchCurrentPage - 2;
         }
