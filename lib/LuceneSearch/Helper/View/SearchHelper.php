@@ -16,6 +16,7 @@ class SearchHelper extends \Zend_View_Helper_Abstract {
     public function getPagination( $customParams = [] )
     {
         $defaults = [
+            'paginationUrl'         => '',
             'paginationElements'    => 5,
             'viewTemplate'          => 'default',
             'paginationClass'       => 'paginator'
@@ -39,7 +40,39 @@ class SearchHelper extends \Zend_View_Helper_Abstract {
             $pageEnd = $searchAllPages;
         }
 
+        $paginationUrlInfo = parse_url( $params['paginationUrl'] );
+
+        $path = '';
+        $scheme = '';
+        $host = '';
+
+        if( isset( $paginationUrlInfo['query'] ) && !empty( $paginationUrlInfo['query'] ))
+        {
+            $q = $paginationUrlInfo['query'];
+            $paginationUrl = '?' . $q . ( substr($q, -1) === '&' ? '' : '&' );
+        }
+        else
+        {
+            $paginationUrl = '?';
+        }
+
+        if( isset( $paginationUrlInfo['path'] ) && !empty( $paginationUrlInfo['path'] ))
+        {
+            $path = $paginationUrlInfo['path'];
+        }
+
+        if( isset( $paginationUrlInfo['scheme'] ) && !empty( $paginationUrlInfo['scheme'] ))
+        {
+            $scheme = $paginationUrlInfo['scheme'] . '://';
+        }
+
+        if( isset( $paginationUrlInfo['host'] ) && !empty( $paginationUrlInfo['host'] ))
+        {
+            $host = $paginationUrlInfo['host'];
+        }
+
         $viewParams = [
+            'searchUrl'         => $scheme . $host . $path . $paginationUrl,
             'currentSearchPage' => $searchCurrentPage,
             'searchAllPages'    => $searchAllPages,
             'searchPageStart'   => $pageStart,
