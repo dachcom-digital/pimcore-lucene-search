@@ -100,7 +100,7 @@ class LuceneSearch_FrontendController extends Action
 
             if( !empty( $searchQuery ) )
             {
-                $this->query = strtolower( $searchQuery );
+                $this->query = Plugin::cleanTerm( $searchQuery );
                 $this->untouchedQuery = $this->query;
             }
 

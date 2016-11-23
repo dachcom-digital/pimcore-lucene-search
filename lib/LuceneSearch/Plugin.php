@@ -439,4 +439,19 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
             return $terms;
         }
     }
+
+    public static function cleanTerm( $term )
+    {
+        return trim(
+            preg_replace('|\s{2,}|', ' ',
+                preg_replace('|\W|', ' ',
+                    strtolower(
+                        strip_tags(
+                            str_replace(array("\n", '<'), array(' ', ' <'), $term)
+                        )
+                    )
+                )
+            )
+        );
+    }
 }
