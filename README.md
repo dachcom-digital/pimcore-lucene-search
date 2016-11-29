@@ -43,7 +43,7 @@ To allow the crawler to follow all the restricted documents, you need to configu
 If the document is restricted to a specific usergroup, the meta `content` contains its id. Otherwise, the meta property needs to be filled with a `default` value.
 
 ## Asset Language restriction
-Because Assets does not have any language hierarchy, you need to add a property called `assignedLanguage`. This Property will be installed during the install process of LuceneSearch.
+Because Assets does not have any language hierarchy, you need to add a property called `assigned_language`. This Property will be installed during the install process of LuceneSearch.
 If you add some additional language afterwards, you need to add this language to the property. if you do not set any information at all, the asset will be found in any language context.
 
 ## Setup Search Page

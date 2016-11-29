@@ -691,7 +691,7 @@ class Parser {
 
         if( $asset instanceof \Pimcore\Model\Asset )
         {
-            $languageProperty = $asset->getProperty('assignedLanguage');
+            $languageProperty = $asset->getProperty('assigned_language');
 
             if( !is_null($languageProperty))
             {

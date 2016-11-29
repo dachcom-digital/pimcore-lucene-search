@@ -66,7 +66,7 @@ class Install {
 
     public function installProperties()
     {
-        $defProperty = Property\Predefined::getByKey('assignedLanguage');
+        $defProperty = Property\Predefined::getByKey('assigned_language');
 
         if( !$defProperty instanceof Property\Predefined)
         {
@@ -84,7 +84,7 @@ class Install {
             $property = new Property\Predefined();
             $property->setType('select');
             $property->setName('Assigned Language');
-            $property->setKey('assignedLanguage');
+            $property->setKey('assigned_language');
             $property->setDescription('set a specific language which lucene search should respect while crawling.');
             $property->setCtype('asset');
             $property->setData('all');
