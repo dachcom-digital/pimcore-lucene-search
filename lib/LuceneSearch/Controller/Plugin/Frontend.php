@@ -13,7 +13,11 @@ class Frontend extends \Zend_Controller_Plugin_Abstract {
 
         /** @var \Pimcore\Controller\Action\Helper\ViewRenderer $renderer */
         $renderer = \Zend_Controller_Action_HelperBroker::getExistingHelper('ViewRenderer');
-        $renderer->initView();
+
+        if ( $renderer->view === NULL )
+        {
+            $renderer->initView();
+        }
 
         /** @var \Pimcore\View $view */
         $view = $renderer->view;
@@ -26,8 +30,18 @@ class Frontend extends \Zend_Controller_Plugin_Abstract {
     {
         parent::postDispatch($request);
 
+        if( !\Zend_Controller_Action_HelperBroker::hasHelper('ViewRenderer') )
+        {
+            return FALSE;
+        }
+
         /** @var \Pimcore\Controller\Action\Helper\ViewRenderer $renderer */
         $renderer = \Zend_Controller_Action_HelperBroker::getExistingHelper('ViewRenderer');
+
+        if ( $renderer->view === NULL )
+        {
+            $renderer->initView();
+        }
 
         /** @var \Pimcore\View $view */
         $view = $renderer->view;
