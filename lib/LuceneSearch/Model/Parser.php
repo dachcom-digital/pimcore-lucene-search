@@ -216,6 +216,7 @@ class Parser {
         $this->seed = $seed;
         return $this;
     }
+
     /**
      * Start Parsing Urls!
      */
@@ -285,6 +286,7 @@ class Parser {
 
                 SpiderEvents::SPIDER_CRAWL_PRE_REQUEST,
                 array($authListener, 'setAuth')
+
             );
 
         }
@@ -296,6 +298,11 @@ class Parser {
                 //echo 'crawling: ' . $event->getArgument('uri')->toString() . "\n";
             }
         );
+
+        // add LuceneSearch to Headers!
+        $pluginInfo = \Pimcore\ExtensionManager::getPluginConfig('LuceneSearch');
+        $guzzleClient = $spider->getDownloader()->getRequestHandler()->getClient();
+        $guzzleClient->setDefaultOption('headers/Lucene-Search', $pluginInfo['plugin']['pluginVersion']);
 
         // Execute the crawl
         $spider->crawl();
@@ -326,7 +333,6 @@ class Parser {
         }
 
     }
-
 
     /**
      * @param $response \Guzzle\Http\Message\Response
@@ -365,6 +371,13 @@ class Parser {
 
     }
 
+    /**
+     * @param $link
+     * @param $response
+     * @param $host
+     *
+     * @return bool
+     */
     private function parseHtml( $link, $response, $host )
     {
         $resource = $response->getResponse();
@@ -393,20 +406,20 @@ class Parser {
             return FALSE;
         }
 
+        \Zend_Search_Lucene_Document_Html::setExcludeNoFollowLinks(true);
+
         $hasCountryMeta = $crawler->filterXpath('//meta[@name="country"]')->count() > 0;
         $hasTitle = $response->getCrawler()->filterXpath('//title')->count() > 0;
         $hasDescription = $response->getCrawler()->filterXpath('//meta[@name="description"]')->count() > 0;
         $hasRestriction = $response->getCrawler()->filterXpath('//meta[@name="m:groups"]')->count() > 0;
-
-        $country = FALSE;
-
-        if( $hasCountryMeta === TRUE )
-        {
-            $country = $crawler->filterXpath('//meta[@name="country"]')->attr('content');
-        }
+        $hasCustomMeta = $response->getCrawler()->filterXpath('//meta[@name="lucene-search:meta"]')->count() > 0;
 
         $title = '';
         $description = '';
+        $customMeta = '';
+
+        $restrictions = FALSE;
+        $country = FALSE;
 
         if( $hasTitle === TRUE )
         {
@@ -418,14 +431,20 @@ class Parser {
             $description = $response->getCrawler()->filterXpath('//meta[@name="description"]')->attr('content');
         }
 
-        $restrictions = FALSE;
+        if( $hasCountryMeta === TRUE )
+        {
+            $country = $crawler->filterXpath('//meta[@name="country"]')->attr('content');
+        }
 
         if( $hasRestriction === TRUE )
         {
             $restrictions = $crawler->filterXpath('//meta[@name="m:groups"]')->attr('content');
         }
 
-        \Zend_Search_Lucene_Document_Html::setExcludeNoFollowLinks(true);
+        if( $hasCustomMeta === TRUE )
+        {
+            $customMeta = $crawler->filterXpath('//meta[@name="lucene-search:meta"]')->attr('content');
+        }
 
         $documentHasDelimiter = FALSE;
         $documentHasExcludeDelimiter = FALSE;
@@ -462,7 +481,7 @@ class Parser {
             }
         }
 
-        $this->addHtmlToIndex($html, $title, $description, $link, $language, $country, $restrictions, $encoding, $host);
+        $this->addHtmlToIndex($html, $title, $description, $link, $language, $country, $restrictions, $customMeta, $encoding, $host);
 
         \Pimcore\Logger::debug('LuceneSearch: Added to indexer stack [ ' . $link. ' ]');
 
@@ -470,6 +489,13 @@ class Parser {
 
     }
 
+    /**
+     * @param $link
+     * @param $response
+     * @param $host
+     *
+     * @return bool
+     */
     private function parsePdf( $link, $response, $host )
     {
         $language = $this->getLanguageFromAsset($link);
@@ -578,11 +604,12 @@ class Parser {
      * @param  string $language
      * @param  string $country
      * @param  string $restrictions
+     * @param  string $customMeta
      * @param  string $encoding
      * @param  string $host
      * @return void
      */
-    protected function addHtmlToIndex($html, $title, $description, $url, $language, $country, $restrictions, $encoding, $host)
+    protected function addHtmlToIndex($html, $title, $description, $url, $language, $country, $restrictions, $customMeta, $encoding, $host)
     {
         try
         {
@@ -619,6 +646,9 @@ class Parser {
                 }
             }
 
+            //clean meta
+            $customMeta = strip_tags($customMeta);
+
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('charset', $encoding));
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $language));
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $url));
@@ -626,6 +656,7 @@ class Parser {
 
             $doc->addField(\Zend_Search_Lucene_Field::Text('title', $title, $encoding));
             $doc->addField(\Zend_Search_Lucene_Field::Text('description', $description, $encoding));
+            $doc->addField(\Zend_Search_Lucene_Field::Text('customMeta', $customMeta, $encoding));
 
             $doc->addField(\Zend_Search_Lucene_Field::Text('content', $content, $encoding));
             $doc->addField(\Zend_Search_Lucene_Field::Text('imageTags', join(',', $tags)));

@@ -47,7 +47,6 @@ Because Assets does not have any language hierarchy, you need to add a property 
 If you add some additional language afterwards, you need to add this language to the property. if you do not set any information at all, the asset will be found in any language context.
 
 ## Setup Search Page
-
 - Create a document, call it "search".
 - Define a new method in your Controller (eg. search). 
 - Create a view template (eg. `content/search.php`) and add this code:
@@ -60,7 +59,6 @@ $this->action('find', 'frontend', 'LuceneSearch', array('viewScript' => 'fronten
 You'll find the `frontend/find.php` Template in `LuceneSearch/views/scripts/`. If you want to change the markup, just copy the template into your website script folder and change the `viewScript` parameter.
 
 ## Using Ajax AutoComplete
-
 Use this snippet to allow ajax driven autocomplete search. you may want to use this [plugin](https://github.com/devbridge/jQuery-Autocomplete) to do the job.
 
 ```js
@@ -104,6 +102,37 @@ $el.autocomplete({
 
 });
 ```
+
+## Custom Meta Content
+In some cases you need to add some content or keywords to improve the search accuracy. 
+But it's not meant for the public crawlers like Google. LuceneSearch uses a custom meta property called `lucene-search:meta`.
+This Element should be visible while crawling only.
+
+**Custom Meta in Documents**  
+In *Document* => *Settings* go to *Meta Data* and add a new field:
+
+```config
+[
+    meta    => name,
+    name    => "lucene-search:meta"
+    content => "your content"
+]
+```
+
+**Custom Meta in Objects**  
+Because Object may have some front-end capability (a news detail page for example), you have to integrate the custom meta field by yourself.
+
+**Example:**
+
+```php
+if( \LuceneSearch\Tool\Request::isLuceneSearchCrawler() )
+{
+    $this->view->headMeta()->setName( 'lucene-search:meta', $product->getInternalSearchText( $lang ) );
+}
+```
+
+**Custom Meta in Assets**  
+TBD
 
 ## Upgrade Info
 Before updating, please [check our upgrade notes!](UPGRADE.md)
