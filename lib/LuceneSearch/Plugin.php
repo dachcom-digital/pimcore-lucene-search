@@ -444,7 +444,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     {
         return trim(
             preg_replace('|\s{2,}|', ' ',
-                preg_replace('|\W|', ' ',
+                preg_replace('|[^\p{L}\p{N} ]/u|', ' ',
                     strtolower(
                         strip_tags(
                             str_replace(array("\n", '<'), array(' ', ' <'), $term)
