@@ -102,3 +102,6 @@
 "lucenesearch_frontend","Frontend and List View Settings"
 "lucenesearch_frontend_view_max_per_page","Max Results per Page"
 "lucenesearch_frontend_view_max_suggestions","Max Suggestions"
+"lucenesearch_boost","Boost Settings"
+"lucenesearch_boost_documents","Document Boost Factor"
+"lucenesearch_boost_assets","Asset Boost Factor"

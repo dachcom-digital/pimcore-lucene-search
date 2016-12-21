@@ -68,6 +68,8 @@ class Executer {
                             ->setAllowSubdomain( FALSE )
                             ->setAllowedSchemes( Configuration::get('frontend.allowedSchemes') )
                             ->setDownloadLimit( Configuration::get('frontend.crawler.maxDownloadLimit') )
+                            ->setDocumentBoost( Configuration::get('boost.documents') )
+                            ->setAssetBoost( Configuration::get('boost.assets') )
                             ->setSeed( $seed );
 
                         if( Configuration::get('frontend.auth.useAuth') === TRUE )

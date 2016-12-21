@@ -112,6 +112,16 @@ class Parser {
     protected $authUserName = NULL;
 
     /**
+     * @var int
+     */
+    protected $documentBoost = 1;
+
+    /**
+     * @var int
+     */
+    protected $assetBoost = 1;
+
+    /**
      * @var null
      */
     Protected $authPassword = NULL;
@@ -214,6 +224,18 @@ class Parser {
     public function setSeed( $seed = '' )
     {
         $this->seed = $seed;
+        return $this;
+    }
+
+    public function setDocumentBoost( $documentBoost = 1 )
+    {
+        $this->documentBoost = $documentBoost;
+        return $this;
+    }
+
+    public function setAssetBoost( $assetBoost = 1 )
+    {
+        $this->assetBoost = $assetBoost;
         return $this;
     }
 
@@ -413,6 +435,7 @@ class Parser {
         $hasDescription = $response->getCrawler()->filterXpath('//meta[@name="description"]')->count() > 0;
         $hasRestriction = $response->getCrawler()->filterXpath('//meta[@name="m:groups"]')->count() > 0;
         $hasCustomMeta = $response->getCrawler()->filterXpath('//meta[@name="lucene-search:meta"]')->count() > 0;
+        $hasCustomBoostMeta = $response->getCrawler()->filterXpath('//meta[@name="lucene-search:boost"]')->count() > 0;
 
         $title = '';
         $description = '';
@@ -444,6 +467,11 @@ class Parser {
         if( $hasCustomMeta === TRUE )
         {
             $customMeta = $crawler->filterXpath('//meta[@name="lucene-search:meta"]')->attr('content');
+        }
+
+        if( $hasCustomBoostMeta === TRUE )
+        {
+            $customBoost = (int) $crawler->filterXpath('//meta[@name="lucene-search:boost"]')->attr('content');
         }
 
         $documentHasDelimiter = FALSE;
@@ -481,7 +509,7 @@ class Parser {
             }
         }
 
-        $this->addHtmlToIndex($html, $title, $description, $link, $language, $country, $restrictions, $customMeta, $encoding, $host);
+        $this->addHtmlToIndex($html, $title, $description, $link, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost);
 
         \Pimcore\Logger::debug('LuceneSearch: Added to indexer stack [ ' . $link. ' ]');
 
@@ -512,9 +540,10 @@ class Parser {
      * @param  string $url
      * @param  string $language
      * @param string $host
+     * @param  integer $customBoost
      * @return bool
      */
-    protected function addPdfToIndex($url, $language, $host)
+    protected function addPdfToIndex($url, $language, $host, $customBoost = NULL)
     {
         $pdftotextBin = FALSE;
 
@@ -564,6 +593,8 @@ class Parser {
             {
                 $doc = new \Zend_Search_Lucene_Document();
 
+                $doc->boost = $customBoost ? $customBoost : $this->assetBoost;
+
                 $text = preg_replace("/\r|\n/", ' ', $fileContent);
 
                 $text = preg_replace('/[^\p{Latin}\d ]/u', "", $text);
@@ -607,15 +638,18 @@ class Parser {
      * @param  string $customMeta
      * @param  string $encoding
      * @param  string $host
+     * @param  integer $customBoost
      * @return void
      */
-    protected function addHtmlToIndex($html, $title, $description, $url, $language, $country, $restrictions, $customMeta, $encoding, $host)
+    protected function addHtmlToIndex($html, $title, $description, $url, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost = NULL)
     {
         try
         {
             $content = $this->getPlainTextFromHtml($html);
 
             $doc = new \Zend_Search_Lucene_Document();
+
+            $doc->boost = $customBoost ? $customBoost : $this->documentBoost;
 
             //add h1 to index
             $headlines = array();

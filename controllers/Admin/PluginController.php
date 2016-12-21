@@ -251,6 +251,24 @@ class LuceneSearch_Admin_PluginController extends Admin {
             Configuration::set('frontend.view.maxSuggestions', 10);
         }
 
+        if (is_numeric($values['boost.documents']))
+        {
+            Configuration::set('boost.documents', (int) $values['boost.documents']);
+        }
+        else
+        {
+            Configuration::set('boost.documents', 1);
+        }
+
+        if (is_numeric($values['boost.assets']))
+        {
+            Configuration::set('boost.assets', (int) $values['boost.assets']);
+        }
+        else
+        {
+            Configuration::set('boost.assets', 1);
+        }
+
         $this->_helper->json( array('success' => TRUE) );
 
     }

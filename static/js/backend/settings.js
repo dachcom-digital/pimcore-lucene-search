@@ -673,6 +673,34 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                 value:this.getValue('frontend.view.maxSuggestions')
                             }
                         ]
+                    },
+                    {
+                        xtype:'fieldset',
+                        id: 'boost_settings',
+                        title:t('lucenesearch_boost'),
+                        collapsible: false,
+                        autoHeight:true,
+                        labelWidth: 100,
+                        items :[
+                            {
+                                xtype:'textfield',
+                                fieldLabel: t('lucenesearch_boost_documents'),
+                                id: 'lucenesearch_boost_documents',
+                                name: 'boost.documents',
+                                collapsible: false,
+                                autoHeight:true,
+                                value:this.getValue('boost.documents')
+                            },
+                            {
+                                xtype:'textfield',
+                                fieldLabel: t('lucenesearch_boost_assets'),
+                                id: 'lucenesearch_boost_assets',
+                                name: 'boost.assets',
+                                collapsible: false,
+                                autoHeight:true,
+                                value:this.getValue('boost.assets')
+                            }
+                        ]
                     }
                 ]
             });

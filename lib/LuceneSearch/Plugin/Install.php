@@ -50,6 +50,9 @@ class Install {
         Configuration::set('frontend.view.maxPerPage', 10);
         Configuration::set('frontend.view.maxSuggestions', 10);
 
+        Configuration::set('boost.documents', 1);
+        Configuration::set('boost.assets', 1);
+
         Configuration::setCoreSettings(
 
             array(
