@@ -11,6 +11,12 @@ class Install {
     {
         $configFile = \Pimcore\Config::locateConfigFile('lucenesearch_configurations');
 
+        //If file already exists, return!
+        if( is_file( $configFile. '.php') )
+        {
+            return TRUE;
+        }
+
         if (is_file($configFile . '.BACKUP'))
         {
             rename($configFile . '.BACKUP', $configFile . '.php');
