@@ -10,37 +10,16 @@ class Executer {
 
     public static function runCrawler()
     {
-        $running = Configuration::getCoreSetting('running');
-
-        if( $running === TRUE)
+        if( Configuration::getCoreSetting('running') === TRUE )
         {
             return FALSE;
         }
-
-        $db = \Pimcore\Db::get();
 
         $indexDir = \LuceneSearch\Plugin::getFrontendSearchIndex();
 
         if ($indexDir)
         {
-            $db->query("DROP TABLE IF EXISTS `lucene_search_index`;");
-            $db->query("CREATE TABLE `lucene_search_index` (
-                      `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-                      `identifier` varchar(255) DEFAULT '',
-                      `contentType` varchar(255) DEFAULT NULL,
-                      `contentLanguage` varchar(255) DEFAULT NULL,
-                      `host` text,
-                      `uri` text,
-                      `content` longblob,
-                      PRIMARY KEY (`id`),
-                      KEY `identifier` (`identifier`)
-                    ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;");
-
-
-            exec('rm -Rf ' . str_replace('/index/', '/tmpindex', $indexDir));
-
-            \Pimcore\Logger::debug('LuceneSearch: rm -Rf ' . str_replace('/index/', '/tmpindex', $indexDir));
-            \Pimcore\Logger::debug('LuceneSearch: Starting crawl');
+            self::_prepareCrawl($indexDir);
 
             try
             {
@@ -48,21 +27,21 @@ class Executer {
                 $invalidLinkRegexesSystem = Configuration::get('frontend.invalidLinkRegexes');
                 $invalidLinkRegexesEditable = Configuration::get('frontend.invalidLinkRegexesEditable');
 
-                if (!empty($invalidLinkRegexesEditable) and !empty($invalidLinkRegexesSystem))
+                if ( !empty($invalidLinkRegexesEditable) && !empty($invalidLinkRegexesSystem) )
                 {
-                    $invalidLinkRegexes = array_merge($invalidLinkRegexesEditable, array($invalidLinkRegexesSystem));
+                    $invalidLinkRegexes = array_merge($invalidLinkRegexesEditable, [$invalidLinkRegexesSystem] );
                 }
-                else if (!empty($invalidLinkRegexesEditable))
+                else if ( !empty($invalidLinkRegexesEditable) )
                 {
                     $invalidLinkRegexes = $invalidLinkRegexesEditable;
                 }
-                else if (!empty($invalidLinkRegexesSystem))
+                else if ( !empty($invalidLinkRegexesSystem) )
                 {
-                    $invalidLinkRegexes = array($invalidLinkRegexesSystem);
+                    $invalidLinkRegexes = [ $invalidLinkRegexesSystem ];
                 }
                 else
                 {
-                    $invalidLinkRegexes = array();
+                    $invalidLinkRegexes = [];
                 }
 
                 self::setCrawlerState('frontend', 'started', TRUE);
@@ -100,29 +79,7 @@ class Executer {
                 } catch(\Exception $e) { }
 
                 self::setCrawlerState('frontend', 'finished', FALSE);
-
-                //only remove index, if tmp exists!
-                $tmpIndex = str_replace('/index', '/tmpindex', $indexDir);
-
-                //remove lucene search index tmp folder
-                $db->query("DROP TABLE IF EXISTS `lucene_search_index`;");
-                \Pimcore\Logger::debug('LuceneSearch: drop table lucene_search_index');
-
-                if( is_dir( $tmpIndex ) )
-                {
-                    exec('rm -Rf ' . $indexDir);
-                    \Pimcore\Logger::debug('LuceneSearch: rm -Rf ' . $indexDir);
-
-                    exec('cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
-
-                    \Pimcore\Logger::debug('LuceneSearch: cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
-                    \Pimcore\Logger::debug('LuceneSearch: replaced old index');
-                    \Pimcore\Logger::info('LuceneSearch: Finished crawl');
-                }
-                else
-                {
-                    \Pimcore\Logger::error('LuceneSearch: skipped index replacing. no tmp index found.');
-                }
+                self::_cleanUpCrawl($indexDir);
 
             }
             catch (\Exception $e)
@@ -204,5 +161,63 @@ class Executer {
         $builder->generateSitemap();
 
         return TRUE;
+    }
+
+    /**
+     * @param string $indexDir
+     */
+    private static function _prepareCrawl( $indexDir = '')
+    {
+        $db = \Pimcore\Db::get();
+
+        $db->query("DROP TABLE IF EXISTS `lucene_search_index`;");
+        $db->query("CREATE TABLE `lucene_search_index` (
+                      `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+                      `identifier` varchar(255) DEFAULT '',
+                      `contentType` varchar(255) DEFAULT NULL,
+                      `contentLanguage` varchar(255) DEFAULT NULL,
+                      `host` text,
+                      `uri` text,
+                      `content` longblob,
+                      PRIMARY KEY (`id`),
+                      KEY `identifier` (`identifier`)
+                    ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;");
+
+
+        exec('rm -Rf ' . str_replace('/index/', '/tmpindex', $indexDir));
+
+        \Pimcore\Logger::debug('LuceneSearch: create table lucene_search_index');
+        \Pimcore\Logger::debug('LuceneSearch: rm -Rf ' . str_replace('/index/', '/tmpindex', $indexDir));
+        \Pimcore\Logger::debug('LuceneSearch: Starting crawl');
+    }
+
+    /**
+    * @param string $indexDir
+    */
+    private static function _cleanUpCrawl( $indexDir = '')
+    {
+        $db = \Pimcore\Db::get();
+
+        //only remove index, if tmp exists!
+        $tmpIndex = str_replace('/index', '/tmpindex', $indexDir);
+
+        //remove lucene search index tmp folder
+        $db->query("DROP TABLE IF EXISTS `lucene_search_index`;");
+        \Pimcore\Logger::debug('LuceneSearch: drop table lucene_search_index');
+
+        if( is_dir( $tmpIndex ) )
+        {
+            exec('rm -Rf ' . $indexDir);
+            exec('cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
+
+            \Pimcore\Logger::debug('LuceneSearch: rm -Rf ' . $indexDir);
+            \Pimcore\Logger::debug('LuceneSearch: cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
+            \Pimcore\Logger::debug('LuceneSearch: replaced old index');
+            \Pimcore\Logger::info('LuceneSearch: Finished crawl');
+        }
+        else
+        {
+            \Pimcore\Logger::error('LuceneSearch: skipped index replacing. no tmp index found.');
+        }
     }
 }
