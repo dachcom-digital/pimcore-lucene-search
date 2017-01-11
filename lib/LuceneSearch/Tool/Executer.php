@@ -17,10 +17,26 @@ class Executer {
             return FALSE;
         }
 
+        $db = \Pimcore\Db::get();
+
         $indexDir = \LuceneSearch\Plugin::getFrontendSearchIndex();
 
         if ($indexDir)
         {
+            $db->query("DROP TABLE IF EXISTS `lucene_search_index`;");
+            $db->query("CREATE TABLE `lucene_search_index` (
+                      `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+                      `identifier` varchar(255) DEFAULT '',
+                      `contentType` varchar(255) DEFAULT NULL,
+                      `contentLanguage` varchar(255) DEFAULT NULL,
+                      `host` text,
+                      `uri` text,
+                      `content` longblob,
+                      PRIMARY KEY (`id`),
+                      KEY `identifier` (`identifier`)
+                    ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;");
+
+
             exec('rm -Rf ' . str_replace('/index/', '/tmpindex', $indexDir));
 
             \Pimcore\Logger::debug('LuceneSearch: rm -Rf ' . str_replace('/index/', '/tmpindex', $indexDir));
@@ -87,6 +103,10 @@ class Executer {
 
                 //only remove index, if tmp exists!
                 $tmpIndex = str_replace('/index', '/tmpindex', $indexDir);
+
+                //remove lucene search index tmp folder
+                $db->query("DROP TABLE IF EXISTS `lucene_search_index`;");
+                \Pimcore\Logger::debug('LuceneSearch: drop table lucene_search_index');
 
                 if( is_dir( $tmpIndex ) )
                 {

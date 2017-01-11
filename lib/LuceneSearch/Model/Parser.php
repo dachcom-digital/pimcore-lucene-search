@@ -2,23 +2,21 @@
 
 namespace LuceneSearch\Model;
 
-use Symfony\Component\EventDispatcher\Event;
-use VDB\Spider\Discoverer\XPathExpressionDiscoverer;
-use VDB\Spider\Event\SpiderEvents;
-use VDB\Spider\EventListener\PolitenessPolicyListener;
-use VDB\Spider\Filter\Prefetch\AllowedHostsFilter;
-use VDB\Spider\Filter\Prefetch\AllowedSchemeFilter;
-use VDB\Spider\Filter\Prefetch\UriFilter;
-use VDB\Spider\Filter\Prefetch\UriWithHashFragmentFilter;
-use VDB\Spider\Filter\Prefetch\UriWithQueryStringFilter;
-use VDB\Spider\QueueManager\InMemoryQueueManager;
-use VDB\Spider\Spider;
-use VDB\Spider\StatsHandler;
-
 use LuceneSearch\Plugin;
-use LuceneSearch\Model\Logger;
 use LuceneSearch\Crawler\Listener;
 use LuceneSearch\Crawler\Filter\NegativeUriFilter;
+use \LuceneSearch\Crawler\PersistenceHandler;
+
+use VDB\Spider\Spider;
+use VDB\Spider\StatsHandler;
+use VDB\Spider\QueueManager;
+use VDB\Spider\Filter;
+use VDB\Spider\Event\SpiderEvents;
+
+use VDB\Spider\Discoverer\XPathExpressionDiscoverer;
+use VDB\Spider\EventListener\PolitenessPolicyListener;
+
+use Symfony\Component\EventDispatcher\Event;
 
 class Parser {
 
@@ -60,7 +58,7 @@ class Parser {
     /**
      * @var array
      */
-    protected $allowedSchemes = array();
+    protected $allowedSchemes = [];
 
     /**
      * indicates where the content relevant for search starts
@@ -255,49 +253,50 @@ class Parser {
 
         $statsHandler   = new StatsHandler();
         $LogHandler     = new Logger(\Pimcore::inDebugMode());
-        $queueManager   = new InMemoryQueueManager();
+        $queueManager   = new QueueManager\InMemoryQueueManager();
 
         $queueManager->getDispatcher()->addSubscriber($statsHandler);
         $queueManager->getDispatcher()->addSubscriber($LogHandler);
 
         $spider->getDiscovererSet()->maxDepth = $this->maxLinkDepth;
 
-        $queueManager->setTraversalAlgorithm(InMemoryQueueManager::ALGORITHM_BREADTH_FIRST);
+        $queueManager->setTraversalAlgorithm(QueueManager\InMemoryQueueManager::ALGORITHM_DEPTH_FIRST);
         $spider->setQueueManager($queueManager);
 
         $spider->getDiscovererSet()->set(new XPathExpressionDiscoverer("//link[@hreflang]|//a[not(@rel='nofollow')]") );
 
-        $spider->getDiscovererSet()->addFilter(new AllowedSchemeFilter($this->allowedSchemes));
-        $spider->getDiscovererSet()->addFilter(new AllowedHostsFilter(array($this->seed), $this->allowSubDomains));
+        $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\AllowedSchemeFilter($this->allowedSchemes));
+        $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\AllowedHostsFilter([$this->seed], $this->allowSubDomains ));
 
-        $spider->getDiscovererSet()->addFilter(new UriWithHashFragmentFilter());
-        $spider->getDiscovererSet()->addFilter(new UriWithQueryStringFilter());
+        $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriWithHashFragmentFilter());
+        $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriWithQueryStringFilter());
 
-        $spider->getDiscovererSet()->addFilter(new UriFilter( $this->invalidLinkRegexes ) );
+        $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriFilter( $this->invalidLinkRegexes ) );
         $spider->getDiscovererSet()->addFilter(new NegativeUriFilter( $this->validLinkRegexes ) );
-
-        $politenessPolicyEventListener = new PolitenessPolicyListener( 20 ); //CHANGE TO 100 !!!!
-
-        $spider->getDownloader()->getDispatcher()->addListener(
-            SpiderEvents::SPIDER_CRAWL_PRE_REQUEST,
-            array($politenessPolicyEventListener, 'onCrawlPreRequest')
-        );
 
         $spider->getDispatcher()->addSubscriber($statsHandler);
         $spider->getDispatcher()->addSubscriber($LogHandler);
+
+        $spider->getDownloader()->setPersistenceHandler( new PersistenceHandler\FileDbResponsePersistenceHandler() );
+
+        $politenessPolicyEventListener = new PolitenessPolicyListener( 20 ); //CHANGE TO 100 !!!!
+        $spider->getDownloader()->getDispatcher()->addListener(
+            SpiderEvents::SPIDER_CRAWL_PRE_REQUEST,
+            [ $politenessPolicyEventListener, 'onCrawlPreRequest' ]
+        );
 
         $abortListener = new Listener\Abort($spider);
         $spider->getDownloader()->getDispatcher()->addListener(
 
             SpiderEvents::SPIDER_CRAWL_PRE_REQUEST,
-            array($abortListener, 'checkCrawlerState')
+            [ $abortListener, 'checkCrawlerState' ]
 
         );
 
         $spider->getDispatcher()->addListener(
 
             SpiderEvents::SPIDER_CRAWL_USER_STOPPED,
-            array($abortListener, 'stopCrawler')
+            [ $abortListener, 'stopCrawler' ]
 
         );
 
@@ -307,7 +306,7 @@ class Parser {
             $spider->getDownloader()->getDispatcher()->addListener(
 
                 SpiderEvents::SPIDER_CRAWL_PRE_REQUEST,
-                array($authListener, 'setAuth')
+                [ $authListener, 'setAuth' ]
 
             );
 
@@ -327,7 +326,15 @@ class Parser {
         $guzzleClient->setDefaultOption('headers/Lucene-Search', $pluginInfo['plugin']['pluginVersion']);
 
         // Execute the crawl
-        $spider->crawl();
+        try
+        {
+            $spider->crawl();
+        }
+        catch(\Exception $e)
+        {
+            \Pimcore\Logger::err('LuceneSearch: crawl error: ' . $e->getMessage());
+            throw new \Exception($e->getMessage());
+        }
 
         \Pimcore\Logger::debug("SPIDER ID: " . $statsHandler->getSpiderId());
         \Pimcore\Logger::debug("SPIDER ID: " . $statsHandler->getSpiderId());
@@ -345,28 +352,30 @@ class Parser {
         \Pimcore\Logger::debug("TOTAL TIME:           " . $totalTime . 's');
         \Pimcore\Logger::debug("POLITENESS WAIT TIME: " . $totalDelay . 's');
 
-        $downloaded = $spider->getDownloader()->getPersistenceHandler();
-
         //parse all resources!
-        foreach ($downloaded as $resource) {
-
-            $this->parseResponse( $resource );
-
+        foreach ($spider->getDownloader()->getPersistenceHandler() as $resource)
+        {
+            if( is_array( $resource ) )
+            {
+                \Pimcore\Logger::debug('LuceneSearch: parseResponse: ' . $resource['uri']);
+                $this->parseResponse( $resource );
+            }
+            else
+            {
+                \Pimcore\Logger::notice('LuceneSearch: crawler resource not a instance of Spider\Resource. Given type: ' . gettype($resource));
+            }
         }
-
     }
 
     /**
-     * @param $response \Guzzle\Http\Message\Response
+     * @param array $response
      */
-    private function parseResponse( $response )
+    private function parseResponse( $response = [] )
     {
-        $resource = $response->getResponse();
+        $host = $response['host'];
+        $uri = $response['uri'];
 
-        $host = $response->getUri()->getHost();
-        $link = $response->getUri()->toString();
-
-        $contentType = $resource->getHeader('Content-Type')->__toString();
+        $contentType = $response['contentType'];
 
         if (!empty($contentType))
         {
@@ -375,20 +384,20 @@ class Parser {
 
             if ($mimeType == 'text/html')
             {
-                $this->parseHtml($link, $response, $host);
+                $this->parseHtml($uri, $response, $host);
             }
             else if ($mimeType == 'application/pdf')
             {
-                $this->parsePdf($link, $response, $host);
+                $this->parsePdf($uri, $response, $host);
             }
             else
             {
-                \Pimcore\Logger::debug('LuceneSearch: Cannot parse mime type [ ' . $mimeType. ' ] provided by link [ ' . $link . ' ]');
+                \Pimcore\Logger::debug('LuceneSearch: Cannot parse mime type [ ' . $mimeType. ' ] provided by uri [ ' . $uri . ' ]');
             }
         }
         else
         {
-            \Pimcore\Logger::debug('LuceneSearch: Could not determine content type of [ ' . $link. ' ]');
+            \Pimcore\Logger::debug('LuceneSearch: Could not determine content type of [ ' . $uri. ' ]');
         }
 
     }
@@ -402,20 +411,19 @@ class Parser {
      */
     private function parseHtml( $link, $response, $host )
     {
-        $resource = $response->getResponse();
-        $crawler = $response->getCrawler();
+        /** @var \Symfony\Component\DomCrawler\Crawler $crawler */
+        $crawler = $response['crawler'];
+        $html = $response['content'];
 
-        $html = $resource->getBody();
-
-        $language = $this->getLanguageFromResponse($resource, $html);
-        $encoding = $this->getEncodingFromResponse($resource, $html);
+        $language = strtolower( $this->getLanguageFromResponse($response['contentLanguage'], $html) );
+        $encoding = strtolower( $this->getEncodingFromResponse($response['contentType'], $html) );
 
         //page has canonical link: do not track!
         $hasCanonicalLink = $crawler->filterXpath('//link[@rel="canonical"]')->count() > 0;
 
         if( $hasCanonicalLink === TRUE )
         {
-            \Pimcore\Logger::debug('LuceneSearch: not indexing [ ' . $link. ' ] because it has canonical links');
+            \Pimcore\Logger::debug('LuceneSearch: not indexing [ ' . $link . ' ] because it has canonical links');
             return FALSE;
         }
 
@@ -424,34 +432,35 @@ class Parser {
 
         if( $hasNoFollow === TRUE )
         {
-            \Pimcore\Logger::debug('LuceneSearch: not indexing [ ' . $link. ' ] because it has robots noindex');
+            \Pimcore\Logger::debug('LuceneSearch: not indexing [ ' . $link . ' ] because it has robots noindex');
             return FALSE;
         }
 
         \Zend_Search_Lucene_Document_Html::setExcludeNoFollowLinks(true);
 
-        $hasCountryMeta = $crawler->filterXpath('//meta[@name="country"]')->count() > 0;
-        $hasTitle = $response->getCrawler()->filterXpath('//title')->count() > 0;
-        $hasDescription = $response->getCrawler()->filterXpath('//meta[@name="description"]')->count() > 0;
-        $hasRestriction = $response->getCrawler()->filterXpath('//meta[@name="m:groups"]')->count() > 0;
-        $hasCustomMeta = $response->getCrawler()->filterXpath('//meta[@name="lucene-search:meta"]')->count() > 0;
-        $hasCustomBoostMeta = $response->getCrawler()->filterXpath('//meta[@name="lucene-search:boost"]')->count() > 0;
+        $hasCountryMeta     = $crawler->filterXpath('//meta[@name="country"]')->count() > 0;
+        $hasTitle           = $crawler->filterXpath('//title')->count() > 0;
+        $hasDescription     = $crawler->filterXpath('//meta[@name="description"]')->count() > 0;
+        $hasRestriction     = $crawler->filterXpath('//meta[@name="m:groups"]')->count() > 0;
+        $hasCustomMeta      = $crawler->filterXpath('//meta[@name="lucene-search:meta"]')->count() > 0;
+        $hasCustomBoostMeta = $crawler->filterXpath('//meta[@name="lucene-search:boost"]')->count() > 0;
 
         $title = '';
         $description = '';
         $customMeta = '';
+        $customBoost = 1;
 
         $restrictions = FALSE;
         $country = FALSE;
 
         if( $hasTitle === TRUE )
         {
-            $title = $response->getCrawler()->filterXpath('//title')->text();
+            $title = $crawler->filterXpath('//title')->text();
         }
 
         if( $hasDescription === TRUE )
         {
-            $description = $response->getCrawler()->filterXpath('//meta[@name="description"]')->attr('content');
+            $description = $crawler->filterXpath('//meta[@name="description"]')->attr('content');
         }
 
         if( $hasCountryMeta === TRUE )
@@ -772,27 +781,16 @@ class Parser {
     }
 
     /**
+     * @param $contentLanguage
+     * @param $body
+     *
      * Try to find the document's language by first looking for Content-Language in Http headers than in html
      * attribute and last in content-language meta tag
      * @return string
      */
-    protected function getLanguageFromResponse($resource, $body)
+    protected function getLanguageFromResponse($contentLanguage, $body)
     {
-        $l = NULL;
-
-        try
-        {
-            $cl = $resource->getHeader('Content-Language');
-
-            if( !empty( $cl ) )
-            {
-                $l = $cl->__toString();
-            }
-        }
-        catch(\Exception $e)
-        {
-
-        }
+        $l = $contentLanguage;
 
         if (empty($l))
         {
@@ -804,6 +802,7 @@ class Parser {
                 $l = str_replace(array('_', '-'), '', $languages['language'][0]);
             }
         }
+
         if (empty($l))
         {
             //try meta tag
@@ -821,29 +820,17 @@ class Parser {
     }
 
     /**
+     * @param $contentType
+     * @param $body
+     *
      * extract encoding either from HTTP Header or from HTML Attribute
      * @return string
      */
-    protected function getEncodingFromResponse($resource, $body)
+    protected function getEncodingFromResponse($contentType, $body)
     {
+        $encoding = '';
+
         //try content-type header
-        $contentType = NULL;
-
-        try
-        {
-            $ct = $resource->getHeader('Content-Type');
-
-            if( !empty( $ct ) )
-            {
-                $contentType = $ct->__toString();
-            }
-
-        }
-        catch( \Exception $e)
-        {
-
-        }
-
         if (!empty($contentType))
         {
             $data = array();
@@ -854,6 +841,7 @@ class Parser {
                 $encoding = trim($data[1]);
             }
         }
+
         if (empty($encoding))
         {
             //try html
@@ -865,6 +853,7 @@ class Parser {
                 $encoding = trim($data[1]);
             }
         }
+
         if (empty($encoding))
         {
             //try xhtml
@@ -876,6 +865,7 @@ class Parser {
                 $encoding = trim($data[1]);
             }
         }
+
         if (empty($encoding))
         {
             //try html 5
@@ -919,6 +909,11 @@ class Parser {
 
     }
 
+    /**
+     * @param $html
+     *
+     * @return array
+     */
     protected function extractImageAltText($html)
     {
         libxml_use_internal_errors(true);
@@ -964,6 +959,9 @@ class Parser {
         return $data;
     }
 
+    /**
+     *
+     */
     protected function checkAndPrepareIndex()
     {
         if (!$this->index)
@@ -988,6 +986,9 @@ class Parser {
 
     }
 
+    /**
+     *
+     */
     public function optimizeIndex() {
 
         // optimize lucene index for better performance
