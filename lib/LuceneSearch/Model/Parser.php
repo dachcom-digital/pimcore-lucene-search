@@ -418,6 +418,9 @@ class Parser {
         $language = strtolower( $this->getLanguageFromResponse($response['contentLanguage'], $html) );
         $encoding = strtolower( $this->getEncodingFromResponse($response['contentType'], $html) );
 
+        $filter = new \Zend_Filter_Word_UnderscoreToDash();
+        $language = strtolower($filter->filter($language));
+
         //page has canonical link: do not track!
         $hasCanonicalLink = $crawler->filterXpath('//link[@rel="canonical"]')->count() > 0;
 
