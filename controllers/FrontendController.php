@@ -550,7 +550,8 @@ class LuceneSearch_FrontendController extends Action
                 $lang = $this->searchLanguage;
             }
 
-            $lang = str_replace(array('_', '-'), '', $lang);
+            $filter = new \Zend_Filter_Word_UnderscoreToDash();
+            $lang = strtolower($filter->filter($lang));
             $languageQuery->addTerm(new Zend_Search_Lucene_Index_Term($lang, 'lang'));
 
             $query->addSubquery($languageQuery, TRUE);
