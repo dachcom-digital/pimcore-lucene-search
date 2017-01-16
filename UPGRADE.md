@@ -6,3 +6,7 @@
 - page property `assignedLanguage` changed to `assigned_language`. Please update your database entries.
 - because of the new `customMeta` field you need to start the crawler after updating.
 - open the "Lucene Search" settings and update the Boost settings (default should be 1 for both)
+
+### Update from Version 1.2.x to Version 1.3
+
+- only works with pimcore build > 3987 because of document meta tags (see #23).

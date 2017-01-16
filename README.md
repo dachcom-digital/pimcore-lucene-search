@@ -111,12 +111,8 @@ This Element should be visible while crawling only.
 **Custom Meta in Documents**  
 In *Document* => *Settings* go to *Meta Data* and add a new field:
 
-```config
-[
-    meta    => name,
-    name    => "lucene-search:meta"
-    content => "your content"
-]
+```html
+<meta name="lucene-search:meta" content="your content">
 ```
 
 **Custom Meta in Objects**  
