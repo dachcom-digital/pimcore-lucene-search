@@ -4,35 +4,41 @@ namespace LuceneSearch\Model;
 
 use LuceneSearch\Plugin;
 
-class SitemapBuilder {
-
+class SitemapBuilder
+{
     /**
      * @var \Zend_Search_Lucene
      */
     protected $index = NULL;
 
+    /**
+     * @var null
+     */
     protected $sitemapDir = NULL;
 
-    public function __construct() {
+    /**
+     * SitemapBuilder constructor.
+     */
+    public function __construct()
+    {
 
         $indexDir = Plugin::getFrontendSearchIndex();
 
         $this->index = \Zend_Search_Lucene::open($indexDir);
-
     }
 
+    /**
+     *
+     */
     public function generateSitemap()
     {
         $this->prepareSiteMapFolder();
 
-        if( !is_null( $this->sitemapDir ) )
-        {
+        if (!is_null($this->sitemapDir)) {
             $hosts = $this->getValidHosts();
 
-            if(is_array($hosts))
-            {
-                foreach($hosts as $hostName)
-                {
+            if (is_array($hosts)) {
+                foreach ($hosts as $hostName) {
                     $query = new \Zend_Search_Lucene_Search_Query_Boolean();
 
                     $hostTerm = new \Zend_Search_Lucene_Index_Term($hostName, 'host');
@@ -45,26 +51,25 @@ class SitemapBuilder {
 
                     $hits = $this->index->find($query);
 
-                    $name = str_replace('.','-',$hostName);
-                    $filePath = $this->sitemapDir . '/sitemap-'.$name.'.xml';
+                    $name = str_replace('.', '-', $hostName);
+                    $filePath = $this->sitemapDir . '/sitemap-' . $name . '.xml';
 
                     $fh = fopen($filePath, 'w');
-                    fwrite($fh,'<?xml version="1.0" encoding="UTF-8"?>'."\r\n");
-                    fwrite($fh,'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
-                    fwrite($fh,"\r\n");
+                    fwrite($fh, '<?xml version="1.0" encoding="UTF-8"?>' . "\r\n");
+                    fwrite($fh, '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
+                    fwrite($fh, "\r\n");
 
-                    for ($i = 0; $i < (count($hits)); $i++)
-                    {
+                    for ($i = 0; $i < (count($hits)); $i++) {
 
                         $url = $hits[$i]->getDocument()->getField('url');
-                        $uri = str_replace(array('?pimcore_outputfilters_disabled=1','&pimcore_outputfilters_disabled=1'),'',$url->value);
+                        $uri = str_replace(['?pimcore_outputfilters_disabled=1', '&pimcore_outputfilters_disabled=1'], '', $url->value);
 
-                        fwrite($fh,'<url>' . "\r\n");
-                        fwrite($fh,'    <loc>'.htmlspecialchars($uri,ENT_QUOTES).'</loc>'."\r\n");
-                        fwrite($fh,'</url>' . "\r\n");
+                        fwrite($fh, '<url>' . "\r\n");
+                        fwrite($fh, '    <loc>' . htmlspecialchars($uri, ENT_QUOTES) . '</loc>' . "\r\n");
+                        fwrite($fh, '</url>' . "\r\n");
                     }
 
-                    fwrite($fh,'</urlset>' . "\r\n");
+                    fwrite($fh, '</urlset>' . "\r\n");
                     fclose($fh);
                 }
 
@@ -74,8 +79,7 @@ class SitemapBuilder {
                 fwrite($fh, '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
                 fwrite($fh, "\r\n");
 
-                foreach ($hosts as $hostName)
-                {
+                foreach ($hosts as $hostName) {
                     $name = str_replace('.', '-', $hostName);
 
                     //first host must be main domain - see hint in plugin settings
@@ -85,23 +89,16 @@ class SitemapBuilder {
                     fwrite($fh, '</sitemap>' . "\r\n");
 
                     \Pimcore\Logger::debug('LuceneSearch: ' . $hostName . ' for sitemap.xml added.');
-
                 }
 
                 fwrite($fh, '</sitemapindex>' . "\r\n");
                 fclose($fh);
-
-
-            } else
-            {
+            } else {
                 \Pimcore\Logger::debug('LuceneSearch: could not generate sitemaps, did not find any hosts in index.');
             }
-
-        } else
-        {
-            \Pimcore\Logger::emerg('LuceneSearch: Cannot generate sitemap. Sitemap directory [ '. $this->sitemapDir .' ]  not available/not writeable and cannot be created');
+        } else {
+            \Pimcore\Logger::emerg('LuceneSearch: Cannot generate sitemap. Sitemap directory [ ' . $this->sitemapDir . ' ]  not available/not writeable and cannot be created');
         }
-
     }
 
     /**
@@ -111,41 +108,37 @@ class SitemapBuilder {
     {
         $urls = Configuration::get('frontend.urls');
 
-        if( empty( $urls ) )
-        {
-            return array();
+        if (empty($urls)) {
+            return [];
         }
 
-        $hosts = array();
+        $hosts = [];
 
-        foreach( $urls as $url )
-        {
+        foreach ($urls as $url) {
             $parsedUrl = parse_url($url);
             $hosts[] = $parsedUrl['host'];
         }
+
         return $hosts;
     }
 
+    /**
+     *
+     */
     private function prepareSiteMapFolder()
     {
         $sitemapDir = PIMCORE_WEBSITE_PATH . '/var/search/sitemap';
 
-        if(is_dir($sitemapDir) && !is_writable($sitemapDir))
-        {
+        if (is_dir($sitemapDir) && !is_writable($sitemapDir)) {
             $sitemapDirAvailable = FALSE;
-        }
-        else if( !is_dir($sitemapDir) )
-        {
+        } else if (!is_dir($sitemapDir)) {
             $sitemapDirAvailable = mkdir($sitemapDir, 0755, TRUE);
             chmod($sitemapDir, 0755);
-        }
-        else
-        {
+        } else {
             $sitemapDirAvailable = TRUE;
         }
 
-        if( $sitemapDirAvailable == TRUE )
-        {
+        if ($sitemapDirAvailable == TRUE) {
             $this->sitemapDir = $sitemapDir;
         }
     }

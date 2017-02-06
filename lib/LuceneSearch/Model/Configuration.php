@@ -7,7 +7,6 @@ use Pimcore\Model;
 
 class Configuration extends Model\AbstractModel
 {
-
     /**
      * @var integer
      */
@@ -35,39 +34,33 @@ class Configuration extends Model\AbstractModel
 
     /**
      * this is a small per request cache to know which configuration is which is, this info is used in self::getByKey()
-     *
      * @var array
      */
-    protected static $nameIdMappingCache = array();
-
+    protected static $nameIdMappingCache = [];
 
     /**
      * @param integer $id
+     *
      * @return Configuration
      */
     public static function getById($id)
     {
         $cacheKey = 'lucenesearch_configuration_' . $id;
 
-        try
-        {
+        try {
             $configurationEntry = \Zend_Registry::get($cacheKey);
             if (!$configurationEntry) {
                 throw new \Exception('Configuration in registry is null');
             }
-        }
-        catch (\Exception $e)
-        {
-            try
-            {
+        } catch (\Exception $e) {
+            try {
                 $configurationEntry = new self();
                 \Zend_Registry::set($cacheKey, $configurationEntry);
                 $configurationEntry->setId(intval($id));
                 $configurationEntry->getDao()->getById();
-            }
-            catch (\Exception $e)
-            {
+            } catch (\Exception $e) {
                 \Pimcore\Logger::error($e);
+
                 return NULL;
             }
         }
@@ -76,16 +69,16 @@ class Configuration extends Model\AbstractModel
     }
 
     /**
-     * @param string $key
+     * @param string  $key
      * @param boolean $returnObject
+     *
      * @return mixed|null
      */
     public static function get($key, $returnObject = FALSE)
     {
         $cacheKey = $key . '~~~';
 
-        if (array_key_exists($cacheKey, self::$nameIdMappingCache))
-        {
+        if (array_key_exists($cacheKey, self::$nameIdMappingCache)) {
             $entry = self::getById(self::$nameIdMappingCache[$cacheKey]);
 
             if ($returnObject) {
@@ -97,22 +90,17 @@ class Configuration extends Model\AbstractModel
 
         $configurationEntry = new self();
 
-        try
-        {
+        try {
             $configurationEntry->getDao()->getByKey($key);
-        }
-        catch (\Exception $e)
-        {
+        } catch (\Exception $e) {
             return NULL;
         }
 
-        if ($configurationEntry->getId() > 0)
-        {
+        if ($configurationEntry->getId() > 0) {
             self::$nameIdMappingCache[$cacheKey] = $configurationEntry->getId();
             $entry = self::getById($configurationEntry->getId());
 
-            if ($returnObject)
-            {
+            if ($returnObject) {
                 return $entry;
             }
 
@@ -129,19 +117,13 @@ class Configuration extends Model\AbstractModel
     {
         $arrayData = self::getCoreSettings();
 
-        try
-        {
-            if( isset($arrayData[ $key ]) )
-            {
-                return $arrayData[ $key ];
-            }
-            else
-            {
+        try {
+            if (isset($arrayData[$key])) {
+                return $arrayData[$key];
+            } else {
                 return FALSE;
             }
-        }
-        catch(\Exception $e)
-        {
+        } catch (\Exception $e) {
             return FALSE;
         }
     }
@@ -153,27 +135,23 @@ class Configuration extends Model\AbstractModel
     {
         $configFile = PIMCORE_SYSTEM_TEMP_DIRECTORY . '/lucene_timings';
 
-        if( !file_exists( $configFile ))
-        {
-            return array();
+        if (!file_exists($configFile)) {
+            return [];
         }
 
-        try
-        {
+        try {
             $data = file_get_contents($configFile);
             $arrayData = unserialize($data);
 
-            if( is_array( $arrayData ) )
-            {
+            if (is_array($arrayData)) {
                 return $arrayData;
             }
 
-            return array();
+            return [];
+        } catch (\Exception $e) {
+        }
 
-        }  catch(\Exception $e) { }
-
-        return array();
-
+        return [];
     }
 
     /**
@@ -184,7 +162,7 @@ class Configuration extends Model\AbstractModel
     {
         $arrayData = self::getCoreSettings();
 
-        $arrayData[ $key ] = $value;
+        $arrayData[$key] = $value;
 
         self::setCoreSettings($arrayData);
     }
@@ -194,7 +172,7 @@ class Configuration extends Model\AbstractModel
      *
      * @return bool
      */
-    public static function setCoreSettings( $dataArray = array() )
+    public static function setCoreSettings($dataArray = [])
     {
         $configFile = PIMCORE_SYSTEM_TEMP_DIRECTORY . '/lucene_timings';
 
@@ -203,7 +181,6 @@ class Configuration extends Model\AbstractModel
         file_put_contents($configFile, $data);
 
         return TRUE;
-
     }
 
     /**
@@ -216,8 +193,7 @@ class Configuration extends Model\AbstractModel
     {
         $configEntry = self::get($key, TRUE);
 
-        if (!$configEntry)
-        {
+        if (!$configEntry) {
             $configEntry = new self();
             $configEntry->setKey($key);
         }
@@ -234,22 +210,15 @@ class Configuration extends Model\AbstractModel
     {
         $config = NULL;
 
-        if (\Zend_Registry::isRegistered('lucenesearch_plugin_config'))
-        {
+        if (\Zend_Registry::isRegistered('lucenesearch_plugin_config')) {
             $config = \Zend_Registry::get('lucenesearch_plugin_config');
-        }
-        else
-        {
-            try
-            {
+        } else {
+            try {
                 $config = new \Zend_Config_Xml(LUCENESEARCH__PLUGIN_CONFIG);
                 self::setPluginConfig($config);
-            }
-            catch (\Exception $e)
-            {
-                if (is_file(LUCENESEARCH__PLUGIN_CONFIG))
-                {
-                    $m = 'Your plugin_xml.xml located at ' . LUCENESEARCH__PLUGIN_CONFIG. ' is invalid, please check and correct it manually!';
+            } catch (\Exception $e) {
+                if (is_file(LUCENESEARCH__PLUGIN_CONFIG)) {
+                    $m = 'Your plugin_xml.xml located at ' . LUCENESEARCH__PLUGIN_CONFIG . ' is invalid, please check and correct it manually!';
                     Tool::exitWithError($m);
                 }
             }
@@ -260,7 +229,9 @@ class Configuration extends Model\AbstractModel
 
     /**
      * @static
+     *
      * @param \Zend_Config $config
+     *
      * @return void
      */
     public static function setPluginConfig(\Zend_Config $config)

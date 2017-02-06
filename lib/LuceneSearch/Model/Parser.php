@@ -18,8 +18,8 @@ use VDB\Spider\EventListener\PolitenessPolicyListener;
 
 use Symfony\Component\EventDispatcher\Event;
 
-class Parser {
-
+class Parser
+{
     /**
      * @var \Zend_Search_Lucene
      */
@@ -124,116 +124,213 @@ class Parser {
      */
     Protected $authPassword = NULL;
 
+    /**
+     * Parser constructor.
+     */
     public function __construct()
     {
         $this->checkAndPrepareIndex();
     }
 
-    public function setDepth( $depth = 0 )
+    /**
+     * @param int $depth
+     *
+     * @return $this
+     */
+    public function setDepth($depth = 0)
     {
-        if( !is_numeric( $depth ) )
-        {
+        if (!is_numeric($depth)) {
             $depth = 1;
         }
 
         $this->maxLinkDepth = $depth;
+
         return $this;
     }
 
-    public function setAllowSubdomain( $allowSubdomain = FALSE )
+    /**
+     * @param bool $allowSubdomain
+     *
+     * @return $this
+     */
+    public function setAllowSubdomain($allowSubdomain = FALSE)
     {
         $this->allowSubDomains = $allowSubdomain;
+
         return $this;
     }
 
-    public function setDownloadLimit( $downloadLimit = 0 )
+    /**
+     * @param int $downloadLimit
+     *
+     * @return $this
+     */
+    public function setDownloadLimit($downloadLimit = 0)
     {
         $this->downloadLimit = $downloadLimit;
+
         return $this;
     }
 
-    public function setAllowedSchemes( $allowedSchemes = array() )
+    /**
+     * @param array $allowedSchemes
+     *
+     * @return $this
+     */
+    public function setAllowedSchemes($allowedSchemes = [])
     {
         $this->allowedSchemes = $allowedSchemes;
+
         return $this;
     }
 
-    public function setValidLinkRegexes( $validLinkRegexes )
+    /**
+     * @param $validLinkRegexes
+     *
+     * @return $this
+     */
+    public function setValidLinkRegexes($validLinkRegexes)
     {
         $this->validLinkRegexes = $validLinkRegexes;
+
         return $this;
     }
 
-    public function setInvalidLinkRegexes( $invalidLinkRegexes )
+    /**
+     * @param $invalidLinkRegexes
+     *
+     * @return $this
+     */
+    public function setInvalidLinkRegexes($invalidLinkRegexes)
     {
         $this->invalidLinkRegexes = $invalidLinkRegexes;
+
         return $this;
     }
 
-    public function setSearchStartIndicator( $searchStartIndicator )
+    /**
+     * @param $searchStartIndicator
+     *
+     * @return $this
+     */
+    public function setSearchStartIndicator($searchStartIndicator)
     {
         $this->searchStartIndicator = $searchStartIndicator;
+
         return $this;
     }
 
-    public function setSearchEndIndicator( $searchEndIndicator )
+    /**
+     * @param $searchEndIndicator
+     *
+     * @return $this
+     */
+    public function setSearchEndIndicator($searchEndIndicator)
     {
         $this->searchEndIndicator = $searchEndIndicator;
+
         return $this;
     }
 
-    public function setSearchExcludeStartIndicator( $searchExcludeStartIndicator )
+    /**
+     * @param $searchExcludeStartIndicator
+     *
+     * @return $this
+     */
+    public function setSearchExcludeStartIndicator($searchExcludeStartIndicator)
     {
         $this->searchExcludeStartIndicator = $searchExcludeStartIndicator;
+
         return $this;
     }
 
-    public function setSearchExcludeEndIndicator( $searchExcludeEndIndicator )
+    /**
+     * @param $searchExcludeEndIndicator
+     *
+     * @return $this
+     */
+    public function setSearchExcludeEndIndicator($searchExcludeEndIndicator)
     {
         $this->searchExcludeEndIndicator = $searchExcludeEndIndicator;
+
         return $this;
     }
 
-    public function setMaxRedirects( $maxRedirects = '' )
+    /**
+     * @param string $maxRedirects
+     *
+     * @return $this
+     */
+    public function setMaxRedirects($maxRedirects = '')
     {
         $this->maxRedirects = $maxRedirects;
+
         return $this;
     }
 
-    public function setAuth( $username = NULL, $password = NULL )
+    /**
+     * @param null $username
+     * @param null $password
+     *
+     * @return $this
+     */
+    public function setAuth($username = NULL, $password = NULL)
     {
         $this->authUserName = $username;
         $this->authPassword = $password;
 
-        if( !empty( $this->authUserName ) && !empty(  $this->authPassword ) )
-        {
+        if (!empty($this->authUserName) && !empty($this->authPassword)) {
             $this->useAuth = TRUE;
         }
 
         return $this;
     }
 
-    public function setTimeOut( $timeout = '' )
+    /**
+     * @param string $timeout
+     *
+     * @return $this
+     */
+    public function setTimeOut($timeout = '')
     {
         $this->timeout = $timeout;
+
         return $this;
     }
 
-    public function setSeed( $seed = '' )
+    /**
+     * @param string $seed
+     *
+     * @return $this
+     */
+    public function setSeed($seed = '')
     {
         $this->seed = $seed;
+
         return $this;
     }
 
-    public function setDocumentBoost( $documentBoost = 1 )
+    /**
+     * @param int $documentBoost
+     *
+     * @return $this
+     */
+    public function setDocumentBoost($documentBoost = 1)
     {
         $this->documentBoost = $documentBoost;
+
         return $this;
     }
 
-    public function setAssetBoost( $assetBoost = 1 )
+    /**
+     * @param int $assetBoost
+     *
+     * @return $this
+     */
+    public function setAssetBoost($assetBoost = 1)
     {
         $this->assetBoost = $assetBoost;
+
         return $this;
     }
 
@@ -244,16 +341,15 @@ class Parser {
     {
         $start = microtime();
 
-        $spider = new Spider( $this->seed );
+        $spider = new Spider($this->seed);
 
-        if( $this->downloadLimit > 0 )
-        {
-            $spider->getDownloader()->setDownloadLimit( $this->downloadLimit );
+        if ($this->downloadLimit > 0) {
+            $spider->getDownloader()->setDownloadLimit($this->downloadLimit);
         }
 
-        $statsHandler   = new StatsHandler();
-        $LogHandler     = new Logger(\Pimcore::inDebugMode());
-        $queueManager   = new QueueManager\InMemoryQueueManager();
+        $statsHandler = new StatsHandler();
+        $LogHandler = new Logger(\Pimcore::inDebugMode());
+        $queueManager = new QueueManager\InMemoryQueueManager();
 
         $queueManager->getDispatcher()->addSubscriber($statsHandler);
         $queueManager->getDispatcher()->addSubscriber($LogHandler);
@@ -263,59 +359,56 @@ class Parser {
         $queueManager->setTraversalAlgorithm(QueueManager\InMemoryQueueManager::ALGORITHM_DEPTH_FIRST);
         $spider->setQueueManager($queueManager);
 
-        $spider->getDiscovererSet()->set(new XPathExpressionDiscoverer("//link[@hreflang]|//a[not(@rel='nofollow')]") );
+        $spider->getDiscovererSet()->set(new XPathExpressionDiscoverer("//link[@hreflang]|//a[not(@rel='nofollow')]"));
 
         $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\AllowedSchemeFilter($this->allowedSchemes));
-        $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\AllowedHostsFilter([$this->seed], $this->allowSubDomains ));
+        $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\AllowedHostsFilter([$this->seed], $this->allowSubDomains));
 
         $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriWithHashFragmentFilter());
         $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriWithQueryStringFilter());
 
-        $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriFilter( $this->invalidLinkRegexes ) );
-        $spider->getDiscovererSet()->addFilter(new NegativeUriFilter( $this->validLinkRegexes ) );
+        $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriFilter($this->invalidLinkRegexes));
+        $spider->getDiscovererSet()->addFilter(new NegativeUriFilter($this->validLinkRegexes));
 
         $spider->getDispatcher()->addSubscriber($statsHandler);
         $spider->getDispatcher()->addSubscriber($LogHandler);
 
-        $spider->getDownloader()->setPersistenceHandler( new PersistenceHandler\FileDbResponsePersistenceHandler() );
+        $spider->getDownloader()->setPersistenceHandler(new PersistenceHandler\FileDbResponsePersistenceHandler());
 
-        $politenessPolicyEventListener = new PolitenessPolicyListener( 20 ); //CHANGE TO 100 !!!!
+        $politenessPolicyEventListener = new PolitenessPolicyListener(20); //CHANGE TO 100 !!!!
         $spider->getDownloader()->getDispatcher()->addListener(
             SpiderEvents::SPIDER_CRAWL_PRE_REQUEST,
-            [ $politenessPolicyEventListener, 'onCrawlPreRequest' ]
+            [$politenessPolicyEventListener, 'onCrawlPreRequest']
         );
 
         $abortListener = new Listener\Abort($spider);
         $spider->getDownloader()->getDispatcher()->addListener(
 
             SpiderEvents::SPIDER_CRAWL_PRE_REQUEST,
-            [ $abortListener, 'checkCrawlerState' ]
+            [$abortListener, 'checkCrawlerState']
 
         );
 
         $spider->getDispatcher()->addListener(
 
             SpiderEvents::SPIDER_CRAWL_USER_STOPPED,
-            [ $abortListener, 'stopCrawler' ]
+            [$abortListener, 'stopCrawler']
 
         );
 
-        if( $this->useAuth )
-        {
-            $authListener = new Listener\Auth( $this->authUserName, $this->authPassword );
+        if ($this->useAuth) {
+            $authListener = new Listener\Auth($this->authUserName, $this->authPassword);
             $spider->getDownloader()->getDispatcher()->addListener(
 
                 SpiderEvents::SPIDER_CRAWL_PRE_REQUEST,
-                [ $authListener, 'setAuth' ]
+                [$authListener, 'setAuth']
 
             );
-
         }
 
         $spider->getDownloader()->getDispatcher()->addListener(
             SpiderEvents::SPIDER_CRAWL_POST_REQUEST,
-            function (Event $event)
-            {
+            function (Event $event) {
                 //echo 'crawling: ' . $event->getArgument('uri')->toString() . "\n";
             }
         );
@@ -326,12 +419,9 @@ class Parser {
         $guzzleClient->setDefaultOption('headers/Lucene-Search', $pluginInfo['plugin']['pluginVersion']);
 
         // Execute the crawl
-        try
-        {
+        try {
             $spider->crawl();
-        }
-        catch(\Exception $e)
-        {
+        } catch (\Exception $e) {
             \Pimcore\Logger::err('LuceneSearch: crawl error: ' . $e->getMessage());
             throw new \Exception($e->getMessage());
         }
@@ -353,15 +443,11 @@ class Parser {
         \Pimcore\Logger::debug("POLITENESS WAIT TIME: " . $totalDelay . 's');
 
         //parse all resources!
-        foreach ($spider->getDownloader()->getPersistenceHandler() as $resource)
-        {
-            if( is_array( $resource ) )
-            {
+        foreach ($spider->getDownloader()->getPersistenceHandler() as $resource) {
+            if (is_array($resource)) {
                 \Pimcore\Logger::debug('LuceneSearch: parseResponse: ' . $resource['uri']);
-                $this->parseResponse( $resource );
-            }
-            else
-            {
+                $this->parseResponse($resource);
+            } else {
                 \Pimcore\Logger::notice('LuceneSearch: crawler resource not a instance of Spider\Resource. Given type: ' . gettype($resource));
             }
         }
@@ -370,36 +456,27 @@ class Parser {
     /**
      * @param array $response
      */
-    private function parseResponse( $response = [] )
+    private function parseResponse($response = [])
     {
         $host = $response['host'];
         $uri = $response['uri'];
 
         $contentType = $response['contentType'];
 
-        if (!empty($contentType))
-        {
+        if (!empty($contentType)) {
             $parts = explode(';', $contentType);
             $mimeType = trim($parts[0]);
 
-            if ($mimeType == 'text/html')
-            {
+            if ($mimeType == 'text/html') {
                 $this->parseHtml($uri, $response, $host);
-            }
-            else if ($mimeType == 'application/pdf')
-            {
+            } else if ($mimeType == 'application/pdf') {
                 $this->parsePdf($uri, $response, $host);
+            } else {
+                \Pimcore\Logger::debug('LuceneSearch: Cannot parse mime type [ ' . $mimeType . ' ] provided by uri [ ' . $uri . ' ]');
             }
-            else
-            {
-                \Pimcore\Logger::debug('LuceneSearch: Cannot parse mime type [ ' . $mimeType. ' ] provided by uri [ ' . $uri . ' ]');
-            }
+        } else {
+            \Pimcore\Logger::debug('LuceneSearch: Could not determine content type of [ ' . $uri . ' ]');
         }
-        else
-        {
-            \Pimcore\Logger::debug('LuceneSearch: Could not determine content type of [ ' . $uri. ' ]');
-        }
-
     }
 
     /**
@@ -409,14 +486,14 @@ class Parser {
      *
      * @return bool
      */
-    private function parseHtml( $link, $response, $host )
+    private function parseHtml($link, $response, $host)
     {
         /** @var \Symfony\Component\DomCrawler\Crawler $crawler */
         $crawler = $response['crawler'];
         $html = $response['content'];
 
-        $language = strtolower( $this->getLanguageFromResponse($response['contentLanguage'], $html) );
-        $encoding = strtolower( $this->getEncodingFromResponse($response['contentType'], $html) );
+        $language = strtolower($this->getLanguageFromResponse($response['contentLanguage'], $html));
+        $encoding = strtolower($this->getEncodingFromResponse($response['contentType'], $html));
 
         $filter = new \Zend_Filter_Word_UnderscoreToDash();
         $language = strtolower($filter->filter($language));
@@ -424,28 +501,28 @@ class Parser {
         //page has canonical link: do not track!
         $hasCanonicalLink = $crawler->filterXpath('//link[@rel="canonical"]')->count() > 0;
 
-        if( $hasCanonicalLink === TRUE )
-        {
+        if ($hasCanonicalLink === TRUE) {
             \Pimcore\Logger::debug('LuceneSearch: not indexing [ ' . $link . ' ] because it has canonical links');
+
             return FALSE;
         }
 
         //page has no follow: do not track!
         $hasNoFollow = $crawler->filterXpath('//meta[@content="nofollow"]')->count() > 0;
 
-        if( $hasNoFollow === TRUE )
-        {
+        if ($hasNoFollow === TRUE) {
             \Pimcore\Logger::debug('LuceneSearch: not indexing [ ' . $link . ' ] because it has robots noindex');
+
             return FALSE;
         }
 
-        \Zend_Search_Lucene_Document_Html::setExcludeNoFollowLinks(true);
+        \Zend_Search_Lucene_Document_Html::setExcludeNoFollowLinks(TRUE);
 
-        $hasCountryMeta     = $crawler->filterXpath('//meta[@name="country"]')->count() > 0;
-        $hasTitle           = $crawler->filterXpath('//title')->count() > 0;
-        $hasDescription     = $crawler->filterXpath('//meta[@name="description"]')->count() > 0;
-        $hasRestriction     = $crawler->filterXpath('//meta[@name="m:groups"]')->count() > 0;
-        $hasCustomMeta      = $crawler->filterXpath('//meta[@name="lucene-search:meta"]')->count() > 0;
+        $hasCountryMeta = $crawler->filterXpath('//meta[@name="country"]')->count() > 0;
+        $hasTitle = $crawler->filterXpath('//title')->count() > 0;
+        $hasDescription = $crawler->filterXpath('//meta[@name="description"]')->count() > 0;
+        $hasRestriction = $crawler->filterXpath('//meta[@name="m:groups"]')->count() > 0;
+        $hasCustomMeta = $crawler->filterXpath('//meta[@name="lucene-search:meta"]')->count() > 0;
         $hasCustomBoostMeta = $crawler->filterXpath('//meta[@name="lucene-search:boost"]')->count() > 0;
 
         $title = '';
@@ -456,64 +533,52 @@ class Parser {
         $restrictions = FALSE;
         $country = FALSE;
 
-        if( $hasTitle === TRUE )
-        {
+        if ($hasTitle === TRUE) {
             $title = $crawler->filterXpath('//title')->text();
         }
 
-        if( $hasDescription === TRUE )
-        {
+        if ($hasDescription === TRUE) {
             $description = $crawler->filterXpath('//meta[@name="description"]')->attr('content');
         }
 
-        if( $hasCountryMeta === TRUE )
-        {
+        if ($hasCountryMeta === TRUE) {
             $country = $crawler->filterXpath('//meta[@name="country"]')->attr('content');
         }
 
-        if( $hasRestriction === TRUE )
-        {
+        if ($hasRestriction === TRUE) {
             $restrictions = $crawler->filterXpath('//meta[@name="m:groups"]')->attr('content');
         }
 
-        if( $hasCustomMeta === TRUE )
-        {
+        if ($hasCustomMeta === TRUE) {
             $customMeta = $crawler->filterXpath('//meta[@name="lucene-search:meta"]')->attr('content');
         }
 
-        if( $hasCustomBoostMeta === TRUE )
-        {
-            $customBoost = (int) $crawler->filterXpath('//meta[@name="lucene-search:boost"]')->attr('content');
+        if ($hasCustomBoostMeta === TRUE) {
+            $customBoost = (int)$crawler->filterXpath('//meta[@name="lucene-search:boost"]')->attr('content');
         }
 
         $documentHasDelimiter = FALSE;
         $documentHasExcludeDelimiter = FALSE;
 
         //now limit to search content area if indicators are set and found in this document
-        if (!empty($this->searchStartIndicator))
-        {
+        if (!empty($this->searchStartIndicator)) {
             $documentHasDelimiter = strpos($html, $this->searchStartIndicator) !== FALSE;
         }
 
         //remove content between exclude indicators
-        if (!empty($this->searchExcludeStartIndicator))
-        {
+        if (!empty($this->searchExcludeStartIndicator)) {
             $documentHasExcludeDelimiter = strpos($html, $this->searchExcludeStartIndicator) !== FALSE;
         }
 
-        if ($documentHasDelimiter && !empty($this->searchStartIndicator) && !empty($this->searchEndIndicator))
-        {
+        if ($documentHasDelimiter && !empty($this->searchStartIndicator) && !empty($this->searchEndIndicator)) {
             preg_match_all('%' . $this->searchStartIndicator . '(.*?)' . $this->searchEndIndicator . '%si', $html, $htmlSnippets);
 
             $html = '';
 
-            if (is_array($htmlSnippets[1]))
-            {
-                foreach ($htmlSnippets[1] as $snippet)
-                {
-                    if ($documentHasExcludeDelimiter && !empty($this->searchExcludeStartIndicator) && !empty($this->searchExcludeEndIndicator))
-                    {
-                        $snippet = preg_replace('#(' . preg_quote($this->searchExcludeStartIndicator) . ')(.*?)(' . preg_quote($this->searchExcludeEndIndicator). ')#si',' ', $snippet);
+            if (is_array($htmlSnippets[1])) {
+                foreach ($htmlSnippets[1] as $snippet) {
+                    if ($documentHasExcludeDelimiter && !empty($this->searchExcludeStartIndicator) && !empty($this->searchExcludeEndIndicator)) {
+                        $snippet = preg_replace('#(' . preg_quote($this->searchExcludeStartIndicator) . ')(.*?)(' . preg_quote($this->searchExcludeEndIndicator) . ')#si', ' ', $snippet);
                     }
 
                     $html .= ' ' . $snippet;
@@ -523,10 +588,9 @@ class Parser {
 
         $this->addHtmlToIndex($html, $title, $description, $link, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost);
 
-        \Pimcore\Logger::debug('LuceneSearch: Added to indexer stack [ ' . $link. ' ]');
+        \Pimcore\Logger::debug('LuceneSearch: Added to indexer stack [ ' . $link . ' ]');
 
         return TRUE;
-
     }
 
     /**
@@ -536,46 +600,42 @@ class Parser {
      *
      * @return bool
      */
-    private function parsePdf( $link, $response, $host )
+    private function parsePdf($link, $response, $host)
     {
         $language = $this->getLanguageFromAsset($link);
 
         \Pimcore\Logger::debug('LuceneSearch: Added pdf to index [ ' . $link . ' ]');
 
         return $this->addPdfToIndex($link, $language, $host);
-
     }
-
 
     /**
      * adds a PDF page to lucene index and mysql table for search result sumaries
-     * @param  string $url
-     * @param  string $language
-     * @param string $host
+     *
+     * @param  string  $url
+     * @param  string  $language
+     * @param string   $host
      * @param  integer $customBoost
+     *
      * @return bool
      */
     protected function addPdfToIndex($url, $language, $host, $customBoost = NULL)
     {
         $pdftotextBin = FALSE;
 
-        try
-        {
+        try {
             $pdftotextBin = \Pimcore\Document\Adapter\Ghostscript::getPdftotextCli();
-        }
-        catch (\Exception $e)
-        {
+        } catch (\Exception $e) {
             $pdftotextBin = FALSE;
         }
 
-        if( $pdftotextBin === FALSE )
-        {
+        if ($pdftotextBin === FALSE) {
             return FALSE;
         }
 
         $textFileTmp = uniqid('t2p-');
         $tmpFile = PIMCORE_TEMPORARY_DIRECTORY . '/' . $textFileTmp . '.txt';
-        $tmpPdfFile = PIMCORE_TEMPORARY_DIRECTORY . '/' . $textFileTmp. '.pdf';
+        $tmpPdfFile = PIMCORE_TEMPORARY_DIRECTORY . '/' . $textFileTmp . '.pdf';
 
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -587,22 +647,17 @@ class Parser {
 
         $verboseCommand = \Pimcore::inDebugMode() ? '' : '-q ';
 
-        try
-        {
+        try {
             $cmnd = $verboseCommand . $tmpPdfFile . ' ' . $tmpFile;
-            exec( $pdftotextBin . ' ' . $cmnd);
-        }
-        catch( \Exception $e )
-        {
+            exec($pdftotextBin . ' ' . $cmnd);
+        } catch (\Exception $e) {
             \Pimcore\Logger::debug($e->getMessage());
         }
 
-        if( is_file( $tmpFile ) )
-        {
-            $fileContent = file_get_contents( $tmpFile );
+        if (is_file($tmpFile)) {
+            $fileContent = file_get_contents($tmpFile);
 
-            try
-            {
+            try {
                 $doc = new \Zend_Search_Lucene_Document();
 
                 $doc->boost = $customBoost ? $customBoost : $this->assetBoost;
@@ -610,7 +665,7 @@ class Parser {
                 $text = preg_replace("/\r|\n/", ' ', $fileContent);
 
                 $text = preg_replace('/[^\p{Latin}\d ]/u', "", $text);
-                $text = preg_replace('/\n[\s]*/',"\n",$text); // remove all leading blanks]
+                $text = preg_replace('/\n[\s]*/', "\n", $text); // remove all leading blanks]
 
                 $doc->addField(\Zend_Search_Lucene_Field::Text('title', basename($url)), 'utf-8');
                 $doc->addField(\Zend_Search_Lucene_Field::Text('content', $text, 'utf-8'));
@@ -622,41 +677,38 @@ class Parser {
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $language));
 
                 //no add document to lucene index!
-                $this->addDocumentToIndex( $doc );
-
-            }
-            catch (\Exception $e)
-            {
+                $this->addDocumentToIndex($doc);
+            } catch (\Exception $e) {
                 \Pimcore\Logger::debug($e->getMessage());
             }
 
-            @unlink( $tmpFile );
-            @unlink( $tmpPdfFile );
+            @unlink($tmpFile);
+            @unlink($tmpPdfFile);
         }
 
         return TRUE;
-
     }
 
     /**
      * adds a HTML page to lucene index and mysql table for search result summaries
-     * @param  string $html
-     * @param  string $title
-     * @param  string $description
-     * @param  string $url
-     * @param  string $language
-     * @param  string $country
-     * @param  string $restrictions
-     * @param  string $customMeta
-     * @param  string $encoding
-     * @param  string $host
+     *
+     * @param  string  $html
+     * @param  string  $title
+     * @param  string  $description
+     * @param  string  $url
+     * @param  string  $language
+     * @param  string  $country
+     * @param  string  $restrictions
+     * @param  string  $customMeta
+     * @param  string  $encoding
+     * @param  string  $host
      * @param  integer $customBoost
+     *
      * @return void
      */
     protected function addHtmlToIndex($html, $title, $description, $url, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost = NULL)
     {
-        try
-        {
+        try {
             $content = $this->getPlainTextFromHtml($html);
 
             $doc = new \Zend_Search_Lucene_Document();
@@ -664,14 +716,12 @@ class Parser {
             $doc->boost = $customBoost ? $customBoost : $this->documentBoost;
 
             //add h1 to index
-            $headlines = array();
+            $headlines = [];
             preg_match_all('@(<h1[^>]*?>[ \t\n\r\f]*(.*?)[ \t\n\r\f]*' . '</h1>)@si', $html, $headlines);
 
-            if (is_array($headlines[2]))
-            {
+            if (is_array($headlines[2])) {
                 $h1 = '';
-                foreach ($headlines[2] as $headline)
-                {
+                foreach ($headlines[2] as $headline) {
                     $h1 .= $headline . ' ';
                 }
 
@@ -683,11 +733,9 @@ class Parser {
 
             $imageTags = $this->extractImageAltText($html);
 
-            $tags = array();
-            if( !empty( $imageTags ) )
-            {
-                foreach($imageTags as $imageTag)
-                {
+            $tags = [];
+            if (!empty($imageTags)) {
+                foreach ($imageTags as $imageTag) {
                     $tags[] = $imageTag['alt'];
                 }
             }
@@ -707,26 +755,20 @@ class Parser {
             $doc->addField(\Zend_Search_Lucene_Field::Text('content', $content, $encoding));
             $doc->addField(\Zend_Search_Lucene_Field::Text('imageTags', join(',', $tags)));
 
-            if( $country !== FALSE )
-            {
+            if ($country !== FALSE) {
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('country', $country));
             }
 
-            if( $restrictions !== FALSE )
-            {
+            if ($restrictions !== FALSE) {
                 $restrictionGroups = explode(',', $restrictions);
-                foreach( $restrictionGroups as $restrictionGroup )
-                {
+                foreach ($restrictionGroups as $restrictionGroup) {
                     $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_' . $restrictionGroup, TRUE));
                 }
             }
 
             //no add document to lucene index!
-            $this->addDocumentToIndex( $doc );
-
-        }
-        catch (\Exception $e)
-        {
+            $this->addDocumentToIndex($doc);
+        } catch (\Exception $e) {
             \Pimcore\Logger::debug('LuceneSearch: ' . $e->getMessage());
         }
     }
@@ -734,22 +776,19 @@ class Parser {
     /**
      * @param $doc \Zend_Search_Lucene_Document
      */
-    public function addDocumentToIndex( $doc )
+    public function addDocumentToIndex($doc)
     {
-        if ($doc instanceof \Zend_Search_Lucene_Document)
-        {
+        if ($doc instanceof \Zend_Search_Lucene_Document) {
             $this->index->addDocument($doc);
             \Pimcore\Logger::debug('LuceneSearch: Added to lucene index db entry');
-        }
-        else
-        {
+        } else {
             \Pimcore\Logger::error('LuceneSearch: could not parse lucene document ');
         }
-
     }
 
     /**
      * Because Assets are not language restricted, we need to get them from db
+     *
      * @param string $url
      *
      * @return string|bool
@@ -759,63 +798,53 @@ class Parser {
         $urlData = parse_url($url);
         $language = 'all';
 
-        if( empty( $urlData['path'] ) )
-        {
+        if (empty($urlData['path'])) {
             return $language;
         }
 
-        $asset = \Pimcore\Model\Asset::getByPath( $urlData['path'] );
+        $asset = \Pimcore\Model\Asset::getByPath($urlData['path']);
 
-        if( $asset instanceof \Pimcore\Model\Asset )
-        {
+        if ($asset instanceof \Pimcore\Model\Asset) {
             $languageProperty = $asset->getProperty('assigned_language');
 
-            if( !is_null($languageProperty))
-            {
+            if (!is_null($languageProperty)) {
                 return $languageProperty;
             }
 
             return $language;
-
         }
 
         return $language;
-
     }
 
     /**
      * @param $contentLanguage
      * @param $body
-     *
      * Try to find the document's language by first looking for Content-Language in Http headers than in html
      * attribute and last in content-language meta tag
+     *
      * @return string
      */
     protected function getLanguageFromResponse($contentLanguage, $body)
     {
         $l = $contentLanguage;
 
-        if (empty($l))
-        {
+        if (empty($l)) {
             //try html lang attribute
-            $languages = array();
+            $languages = [];
             preg_match_all('@<html[\n|\r\n]*.*?[\n|\r\n]*lang="(?P<language>\S+)"[\n|\r\n]*.*?[\n|\r\n]*>@si', $body, $languages);
-            if ($languages['language'])
-            {
-                $l = str_replace(array('_', '-'), '', $languages['language'][0]);
+            if ($languages['language']) {
+                $l = str_replace(['_', '-'], '', $languages['language'][0]);
             }
         }
 
-        if (empty($l))
-        {
+        if (empty($l)) {
             //try meta tag
-            $languages = array();
+            $languages = [];
             preg_match_all('@<meta\shttp-equiv="content-language"\scontent="(?P<language>\S+)"\s\/>@si', $body, $languages);
-            if ($languages['language'])
-            {
+            if ($languages['language']) {
                 //for lucene index remove '_' - this causes tokenization
                 $l = str_replace('_', '', $languages['language'][0]);
-
             }
         }
 
@@ -825,8 +854,8 @@ class Parser {
     /**
      * @param $contentType
      * @param $body
-     *
      * extract encoding either from HTTP Header or from HTML Attribute
+     *
      * @return string
      */
     protected function getEncodingFromResponse($contentType, $body)
@@ -834,49 +863,41 @@ class Parser {
         $encoding = '';
 
         //try content-type header
-        if (!empty($contentType))
-        {
-            $data = array();
+        if (!empty($contentType)) {
+            $data = [];
             preg_match('@.*?;\s*charset=(.*)\s*@si', $contentType, $data);
 
-            if ($data[1])
-            {
+            if ($data[1]) {
                 $encoding = trim($data[1]);
             }
         }
 
-        if (empty($encoding))
-        {
+        if (empty($encoding)) {
             //try html
-            $data = array();
+            $data = [];
             preg_match('@<meta\shttp-equiv="Content-Type"\scontent=".*?;\s+charset=(.*?)"\s\/>@si', $body, $data);
 
-            if ($data[1])
-            {
+            if ($data[1]) {
                 $encoding = trim($data[1]);
             }
         }
 
-        if (empty($encoding))
-        {
+        if (empty($encoding)) {
             //try xhtml
-            $data = array();
+            $data = [];
             preg_match('@<\?xml.*?encoding="(.*?)"\s*\?>@si', $body, $data);
 
-            if ($data[1])
-            {
+            if ($data[1]) {
                 $encoding = trim($data[1]);
             }
         }
 
-        if (empty($encoding))
-        {
+        if (empty($encoding)) {
             //try html 5
-            $data = array();
+            $data = [];
             preg_match('@<meta\scharset="(.*?)"\s*>@si', $body, $data);
 
-            if ($data[1])
-            {
+            if ($data[1]) {
                 $encoding = trim($data[1]);
             }
         }
@@ -885,10 +906,10 @@ class Parser {
     }
 
     /**
-     *
      * removes html, javascript and additional whitespaces from string
      *
      * @param  $html
+     *
      * @return mixed|string
      */
     protected function getPlainTextFromHtml($html)
@@ -897,10 +918,11 @@ class Parser {
         $html = $doc->getHTML();
 
         //remove scripts and stuff
-        $search = array('@(<script[^>]*?>.*?</script>)@si', // Strip out javascript
+        $search = [
+            '@(<script[^>]*?>.*?</script>)@si', // Strip out javascript
             '@<style[^>]*?>.*?</style>@siU', // Strip style tags properly
             '@<![\s\S]*?--[ \t\n\r]*>@' // Strip multi-line comments including CDATA
-        );
+        ];
 
         $text = preg_replace($search, '', $html);
         //remove html tags
@@ -909,7 +931,6 @@ class Parser {
         $text = preg_replace('@[ \t\n\r\f]+@', ' ', $text);
 
         return $text;
-
     }
 
     /**
@@ -919,44 +940,37 @@ class Parser {
      */
     protected function extractImageAltText($html)
     {
-        libxml_use_internal_errors(true);
+        libxml_use_internal_errors(TRUE);
 
         $doc = new \DOMDocument();
-        $data = array();
-        $imageTags = array();
+        $data = [];
+        $imageTags = [];
 
         $html = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
 
-        if( empty( $html) )
-        {
-            return array();
+        if (empty($html)) {
+            return [];
         }
 
-        try
-        {
-            $doc->loadHTML( $html );
+        try {
+            $doc->loadHTML($html);
             $imageTags = $doc->getElementsByTagName('img');
-        }
-
-        catch(\Exception $e)
-        {
+        } catch (\Exception $e) {
             //do nothing. just die trying.
         }
 
-        foreach($imageTags as $tag)
-        {
+        foreach ($imageTags as $tag) {
             $alt = $tag->getAttribute('alt');
 
-            if( in_array($alt , array('', 'Image is not available', 'Image not available')) )
-            {
+            if (in_array($alt, ['', 'Image is not available', 'Image not available'])) {
                 continue;
             }
 
-            $data[] = array(
-                'src' => $tag->getAttribute('src'),
+            $data[] = [
+                'src'   => $tag->getAttribute('src'),
                 'title' => $tag->getAttribute('title'),
-                'alt' => $alt
-            );
+                'alt'   => $alt
+            ];
         }
 
         return $data;
@@ -967,39 +981,34 @@ class Parser {
      */
     protected function checkAndPrepareIndex()
     {
-        if (!$this->index)
-        {
+        if (!$this->index) {
             $indexDir = Plugin::getFrontendSearchIndex();
 
             //switch to tmpIndex
             $indexDir = str_replace('/index', '/tmpindex', $indexDir);
 
-            try
-            {
+            try {
                 \Zend_Search_Lucene_Analysis_Analyzer::setDefault(new \Zend_Search_Lucene_Analysis_Analyzer_Common_Utf8Num_CaseInsensitive());
                 $this->index = \Zend_Search_Lucene::open($indexDir);
-            }
-            catch (\Exception $e)
-            {
+            } catch (\Exception $e) {
                 \Pimcore\Logger::debug('LuceneSearch: could not open frontend index, creating new one.');
                 \Zend_Search_Lucene::create($indexDir);
                 $this->index = \Zend_Search_Lucene::open($indexDir);
             }
         }
-
     }
 
     /**
      *
      */
-    public function optimizeIndex() {
+    public function optimizeIndex()
+    {
 
         // optimize lucene index for better performance
         $this->index->optimize();
 
         //clean up
-        if (is_object($this->index) and $this->index instanceof \Zend_Search_Lucene_Proxy)
-        {
+        if (is_object($this->index) and $this->index instanceof \Zend_Search_Lucene_Proxy) {
             $this->index->removeReference();
             unset($this->index);
             \Pimcore\Logger::debug('LuceneSearch: Closed frontend index references');

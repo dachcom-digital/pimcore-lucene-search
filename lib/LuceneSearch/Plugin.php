@@ -7,19 +7,25 @@ use Pimcore\API\Plugin as PluginLib;
 use LuceneSearch\Plugin\Install;
 use LuceneSearch\Model\Configuration;
 
-class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterface {
-
+class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterface
+{
     /**
      * @var \Zend_Translate
      */
     protected static $_translate;
 
+    /**
+     * Plugin constructor.
+     *
+     * @param null $jsPaths
+     * @param null $cssPaths
+     * @param null $alternateIndexDir
+     */
     public function __construct($jsPaths = NULL, $cssPaths = NULL, $alternateIndexDir = NULL)
     {
         define('LUCENESEARCH__PLUGIN_CONFIG', PIMCORE_PLUGINS_PATH . '/LuceneSearch/plugin.xml');
 
         parent::__construct($jsPaths, $cssPaths);
-
     }
 
     /**
@@ -37,12 +43,11 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     {
         parent::init();
 
-        \Pimcore::getEventManager()->attach('system.maintenance', array($this, 'maintenanceJob'));
+        \Pimcore::getEventManager()->attach('system.maintenance', [$this, 'maintenanceJob']);
         \Pimcore::getEventManager()->attach('system.console.init', function (\Zend_EventManager_Event $e) {
 
             $application = $e->getTarget();
             $application->add(new \LuceneSearch\Console\Command\FrontendCrawlCommand());
-
         });
     }
 
@@ -52,14 +57,11 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function getPluginState()
     {
-        if (self::isInstalled())
-        {
+        if (self::isInstalled()) {
             $message = '';
 
-            if (Configuration::get('frontend.enabled'))
-            {
-                if(Configuration::getCoreSetting('running'))
-                {
+            if (Configuration::get('frontend.enabled')) {
+                if (Configuration::getCoreSetting('running')) {
                     $message .= self::getTranslate()->_('lucenesearch_frontend_crawler_running') . '. ';
                 } else {
                     $message .= self::getTranslate()->_('lucenesearch_frontend_crawler_not_running') . '. ';
@@ -68,32 +70,25 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
                 $started = 'never';
                 $finished = 'never';
 
-                if( !is_bool( Configuration::getCoreSetting('started')))
-                {
+                if (!is_bool(Configuration::getCoreSetting('started'))) {
                     $started = date('d.m.Y H:i', (double)Configuration::getCoreSetting('started'));
                 }
 
-                if( !is_bool( Configuration::getCoreSetting('finished')))
-                {
-                    $finished = date('d.m.Y H:i', (double) Configuration::getCoreSetting('finished'));
+                if (!is_bool(Configuration::getCoreSetting('finished'))) {
+                    $finished = date('d.m.Y H:i', (double)Configuration::getCoreSetting('finished'));
                 }
 
                 $message .= self::getTranslate()->_('lucenesearch_frontend_crawler_last_started') . ': ' . $started . '. ';
                 $message .= self::getTranslate()->_('lucenesearch_frontend_crawler_last_finished') . ': ' . $finished . '. ';
 
-                if (!self::frontendConfigComplete())
-                {
+                if (!self::frontendConfigComplete()) {
                     $message .= 'ERROR:' . self::getTranslate()->_('lucenesearch_frontend_config_incomplete');
-                }
-                else
-                {
-                    if (Configuration::getCoreSetting('forceStart'))
-                    {
+                } else {
+                    if (Configuration::getCoreSetting('forceStart')) {
                         $message .= self::getTranslate()->_('lucenesearch_frontend_crawler') . ': ';
                         $message .= self::getTranslate()->_('lucenesearch_frontend_crawler_start_on_next_maintenance');
                     }
                 }
-
             }
 
             return $message;
@@ -109,6 +104,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     public static function isInstalled()
     {
         $indexDir = self::getFrontendSearchIndex();
+
         return (!is_null($indexDir) && is_dir($indexDir));
     }
 
@@ -121,48 +117,38 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     }
 
     /**
-     *
      * @param string $language
+     *
      * @return string path to the translation file relative to plugin directory
      */
     public static function getTranslationFile($language)
     {
-        if (is_file(PIMCORE_PLUGINS_PATH . '/LuceneSearch/static/texts/' . $language . '.csv'))
-        {
+        if (is_file(PIMCORE_PLUGINS_PATH . '/LuceneSearch/static/texts/' . $language . '.csv')) {
             return '/LuceneSearch/static/texts/' . $language . '.csv';
-        }
-        else
-        {
+        } else {
             return '/LuceneSearch/static/texts/en.csv';
         }
     }
 
-
     /**
      * Reads the location for the frontend search index from search config file and returns path if exists
-     *
      * @return string $path
      */
     public static function getFrontendSearchIndex()
     {
         $searchConf = Configuration::get('frontend.index');
 
-        if( is_null( $searchConf ) )
-        {
+        if (is_null($searchConf)) {
             return NULL;
         }
 
-        if (is_dir($searchConf))
-        {
+        if (is_dir($searchConf)) {
             return $searchConf;
-        }
-        else if (is_dir(PIMCORE_DOCUMENT_ROOT . '/' . $searchConf))
-        {
+        } else if (is_dir(PIMCORE_DOCUMENT_ROOT . '/' . $searchConf)) {
             return PIMCORE_DOCUMENT_ROOT . '/' . $searchConf;
         }
 
         return NULL;
-
     }
 
     /**
@@ -171,27 +157,23 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function install()
     {
-        try
-        {
+        try {
             $install = new Install();
             $install->installConfigFile();
             $install->installProperties();
             $install->createDirectories();
             $install->createRedirect();
-        }
-        catch (\Exception $e)
-        {
+        } catch (\Exception $e) {
             \Pimcore\Logger::crit($e);
+
             return self::getTranslate()->_('lucenesearch_install_failed');
         }
 
-        if (Configuration::get('frontend.enabled') )
-        {
+        if (Configuration::get('frontend.enabled')) {
             self::forceCrawlerStartOnNextMaintenance('frontend');
         }
 
         return self::getTranslate()->_('lucenesearch_install_successfully');
-
     }
 
     /**
@@ -207,24 +189,20 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         $index = self::getFrontendSearchIndex();
         $success = FALSE;
 
-        if (!empty($index))
-        {
+        if (!empty($index)) {
             $success = recursiveDelete($index);
         }
 
-        if ($success)
-        {
+        if ($success) {
             return self::getTranslate()->_('lucenesearch_uninstalled_successfully');
-        }
-        else
-        {
+        } else {
             return self::getTranslate()->_('lucenesearch_uninstall_failed');
         }
-
     }
 
     /**
      * @param String $lang
+     *
      * @return \Zend_Translate
      */
     public static function getTranslate($lang = NULL)
@@ -232,7 +210,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         if (self::$_translate instanceof \Zend_Translate) {
             return self::$_translate;
         }
-        if(is_null($lang)) {
+        if (is_null($lang)) {
             try {
                 $lang = \Zend_Registry::get('Zend_Locale')->getLanguage();
             } catch (\Exception $e) {
@@ -242,10 +220,11 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
         self::$_translate = new \Zend_Translate(
             'csv',
-            PIMCORE_PLUGINS_PATH .self::getTranslationFile($lang),
+            PIMCORE_PLUGINS_PATH . self::getTranslationFile($lang),
             $lang,
-            array('delimiter' => ',')
+            ['delimiter' => ',']
         );
+
         return self::$_translate;
     }
 
@@ -255,12 +234,9 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     public static function frontendCrawlerRunning()
     {
         //do not use the configuration here!
-        if (is_file( PIMCORE_TEMPORARY_DIRECTORY . '/lucene-crawler.tmp' ) )
-        {
+        if (is_file(PIMCORE_TEMPORARY_DIRECTORY . '/lucene-crawler.tmp')) {
             return TRUE;
-        }
-        else
-        {
+        } else {
             return FALSE;
         }
     }
@@ -271,12 +247,9 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function frontendCrawlerStopLocked()
     {
-        if (Configuration::getCoreSetting('forceStop'))
-        {
+        if (Configuration::getCoreSetting('forceStop')) {
             return TRUE;
-        }
-        else
-        {
+        } else {
             return FALSE;
         }
     }
@@ -286,12 +259,9 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public static function frontendCrawlerScheduledForStart()
     {
-        if (Configuration::getCoreSetting('forceStart'))
-        {
+        if (Configuration::getCoreSetting('forceStart')) {
             return TRUE;
-        }
-        else
-        {
+        } else {
             return FALSE;
         }
     }
@@ -305,12 +275,9 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         $frontEndUrls = Configuration::get('frontend.urls');
         $validLinkRegexes = Configuration::get('frontend.validLinkRegexes');
 
-        if (!empty($frontEndUrls) && !empty($validLinkRegexes))
-        {
+        if (!empty($frontEndUrls) && !empty($validLinkRegexes)) {
             return TRUE;
-        }
-        else
-        {
+        } else {
             return FALSE;
         }
     }
@@ -326,22 +293,20 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
     public function frontendCrawl()
     {
-        if (self::frontendConfigComplete())
-        {
+        if (self::frontendConfigComplete()) {
             Tool\Executer::runCrawler();
             Tool\Executer::generateSitemap();
-        }
-        else
-        {
+        } else {
             \Pimcore\Logger::debug('LuceneSearch_Plugin: Did not start frontend crawler, because config incomplete');
         }
     }
 
     /**
      * @param string $crawler frontend | backend
+     *
      * @return void
      */
-    public static function forceCrawlerStartOnNextMaintenance( $crawler )
+    public static function forceCrawlerStartOnNextMaintenance($crawler)
     {
         Configuration::setCoreSetting('forceStart', TRUE);
         \Pimcore\Logger::debug('LuceneSearch: forced to starting crawl');
@@ -352,8 +317,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public function maintenanceJob()
     {
-        if (self::isInstalled())
-        {
+        if (self::isInstalled()) {
             $currentHour = date('H', time());
 
             //Frontend recrawl
@@ -373,40 +337,33 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
              * + OR if its force
              * => RUN
              */
-            if ($enabled && !$running && ( ( (is_bool($lastStarted) || $lastStarted <= $aDayAgo) && $currentHour > 1 && $currentHour < 3) || $forceStart))
-            {
+            if ($enabled && !$running && (((is_bool($lastStarted) || $lastStarted <= $aDayAgo) && $currentHour > 1 && $currentHour < 3) || $forceStart)) {
                 \Pimcore\Logger::debug('starting frontend recrawl...');
                 $this->frontendCrawl();
-
                 /**
                  * + If Crawler is Running
                  * + If last stop of crawler is before last start
                  * + If last start is older than one day
                  * => We have some errors: EXIT CRAWLING!
                  */
-            } else if( $running && $lastFinished < $lastStarted && $lastStarted <= $aDayAgo)
-            {
+            } else if ($running && $lastFinished < $lastStarted && $lastStarted <= $aDayAgo) {
                 \Pimcore\Logger::error('LuceneSearch: There seems to be a problem with the search crawler! Trying to stop it.');
                 $this->stopFrontendCrawler();
             }
-
-        }
-        else
-        {
+        } else {
             \Pimcore\Logger::debug('LuceneSearch: Plugin is not installed - no maintenance to do for this plugin.');
         }
     }
 
     /**
-     *
-     * @param string $queryStr
+     * @param string                        $queryStr
      * @param \Zend_Search_Lucene_Interface $index
+     *
      * @return Array $hits
      */
     public static function wildcardFindTerms($queryStr, $index)
     {
-        if ($index != NULL)
-        {
+        if ($index != NULL) {
             $pattern = new \Zend_Search_Lucene_Index_Term($queryStr . '*');
             $userQuery = new \Zend_Search_Lucene_Search_Query_Wildcard($pattern);
             \Zend_Search_Lucene_Search_Query_Wildcard::setMinPrefixLength(2);
@@ -419,16 +376,17 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
     /**
      *  finds similar terms
-     * @param string $queryStr
+     *
+     * @param string                        $queryStr
      * @param \Zend_Search_Lucene_Interface $index
-     * @param integer $prefixLength optionally specify prefix length, default 0
-     * @param float $similarity optionally specify similarity, default 0.5
+     * @param integer                       $prefixLength optionally specify prefix length, default 0
+     * @param float                         $similarity   optionally specify similarity, default 0.5
+     *
      * @return string[] $similarSearchTerms
      */
     public static function fuzzyFindTerms($queryStr, $index, $prefixLength = 0, $similarity = 0.5)
     {
-        if ($index != NULL)
-        {
+        if ($index != NULL) {
             \Zend_Search_Lucene_Search_Query_Fuzzy::setDefaultPrefixLength($prefixLength);
             $term = new \Zend_Search_Lucene_Index_Term($queryStr);
             $fuzzyQuery = new \Zend_Search_Lucene_Search_Query_Fuzzy($term, $similarity);
@@ -440,14 +398,19 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         }
     }
 
-    public static function cleanTerm( $term )
+    /**
+     * @param $term
+     *
+     * @return string
+     */
+    public static function cleanTerm($term)
     {
         return trim(
             preg_replace('|\s{2,}|', ' ',
                 preg_replace('|[^\p{L}\p{N} ]/u|', ' ',
                     strtolower(
                         strip_tags(
-                            str_replace(array("\n", '<'), array(' ', ' <'), $term)
+                            str_replace(["\n", '<'], [' ', ' <'], $term)
                         )
                     )
                 )

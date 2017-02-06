@@ -11,50 +11,60 @@ class FileDbResponsePersistenceHandler extends MemoryPersistenceHandler implemen
     /**
      * @var Resource[]
      */
-    private $resourceIds = array();
+    private $resourceIds = [];
 
     /**
      * @var \Pimcore\Db
      */
     var $db = NULL;
 
+    /**
+     * FileDbResponsePersistenceHandler constructor.
+     */
     public function __construct()
     {
         $this->db = \Pimcore\Db::get();
     }
 
+    /**
+     * @param string $spiderId
+     */
     public function setSpiderId($spiderId)
     {
         // db handler ignores this. Only interesting for file persistence as some kind of key or prefix
     }
 
+    /**
+     * @return int
+     */
     public function count()
     {
         return count($this->resourceIds);
     }
 
+    /**
+     * @param Resource $resource
+     */
     public function persist(Resource $resource)
     {
-        $identifier = md5( $resource->getUri()->toString() );
+        $identifier = md5($resource->getUri()->toString());
         $response = $resource->getResponse();
         $host = $resource->getUri()->getHost();
         $uri = $resource->getUri()->toString();
 
         $contentTypeStr = NULL;
         $contentType = $response->getHeader('Content-Type');
-        if( !is_null( $contentType ) )
-        {
+        if (!is_null($contentType)) {
             $contentTypeStr = $contentType->__toString();
         }
 
         $contentLanguageStr = NULL;
         $contentLanguage = $response->getHeader('Content-Language');
-        if( !is_null( $contentLanguage ) )
-        {
+        if (!is_null($contentLanguage)) {
             $contentLanguageStr = $contentLanguage->__toString();
         }
 
-        $rawResponse = $resource->getResponse()->getBody(true);
+        $rawResponse = $resource->getResponse()->getBody(TRUE);
 
         $insert = 'INSERT INTO lucene_search_index (identifier, contentType, contentLanguage, host, uri, content) VALUES (?, ?, ?, ?, ?, ?)';
 
@@ -71,8 +81,7 @@ class FileDbResponsePersistenceHandler extends MemoryPersistenceHandler implemen
         $identifier = current($this->resourceIds);
         $data = $this->db->fetchRow('SELECT * FROM lucene_search_index WHERE identifier = ?', $identifier);
 
-        if( is_array( $data ) )
-        {
+        if (is_array($data)) {
             $crawler = new \Symfony\Component\DomCrawler\Crawler('', $data['uri']);
             $crawler->addContent(
                 $data['content'],

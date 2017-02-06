@@ -12,6 +12,9 @@ use LuceneSearch\Tool;
 
 class FrontendCrawlCommand extends AbstractCommand
 {
+    /**
+     *
+     */
     protected function configure()
     {
         $this
@@ -22,22 +25,23 @@ class FrontendCrawlCommand extends AbstractCommand
                 InputArgument::OPTIONAL,
                 'Crawl Website Pages with LuceneSearch.'
             );
-
     }
 
+    /**
+     * @param InputInterface  $input
+     * @param OutputInterface $output
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $currentRevision = NULL;
 
-        if( $input->getArgument('crawl') == 'crawl' )
-        {
+        if ($input->getArgument('crawl') == 'crawl') {
             $this->output->writeln('<comment>LuceneSearch: Start Crawling</comment>');
 
             Tool\Executer::runCrawler();
             Tool\Executer::generateSitemap();
 
             $this->output->writeln('LuceneSearch: Finished crawl');
-
         }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace LuceneSearch\Tool;
 
-class Tool {
+class Tool
+{
 
 }

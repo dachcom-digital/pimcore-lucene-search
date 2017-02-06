@@ -5,8 +5,11 @@ namespace LuceneSearch\Controller\Plugin;
 use Pimcore\Model\Document;
 use LuceneSearch\Tool;
 
-class Frontend extends \Zend_Controller_Plugin_Abstract {
-
+class Frontend extends \Zend_Controller_Plugin_Abstract
+{
+    /**
+     * @param \Zend_Controller_Request_Abstract $request
+     */
     public function preDispatch(\Zend_Controller_Request_Abstract $request)
     {
         parent::preDispatch($request);
@@ -14,8 +17,7 @@ class Frontend extends \Zend_Controller_Plugin_Abstract {
         /** @var \Pimcore\Controller\Action\Helper\ViewRenderer $renderer */
         $renderer = \Zend_Controller_Action_HelperBroker::getExistingHelper('ViewRenderer');
 
-        if ( $renderer->view === NULL )
-        {
+        if ($renderer->view === NULL) {
             $renderer->initView();
         }
 
@@ -23,6 +25,5 @@ class Frontend extends \Zend_Controller_Plugin_Abstract {
         $view = $renderer->view;
 
         $view->addHelperPath(PIMCORE_PLUGINS_PATH . '/LuceneSearch/lib/LuceneSearch/Helper/View', 'LuceneSearch\Helper\View');
-
     }
 }
