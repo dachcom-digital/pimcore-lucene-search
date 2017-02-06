@@ -1,5 +1,5 @@
 {
-  "name": "dachcom-digital/pimcore-lucene-search",
+  "name": "dachcom-digital/lucene-search",
   "type": "pimcore-plugin",
   "license": "GPL-3.0+",
   "description": "Pimcore 4.0 Website Search (powered by Zend Search Lucene)",
