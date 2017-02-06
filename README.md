@@ -17,7 +17,7 @@ Pimcore 4.0 Website Search (powered by Zend Search Lucene)
 
 ```json
 "require" : {
-    "dachcom-digital/pimcore-lucene-search" : "1.1.1",
+    "dachcom-digital/lucene-search" : "1.1.1",
 }
 ```
 
