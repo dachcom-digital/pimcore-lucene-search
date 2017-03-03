@@ -217,10 +217,15 @@ class LuceneSearch_Admin_PluginController extends Admin
             Configuration::set('frontend.crawler.maxDownloadLimit', 0);
         }
 
+        if (is_numeric($values['frontend.crawler.contentMaxSize'])) {
+            Configuration::set('frontend.crawler.contentMaxSize', (float)$values['frontend.crawler.contentMaxSize']);
+        } else {
+            Configuration::set('frontend.crawler.contentMaxSize', 0);
+        }
+
         //Frontend Urls must end with an trailing slash
         $_frontendUrls = $values['frontend.urls'];
         $frontendUrls = [];
-
         if (is_array($_frontendUrls)) {
             foreach ($_frontendUrls as $seedUrl) {
                 $frontendUrls[] = rtrim($seedUrl, '/') . '/';
@@ -229,14 +234,31 @@ class LuceneSearch_Admin_PluginController extends Admin
 
         Configuration::set('frontend.urls', $frontendUrls);
 
-        Configuration::set('frontend.allowedSchemes', $values['frontend.allowedSchemes']);
-        Configuration::set('frontend.categories', $values['frontend.categories']);
-        Configuration::set('frontend.validLinkRegexes', $values['frontend.validLinkRegexes']);
-        Configuration::set('frontend.invalidLinkRegexesEditable', $values['frontend.invalidLinkRegexesEditable']);
+        $mimeTypes = NULL;
+        if( isset( $values['frontend.allowedMimeTypes'] ) ) {
+            $mimeTypes = $values['frontend.allowedMimeTypes'];
+            if( !is_array($mimeTypes ) ) {
+                $mimeTypes = [ $values['frontend.allowedMimeTypes'] ];
+
+            }
+        }
+
+        Configuration::set('frontend.allowedMimeTypes', $mimeTypes);
+
+        $allowedSchemes = $values['frontend.allowedSchemes'];
+        Configuration::set('frontend.allowedSchemes', !empty($allowedSchemes) ? $allowedSchemes : []);
+
+        $categories = $values['frontend.categories'];
+        Configuration::set('frontend.categories', !empty($categories) ? $categories : []);
+
+        $validLinkRegexes = $values['frontend.validLinkRegexes'];
+        Configuration::set('frontend.validLinkRegexes', !empty($validLinkRegexes) ? $validLinkRegexes : []);
+
+        $invalidLinkRegexesEditable = $values['frontend.invalidLinkRegexesEditable'];
+        Configuration::set('frontend.invalidLinkRegexesEditable', !empty($invalidLinkRegexesEditable) ? $invalidLinkRegexesEditable : []);
 
         Configuration::set('frontend.crawler.contentStartIndicator', $values['frontend.crawler.contentStartIndicator']);
         Configuration::set('frontend.crawler.contentEndIndicator', $values['frontend.crawler.contentEndIndicator']);
-
         Configuration::set('frontend.crawler.contentExcludeStartIndicator', $values['frontend.crawler.contentExcludeStartIndicator']);
         Configuration::set('frontend.crawler.contentExcludeEndIndicator', $values['frontend.crawler.contentExcludeEndIndicator']);
 

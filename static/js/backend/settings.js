@@ -14,7 +14,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
 
     getTabPanel: function () {
 
-        this.loadMask = pimcore.globalmanager.get("loadingmask");
+        this.loadMask = pimcore.globalmanager.get('loadingmask');
 
         if (!this.panel) {
 
@@ -40,6 +40,11 @@ pimcore.plugin.luceneSearch.settings = Class.create({
 
             }.bind(this));
 
+            this.allowedSchemesStore = new Ext.data.Store({
+                fields: ['allowedSchemes'],
+                data : this.getValue('frontend.allowedSchemes')
+            });
+
             this.categoriesStore = new Ext.data.Store({
                 fields: ['category'],
                 data : this.getValue('frontend.categories')
@@ -60,6 +65,9 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                 data : this.getValue('frontend.invalidLinkRegexesEditable')
 
             });
+
+            var allowedMimeTypes = this.getValue('frontend.allowedMimeTypes');
+            this.allowedMimeTypes = allowedMimeTypes instanceof Array ? allowedMimeTypes : [];
 
             this.container = Ext.create('Ext.Container', {
 
@@ -232,6 +240,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                             {
                                 xtype:'displayfield',
                                 value: t('lucenesearch_frontend_enabled_description'),
+                                submitValue : false,
                                 cls: 'description'
                             },
                             {
@@ -281,6 +290,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                             {
                                 xtype:'displayfield',
                                 value:t('lucenesearch_frontend_ignoreLanguage_description'),
+                                submitValue : false,
                                 cls: 'description'
                             },
                             {
@@ -295,6 +305,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                             {
                                 xtype:'displayfield',
                                 value:t('lucenesearch_frontend_ignoreCountry_description'),
+                                submitValue : false,
                                 cls: 'description'
                             },
                             {
@@ -309,6 +320,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                             {
                                 xtype:'displayfield',
                                 value:t('lucenesearch_frontend_ignoreRestriction_description'),
+                                submitValue : false,
                                 cls: 'description'
                             },
                             {
@@ -342,6 +354,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                     {
                                         xtype:'displayfield',
                                         value: t('lucenesearch_use_auth_enabled_description'),
+                                        submitValue : false,
                                         cls: 'description'
                                     },
 
@@ -405,13 +418,13 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                         autoHeight:true,
                                         value: this.getValue('frontend.auth.password')
                                     }
-
                                 ]
                             },
 
                             {
                                 xtype:'displayfield',
                                 value:t('lucenesearch_frontend_fuzzysearch_description'),
+                                submitValue : false,
                                 cls: 'description'
                             },
                             {
@@ -436,6 +449,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                             {
                                 xtype:'displayfield',
                                 value:t('lucenesearch_frontend_ownhostonly_description'),
+                                submitValue : false,
                                 cls: 'description'
                             },
                             {
@@ -450,32 +464,74 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                             {
                                 xtype:'displayfield',
                                 value:t('lucenesearch_frontend_crawler_maxlinkdepth_description'),
+                                submitValue : false,
                                 cls: 'description'
                             },
                             {
-                                xtype:'textfield',
+                                xtype:'numberfield',
                                 fieldLabel: t('lucenesearch_frontend_crawler_maxlinkdepth'),
                                 name: 'frontend.crawler.maxLinkDepth',
                                 collapsible: false,
                                 autoHeight:true,
+                                minValue:0,
                                 value:this.getValue('frontend.crawler.maxLinkDepth')
                             },
                             {
                                 xtype:'displayfield',
                                 value:t('lucenesearch_frontend_crawler_maxdownloadlimit_description'),
+                                submitValue : false,
                                 cls: 'description'
                             },
                             {
-                                xtype:'textfield',
+                                xtype:'numberfield',
                                 fieldLabel: t('lucenesearch_frontend_crawler_maxdownloadlimit'),
                                 name: 'frontend.crawler.maxDownloadLimit',
                                 collapsible: false,
                                 autoHeight:true,
+                                minValue:0,
                                 value:this.getValue('frontend.crawler.maxDownloadLimit')
                             },
                             {
                                 xtype:'displayfield',
+                                value:t('lucenesearch_frontend_crawler_maxcontentsize_description'),
+                                submitValue : false,
+                                cls: 'description'
+                            },
+                            {
+                                xtype:'numberfield',
+                                fieldLabel: t('lucenesearch_frontend_crawler_maxcontentsize'),
+                                name: 'frontend.crawler.contentMaxSize',
+                                collapsible: false,
+                                autoHeight:true,
+                                minValue:0,
+                                value:this.getValue('frontend.crawler.contentMaxSize')
+                            },
+                            {
+                                xtype: 'checkboxgroup',
+                                fieldLabel: t('lucenesearch_frontend_allowedmimetypes'),
+                                columns: 1,
+                                vertical: true,
+                                allowBlank: false,
+                                resizable: false,
+                                items: [
+                                    {
+                                        boxLabel: 'text/html',
+                                        name: 'frontend.allowedMimeTypes',
+                                        checked: Ext.Array.contains(this.allowedMimeTypes, 'text/html'),
+                                        inputValue: 'text/html'
+                                    },
+                                    {
+                                        boxLabel: 'application/pdf',
+                                        name: 'frontend.allowedMimeTypes',
+                                        checked: Ext.Array.contains(this.allowedMimeTypes, 'application/pdf'),
+                                        inputValue: 'application/pdf'
+                                    }
+                                ]
+                            },
+                            {
+                                xtype:'displayfield',
                                 value:t('lucenesearch_frontend_content_indicator_description'),
+                                submitValue : false,
                                 cls: 'description'
                             },
                             {
@@ -513,14 +569,14 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                             {
                                 xtype:'displayfield',
                                 value:t('lucenesearch_frontend_allowedschemes_description'),
+                                submitValue : false,
                                 cls: 'description'
                             },
                             {
                                 xtype: 'tagfield',
                                 fieldLabel: t('lucenesearch_frontend_allowedschemes'),
                                 name: 'frontend.allowedSchemes',
-
-                                store: this.categoriesStore,
+                                store: this.allowedSchemesStore,
                                 value : this.getValue('frontend.allowedSchemes'),
                                 valueField: 'allowedschemes',
                                 displayField: 'allowedschemes',
@@ -536,14 +592,13 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                             {
                                 xtype:'displayfield',
                                 value:t('lucenesearch_frontend_categories_description'),
+                                submitValue : false,
                                 cls: 'description'
                             },
                             {
                                 xtype: 'tagfield',
                                 fieldLabel: t('lucenesearch_frontend_categories'),
-                                //emptyText: t('lucenesearch_frontend_categories_empty_text'),
                                 name: 'frontend.categories',
-
                                 store: this.categoriesStore,
                                 value : this.getValue('frontend.categories'),
                                 valueField: 'category',
@@ -560,12 +615,12 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                             {
                                 xtype:'displayfield',
                                 value:t('lucenesearch_frontend_settings_urls_description'),
+                                submitValue : false,
                                 cls: 'description'
                             },
                             {
                                 xtype: 'tagfield',
                                 fieldLabel: t('lucenesearch_frontend_settings_urls') + ' *',
-                                //emptyText: t('lucenesearch_frontend_settings_empty_text'),
                                 name: 'frontend.urls',
                                 value: this.getValue('frontend.urls'),
                                 store: this.tagStore,
@@ -578,11 +633,11 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                 createNewOnEnter: true,
                                 queryMode: 'local',
                                 componentCls: 'superselect-no-drop-down'
-
                             },
                             {
                                 xtype:'displayfield',
                                 value:t('lucenesearch_frontend_allowed_description'),
+                                submitValue : false,
                                 cls: 'description'
                             },
                             {
@@ -600,11 +655,11 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                 createNewOnEnter: true,
                                 queryMode: 'local',
                                 componentCls: 'superselect-no-drop-down'
-
                             },
                             {
                                 xtype:'displayfield',
                                 value:t('lucenesearch_frontend_forbidden_description'),
+                                submitValue : false,
                                 cls: 'description'
                             },
                             {
@@ -622,11 +677,11 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                 createNewOnEnter: true,
                                 queryMode: 'local',
                                 componentCls: 'superselect-no-drop-down'
-
                             },
                             {
                                 xtype:'displayfield',
                                 value:t('lucenesearch_sitemap_render_description'),
+                                submitValue : false,
                                 cls: 'description'
                             },
                             {
@@ -739,7 +794,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
     activate: function () {
 
         var tabPanel = Ext.getCmp('pimcore_panel_tabs');
-        tabPanel.setActiveItem('lucenesearch_settings')
+        tabPanel.setActiveItem('lucenesearch_settings');
 
     },
 
@@ -785,7 +840,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
 
     save: function () {
 
-        var values = this.layout.getForm().getFieldValues();
+        var values = this.layout.getForm().getValues();
 
         Ext.Ajax.request({
             url: '/plugin/LuceneSearch/admin_plugin/set-setting',

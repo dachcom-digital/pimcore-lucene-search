@@ -42,14 +42,15 @@ class Install
         Configuration::set('frontend.enabled', FALSE);
         Configuration::set('frontend.urls', []);
         Configuration::set('frontend.validLinkRegexes', []);
+        Configuration::set('frontend.allowedMimeTypes', ['text/html', 'application/pdf']);
         Configuration::set('frontend.invalidLinkRegexesEditable', []);
-        Configuration::set('frontend.invalidLinkRegexes',
-            '@.*\.(js|JS|gif|GIF|jpg|JPG|png|PNG|ico|ICO|eps|jpeg|JPEG|bmp|BMP|css|CSS|sit|wmf|zip|ppt|mpg|xls|gz|rpm|tgz|mov|MOV|exe|mp3|MP3|kmz|gpx|kml|swf|SWF)$@');
+
         Configuration::set('frontend.categories', []);
         Configuration::set('frontend.allowedSchemes', ['http']);
         Configuration::set('frontend.ownHostOnly', FALSE);
         Configuration::set('frontend.crawler.maxLinkDepth', 15);
         Configuration::set('frontend.crawler.maxDownloadLimit', 0);
+        Configuration::set('frontend.crawler.contentMaxSize', 0);
         Configuration::set('frontend.crawler.contentStartIndicator', '');
         Configuration::set('frontend.crawler.contentEndIndicator', '');
         Configuration::set('frontend.crawler.contentExcludeStartIndicator', '');
@@ -61,6 +62,11 @@ class Install
 
         Configuration::set('boost.documents', 1);
         Configuration::set('boost.assets', 1);
+
+        Configuration::set(
+            'frontend.invalidLinkRegexes',
+            '@.*\.(js|JS|gif|GIF|jpg|JPG|png|PNG|ico|ICO|eps|jpeg|JPEG|bmp|BMP|css|CSS|sit|wmf|zip|ppt|mpg|xls|gz|rpm|tgz|mov|MOV|exe|mp3|MP3|kmz|gpx|kml|swf|SWF)$@'
+        );
 
         Configuration::setCoreSettings(
 

@@ -5,7 +5,10 @@ namespace LuceneSearch\Model;
 use LuceneSearch\Plugin;
 use LuceneSearch\Crawler\Listener;
 use LuceneSearch\Crawler\Filter\NegativeUriFilter;
-use \LuceneSearch\Crawler\PersistenceHandler;
+use LuceneSearch\Crawler\Filter\MaxContentSizeFilter;
+use LuceneSearch\Crawler\Filter\MimeTypeFilter;
+
+use LuceneSearch\Crawler\PersistenceHandler;
 
 use VDB\Spider\Spider;
 use VDB\Spider\StatsHandler;
@@ -41,6 +44,13 @@ class Parser
     protected $invalidLinkRegexes;
 
     /**
+     * Set max crawl content size (MB)
+     * 0 means no limit
+     * @var integer
+     */
+    protected $contentMaxSize = 0;
+
+    /**
      * @var integer
      */
     protected $maxRedirects = 10;
@@ -59,6 +69,11 @@ class Parser
      * @var array
      */
     protected $allowedSchemes = [];
+
+    /**
+     * @var array
+     */
+    protected $validMimeTypes = [];
 
     /**
      * indicates where the content relevant for search starts
@@ -204,6 +219,34 @@ class Parser
     public function setInvalidLinkRegexes($invalidLinkRegexes)
     {
         $this->invalidLinkRegexes = $invalidLinkRegexes;
+
+        return $this;
+    }
+
+    /**
+     * @param $contentMaxSize
+     *
+     * @return $this
+     */
+    public function setContentMaxSize($contentMaxSize = 0)
+    {
+        $this->contentMaxSize = $contentMaxSize;
+
+        return $this;
+    }
+
+    /**
+     * @param $mimeTypes
+     *
+     * @return $this
+     */
+    public function setValidMimeTypes($mimeTypes = [])
+    {
+        if(!is_array($mimeTypes)) {
+            return $this;
+        }
+
+        $this->validMimeTypes = $mimeTypes;
 
         return $this;
     }
@@ -373,6 +416,9 @@ class Parser
         $spider->getDispatcher()->addSubscriber($statsHandler);
         $spider->getDispatcher()->addSubscriber($LogHandler);
 
+        $spider->getDownloader()->addPostFetchFilter(new MaxContentSizeFilter($this->contentMaxSize));
+        $spider->getDownloader()->addPostFetchFilter(new MimeTypeFilter($this->validMimeTypes));
+
         $spider->getDownloader()->setPersistenceHandler(new PersistenceHandler\FileDbResponsePersistenceHandler());
 
         $politenessPolicyEventListener = new PolitenessPolicyListener(20); //CHANGE TO 100 !!!!
@@ -426,21 +472,21 @@ class Parser
             throw new \Exception($e->getMessage());
         }
 
-        \Pimcore\Logger::debug("SPIDER ID: " . $statsHandler->getSpiderId());
-        \Pimcore\Logger::debug("SPIDER ID: " . $statsHandler->getSpiderId());
+        \Pimcore\Logger::debug('SPIDER ID: ' . $statsHandler->getSpiderId());
+        \Pimcore\Logger::debug('SPIDER ID: ' . $statsHandler->getSpiderId());
 
-        \Pimcore\Logger::debug("ENQUEUED:  " . count($statsHandler->getQueued()));
-        \Pimcore\Logger::debug("SKIPPED:   " . count($statsHandler->getFiltered()));
-        \Pimcore\Logger::debug("FAILED:    " . count($statsHandler->getFailed()));
-        \Pimcore\Logger::debug("PERSISTED: " . count($statsHandler->getPersisted()));
+        \Pimcore\Logger::debug('ENQUEUED:  ' . count($statsHandler->getQueued()));
+        \Pimcore\Logger::debug('SKIPPED:   ' . count($statsHandler->getFiltered()));
+        \Pimcore\Logger::debug('FAILED:    ' . count($statsHandler->getFailed()));
+        \Pimcore\Logger::debug('PERSISTED: ' . count($statsHandler->getPersisted()));
 
         $peakMem = round(memory_get_peak_usage(TRUE) / 1024 / 1024, 2);
         $totalTime = round(microtime(TRUE) - $start, 2);
         $totalDelay = round($politenessPolicyEventListener->totalDelay / 1000 / 1000, 2);
 
-        \Pimcore\Logger::debug("PEAK MEM USAGE:       " . $peakMem . 'MB');
-        \Pimcore\Logger::debug("TOTAL TIME:           " . $totalTime . 's');
-        \Pimcore\Logger::debug("POLITENESS WAIT TIME: " . $totalDelay . 's');
+        \Pimcore\Logger::debug('PEAK MEM USAGE:       ' . $peakMem . 'MB');
+        \Pimcore\Logger::debug('TOTAL TIME:           ' . $totalTime . 's');
+        \Pimcore\Logger::debug('POLITENESS WAIT TIME: ' . $totalDelay . 's');
 
         //parse all resources!
         foreach ($spider->getDownloader()->getPersistenceHandler() as $resource) {
