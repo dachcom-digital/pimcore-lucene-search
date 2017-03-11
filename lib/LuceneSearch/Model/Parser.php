@@ -387,8 +387,8 @@ class Parser
         try {
             $spider = new Spider($this->seed);
         } catch (\Exception $e) {
-            \Pimcore\Logger::err('LuceneSearch Error: ' . $e->getMessage());
 
+            $this->log('Error: ' . $e->getMessage(), 'error');
             return;
         }
 
@@ -480,34 +480,32 @@ class Parser
         try {
             $spider->crawl();
         } catch (\Exception $e) {
-            \Pimcore\Logger::err('LuceneSearch: crawl error: ' . $e->getMessage());
+            $this->log('Crawl Error: ' . $e->getMessage(), 'error');
             throw new \Exception($e->getMessage());
         }
 
-        \Pimcore\Logger::debug('SPIDER ID: ' . $statsHandler->getSpiderId());
-        \Pimcore\Logger::debug('SPIDER ID: ' . $statsHandler->getSpiderId());
-
-        \Pimcore\Logger::debug('ENQUEUED:  ' . count($statsHandler->getQueued()));
-        \Pimcore\Logger::debug('SKIPPED:   ' . count($statsHandler->getFiltered()));
-        \Pimcore\Logger::debug('FAILED:    ' . count($statsHandler->getFailed()));
-        \Pimcore\Logger::debug('PERSISTED: ' . count($statsHandler->getPersisted()));
+        $this->log('[Crawler] Spider Id: ' . $statsHandler->getSpiderId(), 'debug');
+        $this->log('[Crawler] Enqueued Links: ' . count($statsHandler->getQueued()), 'debug');
+        $this->log('[Crawler] Skipped Links: ' . count($statsHandler->getFiltered()), 'debug');
+        $this->log('[Crawler] Failed Links: ' . count($statsHandler->getFailed()), 'debug');
+        $this->log('[Crawler] Persisted Links: ' . count($statsHandler->getPersisted()), 'debug');
 
         $peakMem = round(memory_get_peak_usage(TRUE) / 1024 / 1024, 2);
         $totalTime = round(microtime(TRUE) - $start, 2);
         $totalDelay = round($politenessPolicyEventListener->totalDelay / 1000 / 1000, 2);
 
-        \Pimcore\Logger::debug('PEAK MEM USAGE:       ' . $peakMem . 'MB');
-        \Pimcore\Logger::debug('TOTAL TIME:           ' . $totalTime . 's');
-        \Pimcore\Logger::debug('POLITENESS WAIT TIME: ' . $totalDelay . 's');
+        $this->log('[Crawler] Memory Peak Usage:'  .  $peakMem  . 'Mb' , 'debug');
+        $this->log('[Crawler] Total Time: ' . ($totalTime / 60) . ' Minutes' , 'debug');
+        $this->log('[Crawler] Politeness Wait Time: ' . $totalDelay . 'Seconds' , 'debug');
 
         //parse all resources!
         /** @var \VDB\Spider\Resource $resource */
         foreach ($spider->getDownloader()->getPersistenceHandler() as $resource) {
             if ($resource instanceof \VDB\Spider\Resource) {
-                \Pimcore\Logger::debug('LuceneSearch: parseResponse: ' . $resource->getUri()->toString());
+                $this->log('Parse Response: ' . $resource->getUri()->toString(), 'debug', FALSE);
                 $this->parseResponse($resource);
             } else {
-                \Pimcore\Logger::notice('LuceneSearch: crawler resource not a instance of \VDB\Spider\Resource. Given type: ' . gettype($resource));
+                $this->log('Crawler resource not a instance of \VDB\Spider\Resource. Given type: ' . gettype($resource), 'notice');
             }
         }
     }
@@ -531,10 +529,10 @@ class Parser
             } else if ($mimeType == 'application/pdf') {
                 $this->parsePdf($uri, $resource, $host);
             } else {
-                \Pimcore\Logger::debug('LuceneSearch: Cannot parse mime type [ ' . $mimeType . ' ] provided by uri [ ' . $uri . ' ]');
+                $this->log('Cannot parse mime type [ ' . $mimeType . ' ] provided by uri [ ' . $uri . ' ]', 'debug');
             }
         } else {
-            \Pimcore\Logger::debug('LuceneSearch: Could not determine content type of [ ' . $uri . ' ]');
+            $this->log('Could not determine content type of [ ' . $uri . ' ]', 'debug');
         }
     }
 
@@ -563,8 +561,7 @@ class Parser
         $hasCanonicalLink = $crawler->filterXpath('//link[@rel="canonical"]')->count() > 0;
 
         if ($hasCanonicalLink === TRUE) {
-            \Pimcore\Logger::debug('LuceneSearch: not indexing [ ' . $link . ' ] because it has canonical links');
-
+            $this->log('Not indexing [ ' . $link . ' ] because it has canonical links');
             return FALSE;
         }
 
@@ -572,8 +569,7 @@ class Parser
         $hasNoFollow = $crawler->filterXpath('//meta[@content="nofollow"]')->count() > 0;
 
         if ($hasNoFollow === TRUE) {
-            \Pimcore\Logger::debug('LuceneSearch: not indexing [ ' . $link . ' ] because it has robots noindex');
-
+            $this->log('Not indexing [ ' . $link . ' ] because it has robots noindex');
             return FALSE;
         }
 
@@ -649,8 +645,7 @@ class Parser
 
         $this->addHtmlToIndex($html, $title, $description, $link, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost);
 
-        \Pimcore\Logger::debug('LuceneSearch: Added to indexer stack [ ' . $link . ' ]');
-
+        $this->log('Added html to indexer stack: ' . $link);
         return TRUE;
     }
 
@@ -663,10 +658,9 @@ class Parser
      */
     private function parsePdf($link, $resource, $host)
     {
-        \Pimcore\Logger::debug('LuceneSearch: Added pdf to index [ ' . $link . ' ]');
+        $this->log('Added pdf to indexer stack: ' . $link);
 
         $language = $this->getLanguageFromAsset($link);
-
         return $this->addPdfToIndex($resource, $language, $host);
     }
 
@@ -704,7 +698,7 @@ class Parser
             $cmd = $verboseCommand . $tmpPdfFile . ' ' . $tmpFile;
             exec($pdfToTextBin . ' ' . $cmd);
         } catch (\Exception $e) {
-            \Pimcore\Logger::debug($e->getMessage());
+            $this->log($e->getMessage());
         }
 
         if (is_file($tmpFile)) {
@@ -731,7 +725,7 @@ class Parser
                 //no add document to lucene index!
                 $this->addDocumentToIndex($doc);
             } catch (\Exception $e) {
-                \Pimcore\Logger::debug($e->getMessage());
+                $this->log($e->getMessage());
             }
 
             @unlink($tmpFile);
@@ -821,7 +815,7 @@ class Parser
             //no add document to lucene index!
             $this->addDocumentToIndex($doc);
         } catch (\Exception $e) {
-            \Pimcore\Logger::debug('LuceneSearch: ' . $e->getMessage());
+            $this->log($e->getMessage());
         }
     }
 
@@ -832,9 +826,9 @@ class Parser
     {
         if ($doc instanceof \Zend_Search_Lucene_Document) {
             $this->index->addDocument($doc);
-            \Pimcore\Logger::debug('LuceneSearch: Added to lucene index db entry');
+            $this->log('Added to lucene index db entry', 'debug', FALSE);
         } else {
-            \Pimcore\Logger::error('LuceneSearch: could not parse lucene document ');
+            $this->log('Could not parse lucene document', 'error');
         }
     }
 
@@ -1043,11 +1037,36 @@ class Parser
                 \Zend_Search_Lucene_Analysis_Analyzer::setDefault(new \Zend_Search_Lucene_Analysis_Analyzer_Common_Utf8Num_CaseInsensitive());
                 $this->index = \Zend_Search_Lucene::open($indexDir);
             } catch (\Exception $e) {
-                \Pimcore\Logger::debug('LuceneSearch: could not open frontend index, creating new one.');
+                $this->log('could not open frontend index, creating new one.', 'debug', FALSE);
                 \Zend_Search_Lucene::create($indexDir);
                 $this->index = \Zend_Search_Lucene::open($indexDir);
             }
         }
+    }
+
+    /**
+     * @param string $message
+     * @param string $level
+     * @param bool   $addToBackendLog
+     *
+     * @return bool
+     */
+    protected function log($message = '', $level = 'debug', $addToBackendLog = TRUE)
+    {
+        \Pimcore\Logger::log('LuceneSearch: ' . $message, $level);
+
+        if ($addToBackendLog === TRUE) {
+            $file = PIMCORE_WEBSITE_VAR . '/search/log.txt';
+            $current = '';
+            if (file_exists($file)) {
+                $current = file_get_contents($file);
+            }
+            $current .= date('d.m.Y H:i') . '|' . $level . '|' . $message . "\n";
+            file_put_contents($file, $current);
+        }
+
+        return TRUE;
+
     }
 
     /**
@@ -1062,9 +1081,9 @@ class Parser
         if (is_object($this->index) and $this->index instanceof \Zend_Search_Lucene_Proxy) {
             $this->index->removeReference();
             unset($this->index);
-            \Pimcore\Logger::debug('LuceneSearch: Closed frontend index references');
+            $this->log('Closed frontend index references', 'debug', FALSE);
         }
 
-        \Pimcore\Logger::debug('LuceneSearch: optimizeIndex.');
+        $this->log('Optimize Lucene Index', 'debug', FALSE);
     }
 }

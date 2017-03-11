@@ -56,6 +56,18 @@ class LuceneSearch_Admin_PluginController extends Admin
         $this->_helper->json(FALSE);
     }
 
+    public function getLogAction()
+    {
+        $logFile = PIMCORE_WEBSITE_VAR . '/search/log.txt';
+        $data = '';
+
+        if (file_exists($logFile)) {
+            $data = file_get_contents($logFile);
+        }
+
+        $this->_helper->json(['logData' => $data]);
+    }
+
     /**
      *
      */
@@ -235,11 +247,10 @@ class LuceneSearch_Admin_PluginController extends Admin
         Configuration::set('frontend.urls', $frontendUrls);
 
         $mimeTypes = NULL;
-        if( isset( $values['frontend.allowedMimeTypes'] ) ) {
+        if (isset($values['frontend.allowedMimeTypes'])) {
             $mimeTypes = $values['frontend.allowedMimeTypes'];
-            if( !is_array($mimeTypes ) ) {
-                $mimeTypes = [ $values['frontend.allowedMimeTypes'] ];
-
+            if (!is_array($mimeTypes)) {
+                $mimeTypes = [$values['frontend.allowedMimeTypes']];
             }
         }
 

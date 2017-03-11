@@ -756,6 +756,26 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                 value:this.getValue('boost.assets')
                             }
                         ]
+                    },
+                    {
+                        xtype:'fieldset',
+                        id: 'log_settings',
+                        title:t('lucenesearch_log'),
+                        collapsible: false,
+                        autoHeight:true,
+                        labelWidth: 100,
+                        items :[
+                            {
+                                xtype:'textarea',
+                                id: 'lucenesearch_log_data',
+                                collapsible: false,
+                                autoHeight:false,
+                                submitValue : false,
+                                height:200,
+                                width:'100%',
+                                value:''
+                            }
+                        ]
                     }
                 ]
             });
@@ -769,6 +789,14 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                 interval: 10000
             });
 
+            Ext.Ajax.request({
+                url: '/plugin/LuceneSearch/admin_plugin/get-log',
+                success: function(response){
+                    var data = Ext.decode(response.responseText);
+                    Ext.getCmp('lucenesearch_log_data').setValue(data.logData);
+                }
+            });
+
         }
 
         return this.panel;
@@ -780,12 +808,12 @@ pimcore.plugin.luceneSearch.settings = Class.create({
             url: '/plugin/LuceneSearch/admin_Plugin/get-state',
             method: 'get',
             success: function (response) {
-
                 var res = Ext.decode( response.responseText);
-                Ext.getCmp('stateMessage').setValue(res.message);
-                Ext.getCmp('startFrontendCrawler').setDisabled(res.frontendButtonDisabled);
-                Ext.getCmp('stopFrontendCrawler').setDisabled(res.frontendStopButtonDisabled);
-
+                if(Ext.getCmp('stateMessage') !== undefined) {
+                    Ext.getCmp('stateMessage').setValue(res.message);
+                    Ext.getCmp('startFrontendCrawler').setDisabled(res.frontendButtonDisabled);
+                    Ext.getCmp('stopFrontendCrawler').setDisabled(res.frontendStopButtonDisabled);
+                }
             }
         });
 

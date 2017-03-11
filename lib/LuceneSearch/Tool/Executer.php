@@ -161,6 +161,11 @@ class Executer
         exec('rm -Rf ' . PIMCORE_SYSTEM_TEMP_DIRECTORY . '/ls-crawler-tmp');
         mkdir(PIMCORE_SYSTEM_TEMP_DIRECTORY . '/ls-crawler-tmp');
 
+        //remove old log
+        if (file_exists(PIMCORE_WEBSITE_VAR . '/search/log.txt')) {
+            unlink(PIMCORE_WEBSITE_VAR . '/search/log.txt');
+        }
+
         exec('rm -Rf ' . str_replace('/index/', '/tmpindex', $indexDir));
 
         \Pimcore\Logger::debug('LuceneSearch: create table lucene_search_index');
