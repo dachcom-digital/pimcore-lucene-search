@@ -13,7 +13,7 @@
         }
     ],
     "require": {
-        "pimcore/installer-plugin": ">=1",
-        "vdb/php-spider": "0.2"
+        "pimcore/installer-plugin": "~1.5.0",
+        "vdb/php-spider": "dev-master#3dd778529e8f34d7259804fb85b589d695d7c9a9"
     }
 }

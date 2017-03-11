@@ -15,9 +15,9 @@ use VDB\Spider\StatsHandler;
 use VDB\Spider\QueueManager;
 use VDB\Spider\Filter;
 use VDB\Spider\Event\SpiderEvents;
-
 use VDB\Spider\Discoverer\XPathExpressionDiscoverer;
 use VDB\Spider\EventListener\PolitenessPolicyListener;
+use GuzzleHttp\Middleware;
 
 use Symfony\Component\EventDispatcher\Event;
 
@@ -242,7 +242,7 @@ class Parser
      */
     public function setValidMimeTypes($mimeTypes = [])
     {
-        if(!is_array($mimeTypes)) {
+        if (!is_array($mimeTypes)) {
             return $this;
         }
 
@@ -384,7 +384,13 @@ class Parser
     {
         $start = microtime();
 
-        $spider = new Spider($this->seed);
+        try {
+            $spider = new Spider($this->seed);
+        } catch (\Exception $e) {
+            \Pimcore\Logger::err('LuceneSearch Error: ' . $e->getMessage());
+
+            return;
+        }
 
         if ($this->downloadLimit > 0) {
             $spider->getDownloader()->setDownloadLimit($this->downloadLimit);
@@ -419,7 +425,8 @@ class Parser
         $spider->getDownloader()->addPostFetchFilter(new MaxContentSizeFilter($this->contentMaxSize));
         $spider->getDownloader()->addPostFetchFilter(new MimeTypeFilter($this->validMimeTypes));
 
-        $spider->getDownloader()->setPersistenceHandler(new PersistenceHandler\FileDbResponsePersistenceHandler());
+        $persistencePath = PIMCORE_SYSTEM_TEMP_DIRECTORY . '/ls-crawler-tmp';
+        $spider->getDownloader()->setPersistenceHandler(new PersistenceHandler\FileSerializedResourcePersistenceHandler($persistencePath));
 
         $politenessPolicyEventListener = new PolitenessPolicyListener(20); //CHANGE TO 100 !!!!
         $spider->getDownloader()->getDispatcher()->addListener(
@@ -442,27 +449,32 @@ class Parser
 
         );
 
-        if ($this->useAuth) {
-            $authListener = new Listener\Auth($this->authUserName, $this->authPassword);
-            $spider->getDownloader()->getDispatcher()->addListener(
-
-                SpiderEvents::SPIDER_CRAWL_PRE_REQUEST,
-                [$authListener, 'setAuth']
-
-            );
-        }
-
         $spider->getDownloader()->getDispatcher()->addListener(
             SpiderEvents::SPIDER_CRAWL_POST_REQUEST,
             function (Event $event) {
-                //echo 'crawling: ' . $event->getArgument('uri')->toString() . "\n";
+                echo 'crawling: ' . $event->getArgument('uri')->toString() . "\n";
             }
         );
 
+        $guzzleClient = $spider->getDownloader()->getRequestHandler()->getClient();
+        $handler = $guzzleClient->getConfig('handler');
+
+        //add Auth!
+        if ($this->useAuth) {
+
+            $un = $this->authUserName;
+            $pw = $this->authPassword;
+
+            $handler->push(Middleware::mapRequest(function (\Psr\Http\Message\RequestInterface $request) use ($un, $pw) {
+                return $request->withHeader('Authorization', 'Basic ' . base64_encode("$un:$pw"));
+            }), 'lucene-search-auth');
+        }
+
         // add LuceneSearch to Headers!
         $pluginInfo = \Pimcore\ExtensionManager::getPluginConfig('LuceneSearch');
-        $guzzleClient = $spider->getDownloader()->getRequestHandler()->getClient();
-        $guzzleClient->setDefaultOption('headers/Lucene-Search', $pluginInfo['plugin']['pluginVersion']);
+        $handler->push(Middleware::mapRequest(function (\Psr\Http\Message\RequestInterface $request) use ($pluginInfo) {
+            return $request->withHeader('Lucene-Search', $pluginInfo['plugin']['pluginVersion']);
+        }), 'lucene-search-header');
 
         // Execute the crawl
         try {
@@ -489,34 +501,35 @@ class Parser
         \Pimcore\Logger::debug('POLITENESS WAIT TIME: ' . $totalDelay . 's');
 
         //parse all resources!
+        /** @var \VDB\Spider\Resource $resource */
         foreach ($spider->getDownloader()->getPersistenceHandler() as $resource) {
-            if (is_array($resource)) {
-                \Pimcore\Logger::debug('LuceneSearch: parseResponse: ' . $resource['uri']);
+            if ($resource instanceof \VDB\Spider\Resource) {
+                \Pimcore\Logger::debug('LuceneSearch: parseResponse: ' . $resource->getUri()->toString());
                 $this->parseResponse($resource);
             } else {
-                \Pimcore\Logger::notice('LuceneSearch: crawler resource not a instance of Spider\Resource. Given type: ' . gettype($resource));
+                \Pimcore\Logger::notice('LuceneSearch: crawler resource not a instance of \VDB\Spider\Resource. Given type: ' . gettype($resource));
             }
         }
     }
 
     /**
-     * @param array $response
+     * @param \VDB\Spider\Resource $resource
      */
-    private function parseResponse($response = [])
+    private function parseResponse($resource)
     {
-        $host = $response['host'];
-        $uri = $response['uri'];
+        $host = $resource->getUri()->getHost();
+        $uri = $resource->getUri()->toString();
 
-        $contentType = $response['contentType'];
+        $contentTypeInfo = $resource->getResponse()->getHeaderLine('Content-Type');
 
-        if (!empty($contentType)) {
-            $parts = explode(';', $contentType);
+        if (!empty($contentTypeInfo)) {
+            $parts = explode(';', $contentTypeInfo);
             $mimeType = trim($parts[0]);
 
             if ($mimeType == 'text/html') {
-                $this->parseHtml($uri, $response, $host);
+                $this->parseHtml($uri, $resource, $host);
             } else if ($mimeType == 'application/pdf') {
-                $this->parsePdf($uri, $response, $host);
+                $this->parsePdf($uri, $resource, $host);
             } else {
                 \Pimcore\Logger::debug('LuceneSearch: Cannot parse mime type [ ' . $mimeType . ' ] provided by uri [ ' . $uri . ' ]');
             }
@@ -526,20 +539,22 @@ class Parser
     }
 
     /**
-     * @param $link
-     * @param $response
-     * @param $host
+     * @param                      $link
+     * @param \VDB\Spider\Resource $resource
+     * @param                      $host
      *
      * @return bool
      */
-    private function parseHtml($link, $response, $host)
+    private function parseHtml($link, $resource, $host)
     {
         /** @var \Symfony\Component\DomCrawler\Crawler $crawler */
-        $crawler = $response['crawler'];
-        $html = $response['content'];
+        $crawler = $resource->getCrawler();
+        $html = $resource->getResponse()->getBody();
+        $contentTypeInfo = $resource->getResponse()->getHeaderLine('Content-Type');
+        $contentLanguage = $resource->getResponse()->getHeaderLine('Content-Language');
 
-        $language = strtolower($this->getLanguageFromResponse($response['contentLanguage'], $html));
-        $encoding = strtolower($this->getEncodingFromResponse($response['contentType'], $html));
+        $language = strtolower($this->getLanguageFromResponse($contentLanguage, $html));
+        $encoding = strtolower($this->getEncodingFromResponse($contentTypeInfo, $html));
 
         $filter = new \Zend_Filter_Word_UnderscoreToDash();
         $language = strtolower($filter->filter($language));
@@ -640,42 +655,40 @@ class Parser
     }
 
     /**
-     * @param $link
-     * @param $response
-     * @param $host
+     * @param                      $link
+     * @param \VDB\Spider\Resource $resource
+     * @param                      $host
      *
      * @return bool
      */
-    private function parsePdf($link, $response, $host)
+    private function parsePdf($link, $resource, $host)
     {
-        $language = $this->getLanguageFromAsset($link);
-
         \Pimcore\Logger::debug('LuceneSearch: Added pdf to index [ ' . $link . ' ]');
 
-        return $this->addPdfToIndex($link, $language, $host);
+        $language = $this->getLanguageFromAsset($link);
+
+        return $this->addPdfToIndex($resource, $language, $host);
     }
 
     /**
      * adds a PDF page to lucene index and mysql table for search result sumaries
      *
-     * @param  string  $url
-     * @param  string  $language
-     * @param string   $host
-     * @param  integer $customBoost
+     * @param \VDB\Spider\Resource $resource
+     * @param string               $language
+     * @param string               $host
+     * @param integer              $customBoost
      *
      * @return bool
      */
-    protected function addPdfToIndex($url, $language, $host, $customBoost = NULL)
+    protected function addPdfToIndex($resource, $language, $host, $customBoost = NULL)
     {
-        $pdftotextBin = FALSE;
-
         try {
-            $pdftotextBin = \Pimcore\Document\Adapter\Ghostscript::getPdftotextCli();
+            $pdfToTextBin = \Pimcore\Document\Adapter\Ghostscript::getPdftotextCli();
         } catch (\Exception $e) {
-            $pdftotextBin = FALSE;
+            $pdfToTextBin = FALSE;
         }
 
-        if ($pdftotextBin === FALSE) {
+        if ($pdfToTextBin === FALSE) {
             return FALSE;
         }
 
@@ -683,19 +696,13 @@ class Parser
         $tmpFile = PIMCORE_TEMPORARY_DIRECTORY . '/' . $textFileTmp . '.txt';
         $tmpPdfFile = PIMCORE_TEMPORARY_DIRECTORY . '/' . $textFileTmp . '.pdf';
 
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-
-        $data = curl_exec($ch);
-        $result = file_put_contents($tmpPdfFile, $data);
-
-        curl_close($ch);
+        file_put_contents($tmpPdfFile, $resource->getResponse()->getBody());
 
         $verboseCommand = \Pimcore::inDebugMode() ? '' : '-q ';
 
         try {
-            $cmnd = $verboseCommand . $tmpPdfFile . ' ' . $tmpFile;
-            exec($pdftotextBin . ' ' . $cmnd);
+            $cmd = $verboseCommand . $tmpPdfFile . ' ' . $tmpFile;
+            exec($pdfToTextBin . ' ' . $cmd);
         } catch (\Exception $e) {
             \Pimcore\Logger::debug($e->getMessage());
         }
@@ -709,7 +716,6 @@ class Parser
                 $doc->boost = $customBoost ? $customBoost : $this->assetBoost;
 
                 $text = preg_replace("/\r|\n/", ' ', $fileContent);
-
                 $text = preg_replace('/[^\p{Latin}\d ]/u', "", $text);
                 $text = preg_replace('/\n[\s]*/', "\n", $text); // remove all leading blanks]
 
@@ -1049,7 +1055,6 @@ class Parser
      */
     public function optimizeIndex()
     {
-
         // optimize lucene index for better performance
         $this->index->optimize();
 

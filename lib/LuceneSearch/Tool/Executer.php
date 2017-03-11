@@ -157,20 +157,9 @@ class Executer
      */
     private static function _prepareCrawl($indexDir = '')
     {
-        $db = \Pimcore\Db::get();
-
-        $db->query("DROP TABLE IF EXISTS `lucene_search_index`;");
-        $db->query("CREATE TABLE `lucene_search_index` (
-                      `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-                      `identifier` varchar(255) DEFAULT '',
-                      `contentType` varchar(255) DEFAULT NULL,
-                      `contentLanguage` varchar(255) DEFAULT NULL,
-                      `host` text,
-                      `uri` text,
-                      `content` longblob,
-                      PRIMARY KEY (`id`),
-                      KEY `identifier` (`identifier`)
-                    ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;");
+        //tmp crawling folder preparation
+        exec('rm -Rf ' . PIMCORE_SYSTEM_TEMP_DIRECTORY . '/ls-crawler-tmp');
+        mkdir(PIMCORE_SYSTEM_TEMP_DIRECTORY . '/ls-crawler-tmp');
 
         exec('rm -Rf ' . str_replace('/index/', '/tmpindex', $indexDir));
 
@@ -184,13 +173,13 @@ class Executer
      */
     private static function _cleanUpCrawl($indexDir = '')
     {
-        $db = \Pimcore\Db::get();
+        //remove tmp crawling folder
+        exec('rm -Rf ' . PIMCORE_SYSTEM_TEMP_DIRECTORY . '/ls-crawler-tmp');
 
         //only remove index, if tmp exists!
         $tmpIndex = str_replace('/index', '/tmpindex', $indexDir);
 
         //remove lucene search index tmp folder
-        $db->query("DROP TABLE IF EXISTS `lucene_search_index`;");
         \Pimcore\Logger::debug('LuceneSearch: drop table lucene_search_index');
 
         if (is_dir($tmpIndex)) {
