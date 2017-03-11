@@ -436,10 +436,10 @@ class LuceneSearch_FrontendController extends Action
         if (!empty($this->searchCountry)) {
 
             $countryQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm();
-            $countryQuery->addTerm(new Zend_Search_Lucene_Index_Term('all', 'country'));
+            $countryQuery->addTerm(new \Zend_Search_Lucene_Index_Term('all', 'country'));
 
             $country = str_replace(['_', '-'], '', $this->searchCountry);
-            $countryQuery->addTerm(new Zend_Search_Lucene_Index_Term($country, 'country'));
+            $countryQuery->addTerm(new \Zend_Search_Lucene_Index_Term($country, 'country'));
 
             $query->addSubquery($countryQuery, TRUE);
         }
@@ -462,7 +462,7 @@ class LuceneSearch_FrontendController extends Action
     {
         if (!empty($this->searchLanguage)) {
             $languageQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm();
-            $languageQuery->addTerm(new Zend_Search_Lucene_Index_Term('all', 'lang'));
+            $languageQuery->addTerm(new \Zend_Search_Lucene_Index_Term('all', 'lang'));
 
             if (is_object($this->searchLanguage)) {
                 $lang = $this->searchLanguage->toString();
@@ -472,7 +472,7 @@ class LuceneSearch_FrontendController extends Action
 
             $filter = new \Zend_Filter_Word_UnderscoreToDash();
             $lang = strtolower($filter->filter($lang));
-            $languageQuery->addTerm(new Zend_Search_Lucene_Index_Term($lang, 'lang'));
+            $languageQuery->addTerm(new \Zend_Search_Lucene_Index_Term($lang, 'lang'));
 
             $query->addSubquery($languageQuery, TRUE);
         }
