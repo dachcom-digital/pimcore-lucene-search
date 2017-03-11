@@ -701,6 +701,8 @@ class Parser
             $this->log($e->getMessage());
         }
 
+        $uri = $resource->getUri()->toString();
+
         if (is_file($tmpFile)) {
             $fileContent = file_get_contents($tmpFile);
 
@@ -713,10 +715,10 @@ class Parser
                 $text = preg_replace('/[^\p{Latin}\d ]/u', "", $text);
                 $text = preg_replace('/\n[\s]*/', "\n", $text); // remove all leading blanks]
 
-                $doc->addField(\Zend_Search_Lucene_Field::Text('title', basename($url)), 'utf-8');
+                $doc->addField(\Zend_Search_Lucene_Field::Text('title', basename($uri)), 'utf-8');
                 $doc->addField(\Zend_Search_Lucene_Field::Text('content', $text, 'utf-8'));
 
-                $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $url));
+                $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $uri));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $host));
 
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_default', TRUE));
