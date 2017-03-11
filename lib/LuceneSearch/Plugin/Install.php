@@ -87,30 +87,46 @@ class Install
      */
     public function installProperties()
     {
-        $defProperty = Property\Predefined::getByKey('assigned_language');
+        $propertiesToInstall = [
+            'assigned_language' => [
+                'name' => 'Assigned Language',
+                'description' => 'Set a specific language which lucene search should respect while crawling.'
+            ],
+            'assigned_country' => [
+                'name' => 'Assigned Country',
+                'description' => 'Set a specific country which lucene search should respect while crawling.'
+            ]
+        ];
 
-        if (!$defProperty instanceof Property\Predefined) {
-            $languages = \Pimcore\Tool::getValidLanguages();
+        foreach($propertiesToInstall as $propertyKey => $propertyData) {
 
-            $data = 'all,';
+            $defProperty = Property\Predefined::getByKey($propertyKey);
 
-            foreach ($languages as $language) {
-                $data .= $language . ',';
+            if (!$defProperty instanceof Property\Predefined) {
+
+                $data = 'all,';
+                if($propertyKey === 'assigned_language') {
+                    $languages = \Pimcore\Tool::getValidLanguages();
+                    foreach ($languages as $language) {
+                        $data .= $language . ',';
+                    }
+                }
+
+                $data = rtrim($data, ',');
+
+                $property = new Property\Predefined();
+                $property->setType('select');
+                $property->setName($propertyData['name']);
+                $property->setKey($propertyKey);
+                $property->setDescription($propertyData['description']);
+                $property->setCtype('asset');
+                $property->setData('all');
+                $property->setConfig($data);
+                $property->setInheritable(FALSE);
+                $property->save();
             }
-
-            $data = rtrim($data, ',');
-
-            $property = new Property\Predefined();
-            $property->setType('select');
-            $property->setName('Assigned Language');
-            $property->setKey('assigned_language');
-            $property->setDescription('set a specific language which lucene search should respect while crawling.');
-            $property->setCtype('asset');
-            $property->setData('all');
-            $property->setConfig($data);
-            $property->setInheritable(FALSE);
-            $property->save();
         }
+
     }
 
     /**

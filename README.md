@@ -46,6 +46,10 @@ If the document is restricted to a specific usergroup, the meta `content` contai
 Because Assets does not have any language hierarchy, you need to add a property called `assigned_language`. This Property will be installed during the install process of LuceneSearch.
 If you add some additional language afterwards, you need to add this language to the property. if you do not set any information at all, the asset will be found in any language context.
 
+## Asset Country restriction
+Because Assets does not have any country hierarchy, you need to add a property called `assigned_country`. This Property will be installed during the install process of LuceneSearch.
+If you add some additional countries afterwards, you need to add this country to the property. if you do not set any information at all, the asset will be found in any country context.
+
 ## Setup Search Page
 - Create a document, call it "search".
 - Define a new method in your Controller (eg. search). 

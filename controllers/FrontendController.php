@@ -434,9 +434,13 @@ class LuceneSearch_FrontendController extends Action
     private function addCountryQuery($query)
     {
         if (!empty($this->searchCountry)) {
+
+            $countryQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm();
+            $countryQuery->addTerm(new Zend_Search_Lucene_Index_Term('all', 'country'));
+
             $country = str_replace(['_', '-'], '', $this->searchCountry);
-            $countryTerm = new \Zend_Search_Lucene_Index_Term($country, 'country');
-            $countryQuery = new \Zend_Search_Lucene_Search_Query_Term($countryTerm);
+            $countryQuery->addTerm(new Zend_Search_Lucene_Index_Term($country, 'country'));
+
             $query->addSubquery($countryQuery, TRUE);
         }
 

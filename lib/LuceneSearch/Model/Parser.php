@@ -389,6 +389,7 @@ class Parser
         } catch (\Exception $e) {
 
             $this->log('Error: ' . $e->getMessage(), 'error');
+
             return;
         }
 
@@ -494,9 +495,9 @@ class Parser
         $totalTime = round(microtime(TRUE) - $start, 2);
         $totalDelay = round($politenessPolicyEventListener->totalDelay / 1000 / 1000, 2);
 
-        $this->log('[Crawler] Memory Peak Usage:'  .  $peakMem  . 'Mb' , 'debug');
-        $this->log('[Crawler] Total Time: ' . ($totalTime / 60) . ' Minutes' , 'debug');
-        $this->log('[Crawler] Politeness Wait Time: ' . $totalDelay . 'Seconds' , 'debug');
+        $this->log('[Crawler] Memory Peak Usage:' . $peakMem . 'Mb', 'debug');
+        $this->log('[Crawler] Total Time: ' . ($totalTime / 60) . ' Minutes', 'debug');
+        $this->log('[Crawler] Politeness Wait Time: ' . $totalDelay . 'Seconds', 'debug');
 
         //parse all resources!
         /** @var \VDB\Spider\Resource $resource */
@@ -562,6 +563,7 @@ class Parser
 
         if ($hasCanonicalLink === TRUE) {
             $this->log('Not indexing [ ' . $link . ' ] because it has canonical links');
+
             return FALSE;
         }
 
@@ -570,6 +572,7 @@ class Parser
 
         if ($hasNoFollow === TRUE) {
             $this->log('Not indexing [ ' . $link . ' ] because it has robots noindex');
+
             return FALSE;
         }
 
@@ -646,6 +649,7 @@ class Parser
         $this->addHtmlToIndex($html, $title, $description, $link, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost);
 
         $this->log('Added html to indexer stack: ' . $link);
+
         return TRUE;
     }
 
@@ -660,8 +664,8 @@ class Parser
     {
         $this->log('Added pdf to indexer stack: ' . $link);
 
-        $language = $this->getLanguageFromAsset($link);
-        return $this->addPdfToIndex($resource, $language, $host);
+        $metaData = $this->getMetaDataFromAsset($link);
+        return $this->addPdfToIndex($resource, $metaData['language'], $metaData['country'], $host);
     }
 
     /**
@@ -669,12 +673,13 @@ class Parser
      *
      * @param \VDB\Spider\Resource $resource
      * @param string               $language
+     * @param string               $country
      * @param string               $host
      * @param integer              $customBoost
      *
      * @return bool
      */
-    protected function addPdfToIndex($resource, $language, $host, $customBoost = NULL)
+    protected function addPdfToIndex($resource, $language, $country, $host, $customBoost = NULL)
     {
         try {
             $pdfToTextBin = \Pimcore\Document\Adapter\Ghostscript::getPdftotextCli();
@@ -712,17 +717,18 @@ class Parser
                 $doc->boost = $customBoost ? $customBoost : $this->assetBoost;
 
                 $text = preg_replace("/\r|\n/", ' ', $fileContent);
-                $text = preg_replace('/[^\p{Latin}\d ]/u', "", $text);
-                $text = preg_replace('/\n[\s]*/', "\n", $text); // remove all leading blanks]
+                $text = preg_replace('/[^\p{Latin}\d ]/u', '', $text);
+                $text = preg_replace('/\n[\s]*/', "\n", $text); // remove all leading blanks
 
                 $doc->addField(\Zend_Search_Lucene_Field::Text('title', basename($uri)), 'utf-8');
                 $doc->addField(\Zend_Search_Lucene_Field::Text('content', $text, 'utf-8'));
+                $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $language));
+                $doc->addField(\Zend_Search_Lucene_Field::Keyword('country', $country));
 
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $uri));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $host));
 
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_default', TRUE));
-                $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $language));
 
                 //no add document to lucene index!
                 $this->addDocumentToIndex($doc);
@@ -760,7 +766,6 @@ class Parser
             $content = $this->getPlainTextFromHtml($html);
 
             $doc = new \Zend_Search_Lucene_Document();
-
             $doc->boost = $customBoost ? $customBoost : $this->documentBoost;
 
             //add h1 to index
@@ -835,34 +840,38 @@ class Parser
     }
 
     /**
-     * Because Assets are not language restricted, we need to get them from db
+     * Because Assets are not language or country restricted, we need to get them from db
      *
      * @param string $url
      *
-     * @return string|bool
+     * @return array
      */
-    protected function getLanguageFromAsset($url = '')
+    protected function getMetaDataFromAsset($url = '')
     {
         $urlData = parse_url($url);
-        $language = 'all';
+        $meta = ['language' => 'all', 'country' => 'all'];
 
         if (empty($urlData['path'])) {
-            return $language;
+            return $meta;
         }
 
         $asset = \Pimcore\Model\Asset::getByPath($urlData['path']);
 
         if ($asset instanceof \Pimcore\Model\Asset) {
+            //check for assigned language
             $languageProperty = $asset->getProperty('assigned_language');
-
-            if (!is_null($languageProperty)) {
-                return $languageProperty;
+            if (!empty($languageProperty)) {
+                $meta['language'] = $languageProperty;
             }
 
-            return $language;
+            //checked for assigned country
+            $countryProperty = $asset->getProperty('assigned_country');
+            if (!empty($countryProperty)) {
+                $meta['country'] = $countryProperty;
+            }
         }
 
-        return $language;
+        return $meta;
     }
 
     /**
@@ -1068,7 +1077,6 @@ class Parser
         }
 
         return TRUE;
-
     }
 
     /**

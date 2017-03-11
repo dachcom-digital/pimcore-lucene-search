@@ -3,6 +3,7 @@
 #### Update from Version 1.3.x to Version 1.4
 - configuration: content crawl size added. check and update lucene configuration after updating
 - configuration: mime type restriction added. check and update lucene configuration after updating
+- new property added: `assigned_country`
 
 #### Update from Version 1.2.x to Version 1.3
 - only works with pimcore build > 3987 because of document meta tags (see #23).
