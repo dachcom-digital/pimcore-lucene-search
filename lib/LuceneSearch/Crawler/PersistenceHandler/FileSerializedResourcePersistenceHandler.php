@@ -24,7 +24,7 @@ class FileSerializedResourcePersistenceHandler extends FilePersistenceHandler im
             $path .= $this->defaultFilename;
         } else {
             $pathFragments = explode('/', $path);
-            if (count($pathFragments) > 1 && strpos(end($pathFragments), '.') === FALSE) {
+            if (strpos(end($pathFragments), '.') === FALSE) {
                 $path .= '/' . $this->defaultFilename;
             }
         }
