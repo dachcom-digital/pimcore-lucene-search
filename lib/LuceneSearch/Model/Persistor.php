@@ -124,33 +124,23 @@ class Persistor
      */
     private function getKey($key)
     {
-
         $data = FALSE;
 
-        // Look in cache for key
         if ($this->options['cache'] === TRUE && array_key_exists($key, $this->data['cache'])) {
             return $this->data['cache'][$key];
         }
 
-        // Open file
         if (($fp = $this->openFile($this->data['file'], 'rb')) !== FALSE) {
 
-            // Lock file
             @flock($fp, LOCK_SH);
 
-            // Loop through each line of file
             while (($line = fgets($fp)) !== FALSE) {
 
-                // Remove new line character from end
                 $line = rtrim($line);
-
-                // Split up seperator
                 $pieces = explode('=', $line);
 
-                // Match found
                 if ($pieces[0] == $key) {
 
-                    // Put remaining pieces back together
                     if (count($pieces) > 2) {
                         array_shift($pieces);
                         $data = implode('=', $pieces);
@@ -158,13 +148,10 @@ class Persistor
                         $data = $pieces[1];
                     }
 
-                    // Unserialize data
                     $data = unserialize($data);
 
-                    // Preserve new lines
                     $data = $this->preserveLines($data, TRUE);
 
-                    // Save to cache
                     if ($this->options['cache'] === TRUE) {
                         $this->data['cache'][$key] = $data;
                     }
@@ -173,7 +160,6 @@ class Persistor
                 }
             }
 
-            // Unlock and close file
             @flock($fp, LOCK_UN);
             @fclose($fp);
         } else {
@@ -194,7 +180,7 @@ class Persistor
     {
         $swap = TRUE;
         $contents = '';
-        $orig_data = NULL;
+        $origData = NULL;
 
         if ($this->options['swap_memory_limit'] > 0) {
             clearstatcache();
@@ -206,11 +192,10 @@ class Persistor
         if ($data !== FALSE) {
 
             if ($this->options['cache'] === TRUE) {
-                $orig_data = $data;
+                $origData = $data;
             }
 
             $data = $this->preserveLines($data, FALSE);
-
             $data = serialize($data);
         }
 
@@ -229,7 +214,6 @@ class Persistor
             while (($line = fgets($fp)) !== FALSE) {
 
                 $pieces = explode('=', $line);
-
                 if ($pieces[0] == $key) {
 
                     if ($data === FALSE) {
@@ -239,19 +223,18 @@ class Persistor
                     $line = $key . '=' . $data . "\n";
 
                     if ($this->options['cache'] === TRUE) {
-                        $this->data['cache'][$key] = $orig_data;
+                        $this->data['cache'][$key] = $origData;
                     }
                 }
 
                 if ($swap) {
 
                     $fwrite = @fwrite($tp, $line);
-
                     if ($fwrite === FALSE) {
                         throw new \Exception('Could not write to temporary database ' . $this->db);
                     }
-                } else {
 
+                } else {
                     $contents .= $line;
                 }
             }
@@ -278,9 +261,7 @@ class Persistor
                 if (($fp = $this->openFile($this->data['file'], 'wb')) !== FALSE) {
 
                     @flock($fp, LOCK_EX);
-                    // Write contents
                     $fwrite = @fwrite($fp, $contents);
-
                     @flock($fp, LOCK_UN);
                     @fclose($fp);
 
@@ -313,14 +294,13 @@ class Persistor
             return $this->replaceKey($key, $data);
         }
 
-        $orig_data = NULL;
+        $origData = NULL;
 
         if ($this->options['cache'] === TRUE) {
-            $orig_data = $data;
+            $origData = $data;
         }
 
         $data = $this->preserveLines($data, FALSE);
-
         $data = serialize($data);
 
         if (($fp = $this->openFile($this->data['file'], 'ab')) !== FALSE) {
@@ -329,9 +309,7 @@ class Persistor
 
             // Set line, we don't use PHP_EOL to keep it cross-platform compatible
             $line = $key . '=' . $data . "\n";
-
             $fwrite = @fwrite($fp, $line);
-
             @flock($fp, LOCK_UN);
             @fclose($fp);
 
@@ -340,7 +318,7 @@ class Persistor
             }
 
             if ($this->options['cache'] === TRUE) {
-                $this->data['cache'][$key] = $orig_data;
+                $this->data['cache'][$key] = $origData;
             }
         } else {
             throw new \Exception('Could not open database ' . $this->db);
@@ -391,7 +369,6 @@ class Persistor
 
     private function preserveLines($data, $reverse)
     {
-
         if ($reverse) {
             $from = ["\\n", "\\r"];
             $to = ["\n", "\r"];
@@ -504,5 +481,4 @@ class Persistor
 
         return $this->flushDatabase();
     }
-
 }
