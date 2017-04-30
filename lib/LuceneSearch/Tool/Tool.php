@@ -4,5 +4,4 @@ namespace LuceneSearch\Tool;
 
 class Tool
 {
-
 }

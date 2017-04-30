@@ -4,22 +4,19 @@ namespace LuceneSearch\Model;
 
 use LuceneSearch\Plugin;
 use LuceneSearch\Crawler\Listener;
-use LuceneSearch\Crawler\Filter\NegativeUriFilter;
-use LuceneSearch\Crawler\Filter\MaxContentSizeFilter;
-use LuceneSearch\Crawler\Filter\MimeTypeFilter;
-
+use LuceneSearch\Crawler\Filter\Discovery;
+use LuceneSearch\Crawler\Filter\PostFetch;
+use LuceneSearch\Crawler\Event\Logger;
+use LuceneSearch\Crawler\Event\Statistics;
 use LuceneSearch\Crawler\PersistenceHandler;
 
 use VDB\Spider\Spider;
-use VDB\Spider\StatsHandler;
 use VDB\Spider\QueueManager;
 use VDB\Spider\Filter;
 use VDB\Spider\Event\SpiderEvents;
 use VDB\Spider\Discoverer\XPathExpressionDiscoverer;
 use VDB\Spider\EventListener\PolitenessPolicyListener;
 use GuzzleHttp\Middleware;
-
-use Symfony\Component\EventDispatcher\Event;
 
 class Parser
 {
@@ -42,6 +39,11 @@ class Parser
      * @var string[]
      */
     protected $invalidLinkRegexes;
+
+    /**
+     * @var \LuceneSearch\Model\Logger\Engine
+     */
+    protected $logEngine;
 
     /**
      * Set max crawl content size (MB)
@@ -140,10 +142,13 @@ class Parser
     Protected $authPassword = NULL;
 
     /**
+     * @param \LuceneSearch\Model\Logger\Engine $logEngine
      * Parser constructor.
      */
-    public function __construct()
+    public function __construct($logEngine)
     {
+        $this->logEngine = $logEngine;
+
         $this->checkAndPrepareIndex();
     }
 
@@ -378,31 +383,32 @@ class Parser
     }
 
     /**
-     * Start Parsing Urls!
+     * @return bool
+     * @throws \Exception
      */
     public function startParser()
     {
-        $start = microtime();
+        $start = microtime(TRUE);
 
         try {
             $spider = new Spider($this->seed);
         } catch (\Exception $e) {
 
-            $this->log('Error: ' . $e->getMessage(), 'error');
+            $this->log('[crawler] error: ' . $e->getMessage(), 'error');
 
-            return;
+            return FALSE;
         }
 
         if ($this->downloadLimit > 0) {
             $spider->getDownloader()->setDownloadLimit($this->downloadLimit);
         }
 
-        $statsHandler = new StatsHandler();
-        $LogHandler = new Logger(\Pimcore::inDebugMode());
+        $statsHandler = new Statistics();
+        $logHandler = new Logger(\Pimcore::inDebugMode(), $this->logEngine);
         $queueManager = new QueueManager\InMemoryQueueManager();
 
         $queueManager->getDispatcher()->addSubscriber($statsHandler);
-        $queueManager->getDispatcher()->addSubscriber($LogHandler);
+        $queueManager->getDispatcher()->addSubscriber($logHandler);
 
         $spider->getDiscovererSet()->maxDepth = $this->maxLinkDepth;
 
@@ -417,19 +423,16 @@ class Parser
         $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriWithHashFragmentFilter());
         $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriWithQueryStringFilter());
 
-        $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriFilter($this->invalidLinkRegexes));
-        $spider->getDiscovererSet()->addFilter(new NegativeUriFilter($this->validLinkRegexes));
+        $spider->getDiscovererSet()->addFilter(new Discovery\UriFilter($this->invalidLinkRegexes, $spider->getDispatcher()));
+        $spider->getDiscovererSet()->addFilter(new Discovery\NegativeUriFilter($this->validLinkRegexes, $spider->getDispatcher()));
 
-        $spider->getDispatcher()->addSubscriber($statsHandler);
-        $spider->getDispatcher()->addSubscriber($LogHandler);
-
-        $spider->getDownloader()->addPostFetchFilter(new MaxContentSizeFilter($this->contentMaxSize));
-        $spider->getDownloader()->addPostFetchFilter(new MimeTypeFilter($this->validMimeTypes));
+        $spider->getDownloader()->addPostFetchFilter(new PostFetch\MaxContentSizeFilter($this->contentMaxSize));
+        $spider->getDownloader()->addPostFetchFilter(new PostFetch\MimeTypeFilter($this->validMimeTypes));
 
         $persistencePath = PIMCORE_SYSTEM_TEMP_DIRECTORY . '/ls-crawler-tmp';
         $spider->getDownloader()->setPersistenceHandler(new PersistenceHandler\FileSerializedResourcePersistenceHandler($persistencePath));
 
-        $politenessPolicyEventListener = new PolitenessPolicyListener(20); //CHANGE TO 100 !!!!
+        $politenessPolicyEventListener = new PolitenessPolicyListener(20);
         $spider->getDownloader()->getDispatcher()->addListener(
             SpiderEvents::SPIDER_CRAWL_PRE_REQUEST,
             [$politenessPolicyEventListener, 'onCrawlPreRequest']
@@ -437,24 +440,20 @@ class Parser
 
         $abortListener = new Listener\Abort($spider);
         $spider->getDownloader()->getDispatcher()->addListener(
-
             SpiderEvents::SPIDER_CRAWL_PRE_REQUEST,
             [$abortListener, 'checkCrawlerState']
-
         );
+
+        $spider->getDownloader()->getDispatcher()->addSubscriber($logHandler);
+
+        $spider->getDispatcher()->addSubscriber($statsHandler);
+        $spider->getDispatcher()->addSubscriber($logHandler);
 
         $spider->getDispatcher()->addListener(
 
             SpiderEvents::SPIDER_CRAWL_USER_STOPPED,
             [$abortListener, 'stopCrawler']
 
-        );
-
-        $spider->getDownloader()->getDispatcher()->addListener(
-            SpiderEvents::SPIDER_CRAWL_POST_REQUEST,
-            function (Event $event) {
-                //echo 'crawling: ' . $event->getArgument('uri')->toString() . "\n";
-            }
         );
 
         $guzzleClient = $spider->getDownloader()->getRequestHandler()->getClient();
@@ -481,34 +480,38 @@ class Parser
         try {
             $spider->crawl();
         } catch (\Exception $e) {
-            $this->log('Crawl Error: ' . $e->getMessage(), 'error');
+            $this->log('[crawler] ' . $e->getMessage(), 'error');
             throw new \Exception($e->getMessage());
         }
 
-        $this->log('[Crawler] Spider Id: ' . $statsHandler->getSpiderId(), 'debug');
-        $this->log('[Crawler] Enqueued Links: ' . count($statsHandler->getQueued()), 'debug');
-        $this->log('[Crawler] Skipped Links: ' . count($statsHandler->getFiltered()), 'debug');
-        $this->log('[Crawler] Failed Links: ' . count($statsHandler->getFailed()), 'debug');
-        $this->log('[Crawler] Persisted Links: ' . count($statsHandler->getPersisted()), 'debug');
+        $this->log('[crawler] Enqueued Links: ' . $statsHandler->getQueued(), 'debug');
+        $this->log('[crawler] Skipped Links: ' . $statsHandler->getFiltered(), 'debug');
+        $this->log('[crawler] Failed Links: ' . $statsHandler->getFailed(), 'debug');
+        $this->log('[crawler] Persisted Links: ' . $statsHandler->getPersisted(), 'debug');
 
         $peakMem = round(memory_get_peak_usage(TRUE) / 1024 / 1024, 2);
-        $totalTime = round(microtime(TRUE) - $start, 2);
         $totalDelay = round($politenessPolicyEventListener->totalDelay / 1000 / 1000, 2);
 
-        $this->log('[Crawler] Memory Peak Usage:' . $peakMem . 'Mb', 'debug');
-        $this->log('[Crawler] Total Time: ' . ($totalTime / 60) . ' Minutes', 'debug');
-        $this->log('[Crawler] Politeness Wait Time: ' . $totalDelay . 'Seconds', 'debug');
+        $totalTime = microtime(TRUE) - $start;
+        $totalTime = number_format((float)$totalTime, 3, '.', '');
+        $minutes = str_pad(floor($totalTime / 60), 2, '0', STR_PAD_LEFT);
+        $seconds = str_pad($totalTime % 60, 2, '0', STR_PAD_LEFT);
+
+        $this->log('[crawler] Memory Peak Usage:' . $peakMem . 'Mb', 'debug');
+        $this->log('[crawler] Total Time: ' . $minutes . ':' . $seconds, 'debug');
+        $this->log('[crawler] Politeness Wait Time: ' . $totalDelay . ' seconds', 'debug');
 
         //parse all resources!
         /** @var \VDB\Spider\Resource $resource */
         foreach ($spider->getDownloader()->getPersistenceHandler() as $resource) {
             if ($resource instanceof \VDB\Spider\Resource) {
-                $this->log('Parse Response: ' . $resource->getUri()->toString(), 'debug', FALSE);
                 $this->parseResponse($resource);
             } else {
-                $this->log('Crawler resource not a instance of \VDB\Spider\Resource. Given type: ' . gettype($resource), 'notice');
+                $this->log('[crawler] crawler resource not a instance of \VDB\Spider\Resource. Given type: ' . gettype($resource), 'notice');
             }
         }
+
+        return TRUE;
     }
 
     /**
@@ -530,10 +533,10 @@ class Parser
             } else if ($mimeType == 'application/pdf') {
                 $this->parsePdf($uri, $resource, $host);
             } else {
-                $this->log('Cannot parse mime type [ ' . $mimeType . ' ] provided by uri [ ' . $uri . ' ]', 'debug');
+                $this->log('[resource] cannot parse mime type [ ' . $mimeType . ' ] provided by uri [ ' . $uri . ' ]', 'debug');
             }
         } else {
-            $this->log('Could not determine content type of [ ' . $uri . ' ]', 'debug');
+            $this->log('[resource] could not determine content type of [ ' . $uri . ' ]', 'debug');
         }
     }
 
@@ -562,7 +565,7 @@ class Parser
         $hasCanonicalLink = $crawler->filterXpath('//link[@rel="canonical"]')->count() > 0;
 
         if ($hasCanonicalLink === TRUE) {
-            $this->log('Not indexing [ ' . $link . ' ] because it has canonical links');
+            $this->log('[parser] skip indexing [ ' . $link . ' ] because it has canonical links');
 
             return FALSE;
         }
@@ -571,7 +574,7 @@ class Parser
         $hasNoFollow = $crawler->filterXpath('//meta[@content="nofollow"]')->count() > 0;
 
         if ($hasNoFollow === TRUE) {
-            $this->log('Not indexing [ ' . $link . ' ] because it has robots noindex');
+            $this->log('[parser] skip indexing [ ' . $link . ' ] because it has a nofollow tag');
 
             return FALSE;
         }
@@ -648,7 +651,7 @@ class Parser
 
         $this->addHtmlToIndex($html, $title, $description, $link, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost);
 
-        $this->log('Added html to indexer stack: ' . $link);
+        $this->log('[parser] added html to indexer stack: ' . $link);
 
         return TRUE;
     }
@@ -662,9 +665,10 @@ class Parser
      */
     private function parsePdf($link, $resource, $host)
     {
-        $this->log('Added pdf to indexer stack: ' . $link);
+        $this->log('[parser] added pdf to indexer stack: ' . $link);
 
         $metaData = $this->getMetaDataFromAsset($link);
+
         return $this->addPdfToIndex($resource, $metaData['language'], $metaData['country'], $host);
     }
 
@@ -703,7 +707,7 @@ class Parser
             $cmd = $verboseCommand . $tmpPdfFile . ' ' . $tmpFile;
             exec($pdfToTextBin . ' ' . $cmd);
         } catch (\Exception $e) {
-            $this->log($e->getMessage());
+            $this->log('[parser] ' . $e->getMessage());
         }
 
         $uri = $resource->getUri()->toString();
@@ -733,7 +737,7 @@ class Parser
                 //no add document to lucene index!
                 $this->addDocumentToIndex($doc);
             } catch (\Exception $e) {
-                $this->log($e->getMessage());
+                $this->log('[parser] ' . $e->getMessage());
             }
 
             @unlink($tmpFile);
@@ -822,7 +826,7 @@ class Parser
             //no add document to lucene index!
             $this->addDocumentToIndex($doc);
         } catch (\Exception $e) {
-            $this->log($e->getMessage());
+            $this->log('[lucene] ' . $e->getMessage());
         }
     }
 
@@ -833,9 +837,8 @@ class Parser
     {
         if ($doc instanceof \Zend_Search_Lucene_Document) {
             $this->index->addDocument($doc);
-            $this->log('Added to lucene index db entry', 'debug', FALSE);
         } else {
-            $this->log('Could not parse lucene document', 'error');
+            $this->log('[lucene] could not parse lucene document', 'error');
         }
     }
 
@@ -1044,13 +1047,13 @@ class Parser
             //switch to tmpIndex
             $indexDir = str_replace('/index', '/tmpindex', $indexDir);
 
+            //always create new tmp index.
             try {
                 \Zend_Search_Lucene_Analysis_Analyzer::setDefault(new \Zend_Search_Lucene_Analysis_Analyzer_Common_Utf8Num_CaseInsensitive());
-                $this->index = \Zend_Search_Lucene::open($indexDir);
-            } catch (\Exception $e) {
-                $this->log('could not open frontend index, creating new one.', 'debug', FALSE);
                 \Zend_Search_Lucene::create($indexDir);
                 $this->index = \Zend_Search_Lucene::open($indexDir);
+            } catch (\Exception $e) {
+                $this->log('[lucene] ' . $e->getMessage(), 'debug', FALSE);
             }
         }
     }
@@ -1064,19 +1067,7 @@ class Parser
      */
     protected function log($message = '', $level = 'debug', $addToBackendLog = TRUE)
     {
-        \Pimcore\Logger::log('LuceneSearch: ' . $message, $level);
-
-        if ($addToBackendLog === TRUE) {
-            $file = PIMCORE_WEBSITE_VAR . '/search/log.txt';
-            $current = '';
-            if (file_exists($file)) {
-                $current = file_get_contents($file);
-            }
-            $current .= date('d.m.Y H:i') . '|' . $level . '|' . $message . "\n";
-            file_put_contents($file, $current);
-        }
-
-        return TRUE;
+        return $this->logEngine->log($message, $level, $addToBackendLog);
     }
 
     /**
@@ -1091,9 +1082,9 @@ class Parser
         if (is_object($this->index) and $this->index instanceof \Zend_Search_Lucene_Proxy) {
             $this->index->removeReference();
             unset($this->index);
-            $this->log('Closed frontend index references', 'debug', FALSE);
+            $this->log('[lucene] ' . 'closed frontend index references', 'debug', FALSE);
         }
 
-        $this->log('Optimize Lucene Index', 'debug', FALSE);
+        $this->log('[lucene] ' . 'optimize lucene index', 'debug', FALSE);
     }
 }

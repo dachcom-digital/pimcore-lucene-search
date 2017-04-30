@@ -1,5 +1,5 @@
 <?php
-namespace LuceneSearch\Crawler\Filter;
+namespace LuceneSearch\Crawler\Filter\PostFetch;
 
 use VDB\Spider\Filter\PostFetchFilterInterface;
 use VDB\Spider\Resource;

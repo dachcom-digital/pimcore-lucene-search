@@ -5,17 +5,26 @@ namespace LuceneSearch\Tool;
 use LuceneSearch\Model\Configuration;
 use LuceneSearch\Model\Parser;
 use LuceneSearch\Model\SitemapBuilder;
+use LuceneSearch\Model\Logger\Engine;
 
 class Executer
 {
     /**
+     * @param $logEngine
+     * @param bool $force
+     *
      * @return bool
      * @throws \Exception
      */
-    public static function runCrawler()
+    public static function runCrawler(Engine $logEngine, $force = FALSE)
     {
         if (Configuration::getCoreSetting('running') === TRUE) {
-            return FALSE;
+
+            if($force === TRUE) {
+                self::setCrawlerState('frontend', 'finished', FALSE);
+            } else {
+                return FALSE;
+            }
         }
 
         $indexDir = \LuceneSearch\Plugin::getFrontendSearchIndex();
@@ -25,30 +34,30 @@ class Executer
 
             try {
                 $urls = Configuration::get('frontend.urls');
-                $invalidLinkRegexesSystem = Configuration::get('frontend.invalidLinkRegexes');
-                $invalidLinkRegexesEditable = Configuration::get('frontend.invalidLinkRegexesEditable');
+                $invalidLinkRegexSystem = Configuration::get('frontend.invalidLinkRegexes');
+                $invalidLinkRegexEditable = Configuration::get('frontend.invalidLinkRegexesEditable');
 
-                if (!empty($invalidLinkRegexesEditable) && !empty($invalidLinkRegexesSystem)) {
-                    $invalidLinkRegexes = array_merge($invalidLinkRegexesEditable, [$invalidLinkRegexesSystem]);
-                } else if (!empty($invalidLinkRegexesEditable)) {
-                    $invalidLinkRegexes = $invalidLinkRegexesEditable;
-                } else if (!empty($invalidLinkRegexesSystem)) {
-                    $invalidLinkRegexes = [$invalidLinkRegexesSystem];
+                if (!empty($invalidLinkRegexEditable) && !empty($invalidLinkRegexSystem)) {
+                    $invalidLinkRegex = array_merge($invalidLinkRegexEditable, [$invalidLinkRegexSystem]);
+                } else if (!empty($invalidLinkRegexEditable)) {
+                    $invalidLinkRegex = $invalidLinkRegexEditable;
+                } else if (!empty($invalidLinkRegexSystem)) {
+                    $invalidLinkRegex = [$invalidLinkRegexSystem];
                 } else {
-                    $invalidLinkRegexes = [];
+                    $invalidLinkRegex = [];
                 }
 
                 self::setCrawlerState('frontend', 'started', TRUE);
 
                 try {
                     foreach ($urls as $seed) {
-                        $parser = new Parser();
 
+                        $parser = new Parser($logEngine);
                         $parser
                             ->setDepth(Configuration::get('frontend.crawler.maxLinkDepth'))
                             ->setValidLinkRegexes(Configuration::get('frontend.validLinkRegexes'))
                             ->setContentMaxSize(Configuration::get('frontend.crawler.contentMaxSize'))
-                            ->setInvalidLinkRegexes($invalidLinkRegexes)
+                            ->setInvalidLinkRegexes($invalidLinkRegex)
                             ->setSearchStartIndicator(Configuration::get('frontend.crawler.contentStartIndicator'))
                             ->setSearchEndIndicator(Configuration::get('frontend.crawler.contentEndIndicator'))
                             ->setSearchExcludeStartIndicator(Configuration::get('frontend.crawler.contentExcludeStartIndicator'))
@@ -67,6 +76,7 @@ class Executer
 
                         $parser->startParser();
                         $parser->optimizeIndex();
+
                     }
                 } catch (\Exception $e) {
                 }
@@ -187,6 +197,11 @@ class Executer
         //remove lucene search index tmp folder
         \Pimcore\Logger::debug('LuceneSearch: drop table lucene_search_index');
 
+        //remove old log
+        if (file_exists(PIMCORE_TEMPORARY_DIRECTORY . '/lucene-filter.tmp')) {
+            unlink(PIMCORE_TEMPORARY_DIRECTORY . '/lucene-filter.tmp');
+        }
+
         if (is_dir($tmpIndex)) {
             exec('rm -Rf ' . $indexDir);
             exec('cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
@@ -194,7 +209,7 @@ class Executer
             \Pimcore\Logger::debug('LuceneSearch: rm -Rf ' . $indexDir);
             \Pimcore\Logger::debug('LuceneSearch: cp -R ' . substr($tmpIndex, 0, -1) . ' ' . substr($indexDir, 0, -1));
             \Pimcore\Logger::debug('LuceneSearch: replaced old index');
-            \Pimcore\Logger::info('LuceneSearch: Finished crawl');
+            \Pimcore\Logger::debug('LuceneSearch: Finished crawl');
         } else {
             \Pimcore\Logger::error('LuceneSearch: skipped index replacing. no tmp index found.');
         }

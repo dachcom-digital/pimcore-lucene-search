@@ -214,11 +214,11 @@ class Configuration extends Model\AbstractModel
             $config = \Zend_Registry::get('lucenesearch_plugin_config');
         } else {
             try {
-                $config = new \Zend_Config_Xml(LUCENESEARCH__PLUGIN_CONFIG);
+                $config = new \Zend_Config_Xml(LUCENESEARCH_PLUGIN_CONFIG);
                 self::setPluginConfig($config);
             } catch (\Exception $e) {
-                if (is_file(LUCENESEARCH__PLUGIN_CONFIG)) {
-                    $m = 'Your plugin_xml.xml located at ' . LUCENESEARCH__PLUGIN_CONFIG . ' is invalid, please check and correct it manually!';
+                if (is_file(LUCENESEARCH_PLUGIN_CONFIG)) {
+                    $m = 'Your plugin_xml.xml located at ' . LUCENESEARCH_PLUGIN_CONFIG . ' is invalid, please check and correct it manually!';
                     Tool::exitWithError($m);
                 }
             }

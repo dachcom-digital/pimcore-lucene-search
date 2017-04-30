@@ -6,6 +6,7 @@ use Pimcore\API\Plugin as PluginLib;
 
 use LuceneSearch\Plugin\Install;
 use LuceneSearch\Model\Configuration;
+use LuceneSearch\Model\Logger\Engine;
 
 class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterface
 {
@@ -23,7 +24,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
      */
     public function __construct($jsPaths = NULL, $cssPaths = NULL, $alternateIndexDir = NULL)
     {
-        define('LUCENESEARCH__PLUGIN_CONFIG', PIMCORE_PLUGINS_PATH . '/LuceneSearch/plugin.xml');
+        define('LUCENESEARCH_PLUGIN_CONFIG', PIMCORE_PLUGINS_PATH . '/LuceneSearch/plugin.xml');
 
         parent::__construct($jsPaths, $cssPaths);
     }
@@ -294,7 +295,9 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
     public function frontendCrawl()
     {
         if (self::frontendConfigComplete()) {
-            Tool\Executer::runCrawler();
+
+            $logEngine = new Engine();
+            Tool\Executer::runCrawler($logEngine);
             Tool\Executer::generateSitemap();
         } else {
             \Pimcore\Logger::debug('LuceneSearch_Plugin: Did not start frontend crawler, because config incomplete');
