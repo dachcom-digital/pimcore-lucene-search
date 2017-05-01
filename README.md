@@ -44,7 +44,7 @@ $ php pimcore/cli/console.php lucenesearch:frontend:crawl crawl -f -v
 
 ### Logs
 You'll find some logs from the last crawl in your backend (at the bottom on the LuceneSearch settings page). Of course you'll also find some logs in your `website/var/log` folder.
-**Note:** please enable the debug mode in pimcore settings to get all type of logs.
+**Note:** please enable the debug mode in pimcore settings to get all types of logs.
 
 ### Document Restrictions
 If you want a seamless integration of protected document crawling, install our [member](https://github.com/dachcom-digital/pimcore-members) plugin.
