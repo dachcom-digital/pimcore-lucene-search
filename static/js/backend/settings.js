@@ -585,8 +585,14 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                 expand: Ext.emptyFn,
                                 forceSelection: false,
                                 createNewOnEnter: true,
+                                selectOnFocus: false,
                                 queryMode: 'local',
-                                componentCls: 'superselect-no-drop-down'
+                                componentCls: 'superselect-no-drop-down',
+                                listeners: {
+                                    afterrender: function(component) {
+                                        this.el.select('.x-tagfield-input').setStyle('display', 'block');
+                                    }
+                                }
 
                             },
                             {
@@ -608,8 +614,14 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                 expand: Ext.emptyFn,
                                 forceSelection: false,
                                 createNewOnEnter: true,
+                                selectOnFocus: false,
                                 queryMode: 'local',
-                                componentCls: 'superselect-no-drop-down'
+                                componentCls: 'superselect-no-drop-down',
+                                listeners: {
+                                    afterrender: function(component) {
+                                        this.el.select('.x-tagfield-input').setStyle('display', 'block');
+                                    }
+                                }
 
                             },
                             {
@@ -631,8 +643,14 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                 expand: Ext.emptyFn,
                                 forceSelection: false,
                                 createNewOnEnter: true,
+                                selectOnFocus: false,
                                 queryMode: 'local',
-                                componentCls: 'superselect-no-drop-down'
+                                componentCls: 'superselect-no-drop-down',
+                                listeners: {
+                                    afterrender: function(component) {
+                                        this.el.select('.x-tagfield-input').setStyle('display', 'block');
+                                    }
+                                }
                             },
                             {
                                 xtype:'displayfield',
@@ -653,8 +671,14 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                 expand: Ext.emptyFn,
                                 forceSelection: false,
                                 createNewOnEnter: true,
+                                selectOnFocus: false,
                                 queryMode: 'local',
-                                componentCls: 'superselect-no-drop-down'
+                                componentCls: 'superselect-no-drop-down',
+                                listeners: {
+                                    afterrender: function(component) {
+                                        this.el.select('.x-tagfield-input').setStyle('display', 'block');
+                                    }
+                                }
                             },
                             {
                                 xtype:'displayfield',
@@ -675,8 +699,14 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                 expand: Ext.emptyFn,
                                 forceSelection: false,
                                 createNewOnEnter: true,
+                                selectOnFocus: false,
                                 queryMode: 'local',
-                                componentCls: 'superselect-no-drop-down'
+                                componentCls: 'superselect-no-drop-down',
+                                listeners: {
+                                    afterrender: function(component) {
+                                        this.el.select('.x-tagfield-input').setStyle('display', 'block');
+                                    }
+                                }
                             },
                             {
                                 xtype:'displayfield',
