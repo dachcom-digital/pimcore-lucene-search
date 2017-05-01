@@ -5,7 +5,7 @@
     <pluginNiceName>LuceneSearch Search Module</pluginNiceName>
     <pluginIcon>/plugins/LuceneSearch/static/img/search-logo.png</pluginIcon>
     <pluginDescription>Search module for website with a php website crawler</pluginDescription>
-    <pluginVersion>1.4.0</pluginVersion>
+    <pluginVersion>1.4.1</pluginVersion>
     <pluginClassName>\LuceneSearch\Plugin</pluginClassName>
     <pluginIncludePaths>
       <path>/LuceneSearch/lib</path>
