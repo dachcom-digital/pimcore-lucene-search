@@ -1,6 +1,8 @@
 # Pimcore Lucene Search
 Pimcore 4.0 Website Search (powered by Zend Search Lucene)
 
+![lucenesearch crawler](https://cloud.githubusercontent.com/assets/700119/25579028/7da66f40-2e74-11e7-8da5-988d61feb2e2.jpg)
+
 ### Requirements
 * Pimcore 4.3
 
