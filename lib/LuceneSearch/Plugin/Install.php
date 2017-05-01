@@ -171,6 +171,9 @@ class Install
         return TRUE;
     }
 
+    /**
+     * rename configuration file
+     */
     public function removeConfig()
     {
         $configFile = \Pimcore\Config::locateConfigFile('lucenesearch_configurations');

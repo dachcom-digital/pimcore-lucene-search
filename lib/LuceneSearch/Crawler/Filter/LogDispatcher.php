@@ -8,6 +8,9 @@ use Symfony\Component\EventDispatcher\GenericEvent;
 
 trait LogDispatcher {
 
+    /**
+     * @var array
+     */
     public $filtered = [];
 
     /***

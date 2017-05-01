@@ -21,9 +21,7 @@ class SitemapBuilder
      */
     public function __construct()
     {
-
         $indexDir = Plugin::getFrontendSearchIndex();
-
         $this->index = \Zend_Search_Lucene::open($indexDir);
     }
 

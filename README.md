@@ -6,10 +6,7 @@ Pimcore 4.0 Website Search (powered by Zend Search Lucene)
 
 ## Installation
 **Handcrafted Installation**   
-1. Download Plugin  
-2. Rename it to `LuceneSearch`  
-3. Place it in your plugin directory  
-4. Activate & install it through backend 
+Because of additional dependencies you need install this plugin via composer.
 
 **Composer Installation**  
 1. Add code below to your `composer.json`    
@@ -17,7 +14,7 @@ Pimcore 4.0 Website Search (powered by Zend Search Lucene)
 
 ```json
 "require" : {
-    "dachcom-digital/lucene-search" : "1.1.1",
+    "dachcom-digital/lucene-search" : "1.4.0",
 }
 ```
 
@@ -26,6 +23,28 @@ Pimcore 4.0 Website Search (powered by Zend Search Lucene)
 * Auto Complete
 * Restricted Documents & Usergroups ([member](https://github.com/dachcom-digital/pimcore-members) plugin recommended but not required)
 * Authenticated Crawling
+
+### Usage
+
+**Default**  
+The crawler Engine will start automatically every night by default. Please check that the pimcore default maintenance script is properly installed.
+
+**Command Line Command**  
+If you want to start the crawler manually, use this command:
+
+```
+$ php pimcore/cli/console.php lucenesearch:frontend:crawl crawl -f -v
+```
+
+| command | short command | type | description |
+|:---|:---|:---|:---|
+| ```force``` | `-f` | force crawler start | sometimes the crawler stuck because of a critical error mostly triggered because of wrong configuration. use this command to force a restart |
+| ```verbose``` | `-v` | show some logs | good for debugging. you'll get some additional information about filtered and forbidden links while crawling. |
+
+
+### Logs
+You'll find some logs from the last crawl in your backend (at the bottom on the LuceneSearch settings page). Of course you'll also find some logs in your `website/var/log` folder.
+**Note:** please enable the debug mode in pimcore settings to get all type of logs.
 
 ### Document Restrictions
 If you want a seamless integration of protected document crawling, install our [member](https://github.com/dachcom-digital/pimcore-members) plugin.
@@ -57,7 +76,7 @@ If you add some additional countries afterwards, you need to add this country to
 
 ```php
 //viewScript = the template file in your website structure.
-$this->action('find', 'frontend', 'LuceneSearch', array('viewScript' => 'frontend/find.php')); ?>
+$this->action('find', 'frontend', 'LuceneSearch', array('viewScript' => 'frontend/find.php'));
 ```
 
 You'll find the `frontend/find.php` Template in `LuceneSearch/views/scripts/`. If you want to change the markup, just copy the template into your website script folder and change the `viewScript` parameter.

@@ -25,6 +25,14 @@ class Persistor
         'swap_memory_limit' => 1048576
     ];
 
+    /**
+     * Persistor constructor.
+     *
+     * @param       $database
+     * @param array $options
+     *
+     * @throws \Exception
+     */
     public function __construct($database, $options = [])
     {
         if (!preg_match('/^([A-Za-z0-9_-]+)$/', $database)) {
@@ -351,6 +359,10 @@ class Persistor
         return FALSE;
     }
 
+    /**
+     * @return bool
+     * @throws \Exception
+     */
     private function flushDatabase()
     {
         if (($fp = $this->openFile($this->data['file'], 'wb')) !== FALSE) {
@@ -367,6 +379,12 @@ class Persistor
         return TRUE;
     }
 
+    /**
+     * @param $data
+     * @param $reverse
+     *
+     * @return array|mixed
+     */
     private function preserveLines($data, $reverse)
     {
         if ($reverse) {
@@ -388,6 +406,12 @@ class Persistor
         return $data;
     }
 
+    /**
+     * @param $key
+     *
+     * @return bool
+     * @throws \Exception
+     */
     private function isValidKey($key)
     {
         $len = strlen($key);
@@ -407,6 +431,12 @@ class Persistor
         return TRUE;
     }
 
+    /**
+     * @param $data
+     *
+     * @return bool
+     * @throws \Exception
+     */
     private function isValidData($data)
     {
         if (!is_string($data) && !is_int($data) && !is_float($data) && !is_array($data)) {

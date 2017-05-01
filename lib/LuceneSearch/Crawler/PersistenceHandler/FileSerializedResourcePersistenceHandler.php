@@ -32,6 +32,9 @@ class FileSerializedResourcePersistenceHandler extends FilePersistenceHandler im
         return $path;
     }
 
+    /**
+     * @param Resource $resource
+     */
     public function persist(Resource $resource)
     {
         $path = rtrim($this->getResultPath() . $this->getFileSystemPath($resource), '/');

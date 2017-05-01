@@ -7,6 +7,9 @@ use VDB\Spider\Event\SpiderEvents;
 
 class Abort
 {
+    /**
+     * @var null
+     */
     var $spider = NULL;
 
     /**
