@@ -561,13 +561,15 @@ class Parser
         $filter = new \Zend_Filter_Word_UnderscoreToDash();
         $language = strtolower($filter->filter($language));
 
-        //page has canonical link: do not track!
+        //page has canonical link: do not track if this is not the canonical document
         $hasCanonicalLink = $crawler->filterXpath('//link[@rel="canonical"]')->count() > 0;
 
         if ($hasCanonicalLink === TRUE) {
-            $this->log('[parser] skip indexing [ ' . $link . ' ] because it has canonical links');
+            if($link != $crawler->filterXpath('//link[@rel="canonical"]')->attr('href')){
+                $this->log('[parser] skip indexing [ ' . $link . ' ] because it has canonical link '.$crawler->filterXpath('//link[@rel="canonical"]')->attr('href').'');
 
-            return FALSE;
+                return FALSE;
+            }
         }
 
         //page has no follow: do not track!
