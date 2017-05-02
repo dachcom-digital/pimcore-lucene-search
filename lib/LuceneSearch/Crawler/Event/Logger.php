@@ -63,7 +63,8 @@ class Logger implements EventSubscriberInterface
      */
     public function logFiltered(GenericEvent $event)
     {
-        $name = $event->getArgument('filterType') . '.filtered';
+        $filterType = $event->hasArgument('filterType') ? $event->getArgument('filterType') . '.' : '';
+        $name = $filterType . 'filtered';
         $this->logEvent($name, $event);
     }
 
