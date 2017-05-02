@@ -8,7 +8,7 @@ Pimcore 4.0 Website Search (powered by Zend Search Lucene)
 
 ## Installation
 **Handcrafted Installation**   
-Because of additional dependencies you need install this plugin via composer.
+Because of additional dependencies you need to install this plugin via composer.
 
 **Composer Installation**  
 1. Add code below to your `composer.json`    
