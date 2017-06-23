@@ -1,19 +1,32 @@
 {
     "name": "dachcom-digital/lucene-search",
-    "type": "pimcore-plugin",
+    "type": "pimcore-bundle",
     "license": "GPL-3.0+",
-    "description": "Pimcore 4.x Website Indexer (powered by Zend Search Lucene)",
+    "description": "Pimcore 5.x Website Indexer (powered by Zend Search Lucene)",
     "keywords": ["pimcore", "search", "lucene"],
     "homepage": "https://github.com/dachcom-digital/pimcore-lucene-search",
     "authors": [
         {
-            "name": "Stefan Hagspiel",
-            "homepage": "http://www.dachcom-digital.ch",
+            "name": "DACHCOM.DIGITAL Stefan Hagspiel",
+            "email": "shagspiel@dachcom.ch",
+            "homepage": "http://www.dachcom.com/",
             "role": "Developer"
         }
     ],
+    "autoload": {
+        "psr-4": {
+            "LuceneSearchBundle\\": "src/"
+        }
+    },
+
+    "extra": {
+        "pimcore": {
+            "bundles": [
+                "LuceneSearchBundle\\LuceneSearchBundle"
+            ]
+        }
+    },
     "require": {
-        "pimcore/installer-plugin": "~1.5.0",
         "vdb/php-spider": "0.3"
     }
 }

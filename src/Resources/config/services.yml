@@ -1,0 +1,53 @@
+services:
+
+    # luceneSearch Installer
+    lucene_search.installer:
+        class: LuceneSearchBundle\Tool\Install
+        arguments: ['@logger']
+        tags:
+            - { name: monolog.logger }
+
+    # luceneSearch config manager
+    lucene_search.config_manager:
+        class: LuceneSearchBundle\Config\ConfigManager
+        arguments: []
+        public: false
+
+    lucene_search.logger.engine:
+        class: LuceneSearchBundle\Logger\Engine
+
+    # Processor
+    lucene_search.processor:
+        class: LuceneSearchBundle\Processor\Processor
+        arguments:
+            - '@lucene_search.config_manager'
+            - '@lucene_search.logger.engine'
+            - '@lucene_search.organizer.handler_dispatcher'
+
+    # Processor Organizer
+    lucene_search.organizer.handler_dispatcher:
+        class: LuceneSearchBundle\Processor\Organizer\Dispatcher\HandlerDispatcher
+        arguments:
+            - '@lucene_search.organizer.state_handler'
+            - '@lucene_search.organizer.store_handler'
+
+    lucene_search.organizer.abstract_handler:
+        class: LuceneSearchBundle\Processor\Organizer\Handler\AbstractHandler
+        abstract: true
+        arguments:
+            - '@lucene_search.config_manager'
+
+    lucene_search.organizer.state_handler:
+        parent: lucene_search.organizer.abstract_handler
+        class: LuceneSearchBundle\Processor\Organizer\Handler\StateHandler
+
+    lucene_search.organizer.store_handler:
+        parent: lucene_search.organizer.abstract_handler
+        class: LuceneSearchBundle\Processor\Organizer\Handler\StoreHandler
+
+     # Event Listener
+    lucene_search.event_listener.maintenance:
+        class: LuceneSearchBundle\EventListener\CrawlListener
+        arguments: ['@lucene_search.config_manager', '@lucene_search.processor']
+        tags:
+            - { name: kernel.event_listener, event: pimcore.system.maintenance, method: run }

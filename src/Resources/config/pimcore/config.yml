@@ -1,0 +1,48 @@
+lucene_search:
+
+    enabled: false
+    fuzzy_search: false
+    own_host_only: false
+
+    # frontend.urls
+    seeds: []
+    categories: []
+
+    # validLinkRegexes
+    filter:valid_links: []
+
+    # invalidLinkRegexesEditable
+    filter:user_invalid_links: []
+
+    # invalidLinkRegexes
+    filter:core_invalid_links: '@.*\.(js|JS|gif|GIF|jpg|JPG|png|PNG|ico|ICO|eps|jpeg|JPEG|bmp|BMP|css|CSS|sit|wmf|zip|ppt|mpg|xls|gz|rpm|tgz|mov|MOV|exe|mp3|MP3|kmz|gpx|kml|swf|SWF)$@'
+
+    allowed_mime_types: ['text/html', 'application/pdf']
+    allowed_schemes: ['http']
+
+    crawler:max_link_depth: 15
+    crawler:max_download_limit: 0
+    crawler:content_max_size: 0
+    crawler:content_start_indicator: ~
+    crawler:content_end_indicator: ~
+    crawler:content_exclude_start_indicator: ~
+    crawler:content_exclude_end_indicator: ~
+
+    sitemap:render: false
+
+    locale:ignore_language: false
+    locale:ignore_country: true
+
+    restriction:ignore: true
+    restriction:class: ~
+    restriction:method: ~
+
+    auth:use_auth: false
+    auth:username: ~
+    auth:password: ~
+
+    boost:documents: 1
+    boost:assets: 1
+
+    view:max_per_page: 10
+    view:max_suggestions: 10
