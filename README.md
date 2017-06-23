@@ -13,10 +13,10 @@ To enable LuceneSearch, add those lines to your `AppBundle/Resources/config/pimc
     
 ```yaml
 lucene_search:
-    enabled: false
+    enabled: true
 ```
 
-You need to add add the config parameter to your config.yml to override the default values. 
+You need to add the config parameter to your config.yml to override the default values. 
 Execute this command to get some information about all the config elements of LuceneSearch:
 
 ```bash

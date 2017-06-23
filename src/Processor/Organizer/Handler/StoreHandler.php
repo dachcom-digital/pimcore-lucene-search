@@ -112,7 +112,6 @@ class StoreHandler extends AbstractHandler
                 $this->removeFolder($file, $pattern);
                 rmdir($file);
             } else if (is_file($file) and ($file != __FILE__)) {
-                // make sure you don't delete the current script
                 unlink($file);
             }
         }

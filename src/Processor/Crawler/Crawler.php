@@ -459,7 +459,7 @@ class Crawler
         $minutes = str_pad(floor($totalTime / 60), 2, '0', STR_PAD_LEFT);
         $seconds = str_pad($totalTime % 60, 2, '0', STR_PAD_LEFT);
 
-        $this->log('[crawler] Memory Peak Usage:' . $peakMem . 'Mb', 'debug');
+        $this->log('[crawler] Memory Peak Usage: ' . $peakMem . 'MB', 'debug');
         $this->log('[crawler] Total Time: ' . $minutes . ':' . $seconds, 'debug');
         $this->log('[crawler] Politeness Wait Time: ' . $totalDelay . ' seconds', 'debug');
 
