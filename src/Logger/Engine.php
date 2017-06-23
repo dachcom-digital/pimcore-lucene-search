@@ -3,7 +3,7 @@
 namespace LuceneSearchBundle\Logger;
 
 use Symfony\Component\Console\Output;
-use LuceneSearchBundle\Service\ConfigManager;
+use LuceneSearchBundle\Config\ConfigManager;
 
 class Engine
 {

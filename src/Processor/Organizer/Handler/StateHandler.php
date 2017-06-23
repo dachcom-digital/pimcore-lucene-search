@@ -6,8 +6,6 @@ use LuceneSearchBundle\Config\ConfigManager;
 
 class StateHandler extends AbstractHandler
 {
-
-
     const CRAWLER_STATE_IDLE = 'idle';
 
     const CRAWLER_STATE_ACTIVE = 'active';

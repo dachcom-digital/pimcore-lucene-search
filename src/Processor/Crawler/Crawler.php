@@ -2,12 +2,12 @@
 
 namespace LuceneSearchBundle\Processor\Crawler;
 
-use LuceneSearch\Crawler\Listener;
-use LuceneSearch\Crawler\Filter\Discovery;
-use LuceneSearch\Crawler\Filter\PostFetch;
-use LuceneSearch\Crawler\Event\Logger;
-use LuceneSearch\Crawler\Event\Statistics;
-use LuceneSearch\Crawler\PersistenceHandler;
+use LuceneSearchBundle\Processor\Crawler\Listener;
+use LuceneSearchBundle\Processor\Crawler\Filter\Discovery;
+use LuceneSearchBundle\Processor\Crawler\Filter\PostFetch;
+use LuceneSearchBundle\Processor\Crawler\Event\Logger;
+use LuceneSearchBundle\Processor\Crawler\Event\Statistics;
+use LuceneSearchBundle\Processor\Crawler\PersistenceHandler;
 
 use VDB\Spider\Spider;
 use VDB\Spider\QueueManager;
@@ -20,24 +20,19 @@ use GuzzleHttp\Middleware;
 class Crawler
 {
     /**
-     * @var \Zend_Search_Lucene
-     */
-    protected $index = NULL;
-
-    /**
-     * @var string[]
+     * @var array
      */
     protected $seed;
 
     /**
-     * @var string[]
+     * @var array
      */
-    protected $validLinkRegexes;
+    protected $validLinks;
 
     /**
-     * @var string[]
+     * @var array
      */
-    protected $invalidLinkRegexes;
+    protected $invalidLinks;
 
     /**
      * @var \LuceneSearchBundle\Logger\Engine
@@ -125,15 +120,6 @@ class Crawler
      */
     protected $authUserName = NULL;
 
-    /**
-     * @var int
-     */
-    protected $documentBoost = 1;
-
-    /**
-     * @var int
-     */
-    protected $assetBoost = 1;
 
     /**
      * @var null
@@ -205,9 +191,9 @@ class Crawler
      *
      * @return $this
      */
-    public function setValidLinkRegexes($validLinkRegexes)
+    public function setValidLinks($validLinkRegexes)
     {
-        $this->validLinkRegexes = $validLinkRegexes;
+        $this->validLinks = $validLinkRegexes;
 
         return $this;
     }
@@ -217,9 +203,9 @@ class Crawler
      *
      * @return $this
      */
-    public function setInvalidLinkRegexes($invalidLinkRegexes)
+    public function setInvalidLinks($invalidLinkRegexes)
     {
-        $this->invalidLinkRegexes = $invalidLinkRegexes;
+        $this->invalidLinks = $invalidLinkRegexes;
 
         return $this;
     }
@@ -355,30 +341,6 @@ class Crawler
     }
 
     /**
-     * @param int $documentBoost
-     *
-     * @return $this
-     */
-    public function setDocumentBoost($documentBoost = 1)
-    {
-        $this->documentBoost = $documentBoost;
-
-        return $this;
-    }
-
-    /**
-     * @param int $assetBoost
-     *
-     * @return $this
-     */
-    public function setAssetBoost($assetBoost = 1)
-    {
-        $this->assetBoost = $assetBoost;
-
-        return $this;
-    }
-
-    /**
      * @return bool|\VDB\Spider\PersistenceHandler\PersistenceHandlerInterface
      * @throws \Exception
      */
@@ -418,10 +380,13 @@ class Crawler
         $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriWithHashFragmentFilter());
         $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriWithQueryStringFilter());
 
-        $spider->getDiscovererSet()->addFilter(new Discovery\UriFilter($this->invalidLinkRegexes, $spider->getDispatcher()));
-        $spider->getDiscovererSet()->addFilter(new Discovery\NegativeUriFilter($this->validLinkRegexes, $spider->getDispatcher()));
+        $spider->getDiscovererSet()->addFilter(new Discovery\UriFilter($this->invalidLinks, $spider->getDispatcher()));
+        $spider->getDiscovererSet()->addFilter(new Discovery\NegativeUriFilter($this->validLinks, $spider->getDispatcher()));
 
-        $spider->getDownloader()->addPostFetchFilter(new PostFetch\MaxContentSizeFilter($this->contentMaxSize));
+        if($this->contentMaxSize !== 0) {
+            $spider->getDownloader()->addPostFetchFilter(new PostFetch\MaxContentSizeFilter($this->contentMaxSize));
+        }
+
         $spider->getDownloader()->addPostFetchFilter(new PostFetch\MimeTypeFilter($this->validMimeTypes));
 
         $persistencePath = PIMCORE_SYSTEM_TEMP_DIRECTORY . '/ls-crawler-tmp';
@@ -465,10 +430,12 @@ class Crawler
             }), 'lucene-search-auth');
         }
 
-        // add LuceneSearch to Headers!
-        $pluginInfo = \Pimcore\ExtensionManager::getPluginConfig('LuceneSearch');
-        $handler->push(Middleware::mapRequest(function (\Psr\Http\Message\RequestInterface $request) use ($pluginInfo) {
-            return $request->withHeader('Lucene-Search', $pluginInfo['plugin']['pluginVersion']);
+        // add LuceneSearch to Headers! @todo: get version of plugin!
+        //$pluginInfo = \Pimcore\ExtensionManager::getPluginConfig('LuceneSearch');
+        $pluginVersion = '2.0.0';
+
+        $handler->push(Middleware::mapRequest(function (\Psr\Http\Message\RequestInterface $request) use ($pluginVersion) {
+            return $request->withHeader('Lucene-Search', $pluginVersion);
         }), 'lucene-search-header');
 
         // Execute the crawl

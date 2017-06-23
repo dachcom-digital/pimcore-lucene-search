@@ -63,7 +63,7 @@ class Configuration implements ConfigurationInterface
                 ->integerNode('crawler:max_download_limit')
                     ->info('Maximum links to crawl: Constrain crawler to a specific limit of crawled links. Defaults is 0 which means no limit.')
                 ->end()
-                ->integerNode('crawler:content_max_size')
+                ->floatNode('crawler:content_max_size')
                     ->info('Maximum content size (in MB): crawler ignores resources if its size exceeds limit (mostly useful for asset indexing). Defaults is 0 which means no limit.')
                 ->end()
                 ->scalarNode('crawler:content_start_indicator')

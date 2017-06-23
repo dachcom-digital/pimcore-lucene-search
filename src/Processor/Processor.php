@@ -42,7 +42,7 @@ class Processor
      * Worker constructor.
      *
      * @param ConfigManager     $configManager
-     * @param Engine     $logger
+     * @param Engine            $logger
      * @param HandlerDispatcher $handlerDispatcher
      */
     public function __construct(ConfigManager $configManager, Engine $logger, HandlerDispatcher $handlerDispatcher)
@@ -51,6 +51,11 @@ class Processor
         $this->logger = $logger;
         $this->handlerDispatcher = $handlerDispatcher;
         $this->fileSystem = new Filesystem();
+
+        $this->parser = new Parser();
+        $this->parser->setLogger($this->logger);
+        $this->parser->setDocumentBoost($this->configManager->getConfig('boost:documents'));
+        $this->parser->setAssetBoost($this->configManager->getConfig('boost:assets'));
     }
 
     /**
@@ -83,15 +88,15 @@ class Processor
 
             foreach ($this->getSeeds() as $seed) {
 
-                $parser = new Crawler();
-                $parser->setLogger($this->logger);
+                $crawler = new Crawler();
+                $crawler->setLogger($this->logger);
 
-                $parser
+                $crawler
                     ->setAllowSubdomain(FALSE)
                     ->setDepth($this->configManager->getConfig('crawler:max_link_depth'))
-                    ->setValidLinkRegexes($this->configManager->getConfig('filter:valid_links'))
+                    ->setValidLinks($this->configManager->getConfig('filter:valid_links'))
+                    ->setInvalidLinks($this->getInvalidLinks())
                     ->setContentMaxSize($this->configManager->getConfig('crawler:content_max_size'))
-                    ->setInvalidLinkRegexes($this->getInvalidLinks())
                     ->setSearchStartIndicator($this->configManager->getConfig('crawler:content_start_indicator'))
                     ->setSearchEndIndicator($this->configManager->getConfig('crawler:content_end_indicator'))
                     ->setSearchExcludeStartIndicator($this->configManager->getConfig('crawler:content_exclude_start_indicator'))
@@ -99,15 +104,23 @@ class Processor
                     ->setValidMimeTypes($this->configManager->getConfig('allowed_mime_types'))
                     ->setAllowedSchemes($this->configManager->getConfig('allowed_schemes'))
                     ->setDownloadLimit($this->configManager->getConfig('crawler:max_download_limit'))
-                    ->setDocumentBoost($this->configManager->getConfig('boost:documents'))
-                    ->setAssetBoost($this->configManager->getConfig('boost:assets'))
                     ->setSeed($seed);
 
                 if ($this->configManager->getConfig('auth:use_auth') === TRUE) {
-                    $parser->setAuth($this->configManager->getConfig('auth:username'), $this->configManager->getConfig('auth:password'));
+                    $crawler->setAuth($this->configManager->getConfig('auth:username'), $this->configManager->getConfig('auth:password'));
                 }
 
-                $crawlData = $parser->fetchCrawlerResources();
+                $crawlData = $crawler->fetchCrawlerResources();
+
+                //parse all resources!
+                /** @var \VDB\Spider\Resource $resource */
+                foreach ($crawlData as $resource) {
+                    if ($resource instanceof \VDB\Spider\Resource) {
+                        $this->parser->parseResponse($resource);
+                    } else {
+                        //$this->log('[crawler] crawler resource not a instance of \VDB\Spider\Resource. Given type: ' . gettype($resource), 'notice');
+                    }
+                }
                 //$parser->optimizeIndex();
             }
 

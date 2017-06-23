@@ -2,20 +2,29 @@
 
 namespace LuceneSearchBundle\Processor\Parser;
 
-use LuceneSearch\Crawler\Listener;
-use LuceneSearch\Crawler\Filter\Discovery;
-use LuceneSearch\Crawler\Filter\PostFetch;
-use LuceneSearch\Crawler\Event\Logger;
-use LuceneSearch\Crawler\Event\Statistics;
-use LuceneSearch\Crawler\PersistenceHandler;
+use LuceneSearchBundle\Config\ConfigManager;
 
 class Parser
 {
+    /**
+     * @var \Zend_Search_Lucene
+     */
+    protected $index = NULL;
+
     /**
      * @var \LuceneSearchBundle\Logger\Engine
      */
     protected $logEngine;
 
+    /**
+     * @var int
+     */
+    protected $documentBoost = 1;
+
+    /**
+     * @var int
+     */
+    protected $assetBoost = 1;
 
     /**
      * Parser constructor.
@@ -34,9 +43,31 @@ class Parser
     }
 
     /**
+     * @param int $documentBoost
+     *
+     * @return $this
+     */
+    public function setDocumentBoost($documentBoost = 1)
+    {
+        $this->documentBoost = $documentBoost;
+        return $this;
+    }
+
+    /**
+     * @param int $assetBoost
+     *
+     * @return $this
+     */
+    public function setAssetBoost($assetBoost = 1)
+    {
+        $this->assetBoost = $assetBoost;
+        return $this;
+    }
+
+    /**
      * @param \VDB\Spider\Resource $resource
      */
-    private function parseResponse($resource)
+    public function parseResponse($resource)
     {
         $host = $resource->getUri()->getHost();
         $uri = $resource->getUri()->toString();
@@ -70,22 +101,23 @@ class Parser
     {
         /** @var \Symfony\Component\DomCrawler\Crawler $crawler */
         $crawler = $resource->getCrawler();
-        $html = $resource->getResponse()->getBody();
+        $stream = $resource->getResponse()->getBody();
+        $stream->rewind();
+        $html = $stream->getContents();
+
         $contentTypeInfo = $resource->getResponse()->getHeaderLine('Content-Type');
         $contentLanguage = $resource->getResponse()->getHeaderLine('Content-Language');
 
         $language = strtolower($this->getLanguageFromResponse($contentLanguage, $html));
         $encoding = strtolower($this->getEncodingFromResponse($contentTypeInfo, $html));
 
-        $filter = new \Zend_Filter_Word_UnderscoreToDash();
-        $language = strtolower($filter->filter($language));
+        $language = strtolower(str_replace('_', '-', $language));
 
         //page has canonical link: do not track!
         $hasCanonicalLink = $crawler->filterXpath('//link[@rel="canonical"]')->count() > 0;
 
         if ($hasCanonicalLink === TRUE) {
             $this->log('[parser] skip indexing [ ' . $link . ' ] because it has canonical links');
-
             return FALSE;
         }
 
@@ -94,7 +126,6 @@ class Parser
 
         if ($hasNoFollow === TRUE) {
             $this->log('[parser] skip indexing [ ' . $link . ' ] because it has a nofollow tag');
-
             return FALSE;
         }
 
@@ -243,7 +274,7 @@ class Parser
                 $text = preg_replace('/[^\p{Latin}\d ]/u', '', $text);
                 $text = preg_replace('/\n[\s]*/', "\n", $text); // remove all leading blanks
 
-                $doc->addField(\Zend_Search_Lucene_Field::Text('title', basename($uri)), 'utf-8');
+                $doc->addField(\Zend_Search_Lucene_Field::Text('title', basename($uri), 'utf-8'));
                 $doc->addField(\Zend_Search_Lucene_Field::Text('content', $text, 'utf-8'));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $language));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('country', $country));
@@ -561,10 +592,7 @@ class Parser
     protected function checkAndPrepareIndex()
     {
         if (!$this->index) {
-            $indexDir = Plugin::getFrontendSearchIndex();
-
-            //switch to tmpIndex
-            $indexDir = str_replace('/index', '/tmpindex', $indexDir);
+            $indexDir = ConfigManager::INDEX_DIR_PATH_GENESIS;
 
             //always create new tmp index.
             try {

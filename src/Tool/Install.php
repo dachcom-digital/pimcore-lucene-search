@@ -8,7 +8,7 @@ use Pimcore\Extension\Bundle\Installer\AbstractInstaller;
 use Symfony\Component\Filesystem\Filesystem;
 use Pimcore\Model\Property;
 use Psr\Log\LoggerInterface;
-use LuceneSearchBundle\Service\ConfigManager;
+use LuceneSearchBundle\Config\ConfigManager;
 
 class Install extends AbstractInstaller
 {
