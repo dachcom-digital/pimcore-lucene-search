@@ -53,9 +53,6 @@ class Processor
         $this->fileSystem = new Filesystem();
 
         $this->parser = new Parser();
-        $this->parser->setLogger($this->logger);
-        $this->parser->setDocumentBoost($this->configManager->getConfig('boost:documents'));
-        $this->parser->setAssetBoost($this->configManager->getConfig('boost:assets'));
     }
 
     /**
@@ -83,6 +80,11 @@ class Processor
         }
 
         $this->prepareCrawlerStart();
+
+        $this->parser->setLogger($this->logger);
+        $this->parser->setDocumentBoost($this->configManager->getConfig('boost:documents'));
+        $this->parser->setAssetBoost($this->configManager->getConfig('boost:assets'));
+        $this->parser->setAssetTmpDir(ConfigManager::CRAWLER_TMP_ASSET_DIR_PATH);
 
         try {
 
@@ -121,8 +123,10 @@ class Processor
                         //$this->log('[crawler] crawler resource not a instance of \VDB\Spider\Resource. Given type: ' . gettype($resource), 'notice');
                     }
                 }
-                //$parser->optimizeIndex();
+
             }
+
+            $this->parser->optimizeIndex();
 
             $this->prepareCrawlerStop();
 
@@ -161,6 +165,7 @@ class Processor
     {
         $this->handlerDispatcher->getStoreHandler()->resetGenesisIndex();
         $this->handlerDispatcher->getStoreHandler()->resetPersistenceStore();
+        $this->handlerDispatcher->getStoreHandler()->resetAssetTmp();
         $this->handlerDispatcher->getStoreHandler()->resetLogs();
 
         $this->handlerDispatcher->getStateHandler()->startCrawler();
@@ -171,6 +176,7 @@ class Processor
         $this->handlerDispatcher->getStoreHandler()->resetPersistenceStore();
         $this->handlerDispatcher->getStoreHandler()->resetUriFilterPersistenceStore();
         $this->handlerDispatcher->getStoreHandler()->riseGenesisToStable();
+        $this->handlerDispatcher->getStoreHandler()->resetAssetTmp();
 
         $this->handlerDispatcher->getStateHandler()->stopCrawler();
     }

@@ -2,6 +2,8 @@
 
 namespace LuceneSearchBundle\Tool;
 
+use LuceneSearchBundle\Config\ConfigManager;
+
 class Persistor
 {
     /**
@@ -18,9 +20,7 @@ class Persistor
      * @var array
      */
     public $options = [
-        'dir'               => PIMCORE_TEMPORARY_DIRECTORY . '/',
         'ext'               => '.tmp',
-        'gzip'              => FALSE,
         'cache'             => TRUE,
         'swap_memory_limit' => 1048576
     ];
@@ -28,19 +28,14 @@ class Persistor
     /**
      * Persistor constructor.
      *
-     * @param       $database
      * @param array $options
      *
      * @throws \Exception
      */
-    public function __construct($database, $options = [])
+    public function __construct($options = [])
     {
-        if (!preg_match('/^([A-Za-z0-9_-]+)$/', $database)) {
-            throw new \Exception('Invalid characters in database name');
-        }
-
         // Set current database
-        $this->db = $database;
+        $this->db = ConfigManager::CRAWLER_URI_FILTER_FILE_PATH;
 
         // Set options
         if (!empty($options)) {
@@ -69,21 +64,8 @@ class Persistor
     {
         if (empty($this->data)) {
 
-            $dir = rtrim($this->options['dir'], '/\\') . DIRECTORY_SEPARATOR;
-
-            if (!is_dir($dir)) {
-                throw new \Exception($dir . ' is not a valid directory');
-            }
-
-            $ext = $this->options['ext'];
-            if (substr($ext, 0, 1) !== '.') {
-                $ext = '.' . $ext;
-            }
-            if ($this->options['gzip'] === TRUE && substr($ext, -3) !== '.gz') {
-                $ext .= '.gz';
-            }
-            $this->data['file'] = $dir . $this->db . $ext;
-            $this->data['file_tmp'] = $dir . $this->db . '_tmp' . $ext;
+            $this->data['file'] = $this->db;
+            $this->data['file_tmp'] = str_replace($this->options['ext'], '_tmp' . $this->options['ext'], $this->db);
             $this->data['cache'] = [];
 
             // Create database

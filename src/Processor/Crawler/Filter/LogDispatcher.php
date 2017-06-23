@@ -21,14 +21,14 @@ trait LogDispatcher {
     /**
      * @var Persistor
      */
-    private $perisitor;
+    private $persistor;
 
     /**
      * @param $dispatcher
      */
     function setDispatcher($dispatcher)
     {
-        $this->perisitor = new Persistor('lucene-filter');
+        $this->persistor = new Persistor();
         $this->dispatcher = $dispatcher;
     }
 
@@ -41,9 +41,9 @@ trait LogDispatcher {
         $stringUri = $uri->toString();
         $saveUri = md5($stringUri);
 
-        if ($this->perisitor->get($saveUri) === FALSE) {
+        if ($this->persistor->get($saveUri) === FALSE) {
             $this->filtered[] = $saveUri;
-            $this->perisitor->set($saveUri, time());
+            $this->persistor->set($saveUri, time());
             $event = new GenericEvent($this, ['uri' => $uri, 'filterType' => $filterType]);
             $this->dispatcher->dispatch(SpiderEvents::SPIDER_CRAWL_FILTER_PREFETCH, $event);
         }

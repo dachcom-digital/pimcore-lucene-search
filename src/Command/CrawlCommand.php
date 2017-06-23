@@ -42,14 +42,14 @@ class CrawlCommand extends AbstractCommand
 
         if ($input->getArgument('crawl') === 'crawl') {
 
-            $this->output->writeln('<comment>LuceneSearch: Start Crawling</comment>');
+            $this->output->writeln('<comment>LuceneSearch: Start Crawling...</comment>');
 
             $processor->addLogOutput($output);
             $processor->runCrawler($input->getOption('force'));
 
             //Tool\Executer::generateSitemap();
 
-            $this->output->writeln('LuceneSearch: Finished crawl');
+            $this->output->writeln('<fg=green>LuceneSearch: Finished crawl.</>');
         }
 
     }

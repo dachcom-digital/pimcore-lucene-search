@@ -22,7 +22,6 @@ class StoreHandler extends AbstractHandler
         if ($this->fileSystem->exists(ConfigManager::INDEX_DIR_PATH_GENESIS)) {
 
             if ($this->fileSystem->exists(ConfigManager::INDEX_DIR_PATH_STABLE)) {
-                var_dump("delete stable");
                 $this->removeFolder(ConfigManager::INDEX_DIR_PATH_STABLE);
             }
 
@@ -31,6 +30,9 @@ class StoreHandler extends AbstractHandler
         }
     }
 
+    /**
+     * Reset Resource Persistence Store
+     */
     public function resetPersistenceStore()
     {
         \Pimcore\Logger::debug('LuceneSearch: Reset Persistence Store');
@@ -43,21 +45,46 @@ class StoreHandler extends AbstractHandler
 
     }
 
+    /**
+     * Reset Resource Persistence Store
+     */
+    public function resetAssetTmp()
+    {
+        \Pimcore\Logger::debug('LuceneSearch: Reset Asset Tmp');
+
+        if ($this->fileSystem->exists(ConfigManager::CRAWLER_TMP_ASSET_DIR_PATH)) {
+            $this->removeFolder(ConfigManager::CRAWLER_TMP_ASSET_DIR_PATH);
+        }
+
+        $this->fileSystem->mkdir(ConfigManager::CRAWLER_TMP_ASSET_DIR_PATH, 0755);
+
+    }
+
+    /**
+     * Rest Uri Filter Store
+     */
     public function resetUriFilterPersistenceStore()
     {
         \Pimcore\Logger::debug('LuceneSearch: Reset Uri Filter Persistence Store');
 
-        if ($this->fileSystem->exists(ConfigManager::CRAWLER_PERSISTENCE_STORE_DIR_PATH)) {
-            $this->removeFolder(ConfigManager::CRAWLER_PERSISTENCE_STORE_DIR_PATH);
+        if ($this->fileSystem->exists(ConfigManager::CRAWLER_URI_FILTER_FILE_PATH)) {
+            $this->fileSystem->remove(ConfigManager::CRAWLER_URI_FILTER_FILE_PATH);
         }
     }
 
+    /**
+     * Reset Logs
+     */
     public function resetLogs()
     {
         \Pimcore\Logger::debug('LuceneSearch: Reset Logs');
         $this->fileSystem->dumpFile(ConfigManager::CRAWLER_LOG_FILE_PATH, '');
     }
 
+    /**
+     * @param $from
+     * @param $to
+     */
     private function copyFolder($from, $to)
     {
         if (!$this->fileSystem->exists($to)) {
@@ -82,13 +109,10 @@ class StoreHandler extends AbstractHandler
 
         foreach ($files as $file) {
             if (is_dir($file) and !in_array($file, ['..', '.'])) {
-                var_dump("opening directory $file ");
                 $this->removeFolder($file, $pattern);
-                var_dump("deleting directory $file");
                 rmdir($file);
             } else if (is_file($file) and ($file != __FILE__)) {
                 // make sure you don't delete the current script
-                var_dump("deleting file $file ");
                 unlink($file);
             }
         }

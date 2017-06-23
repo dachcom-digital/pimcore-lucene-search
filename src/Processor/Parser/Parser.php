@@ -17,6 +17,11 @@ class Parser
     protected $logEngine;
 
     /**
+     * @var
+     */
+    protected $assetTmpDir;
+
+    /**
      * @var int
      */
     protected $documentBoost = 1;
@@ -62,6 +67,14 @@ class Parser
     {
         $this->assetBoost = $assetBoost;
         return $this;
+    }
+
+    /**
+     * @param $dir
+     */
+    public function setAssetTmpDir($dir)
+    {
+        $this->assetTmpDir = $dir;
     }
 
     /**
@@ -246,10 +259,16 @@ class Parser
         }
 
         $textFileTmp = uniqid('t2p-');
-        $tmpFile = PIMCORE_TEMPORARY_DIRECTORY . '/' . $textFileTmp . '.txt';
-        $tmpPdfFile = PIMCORE_TEMPORARY_DIRECTORY . '/' . $textFileTmp . '.pdf';
 
-        file_put_contents($tmpPdfFile, $resource->getResponse()->getBody());
+        //@fixme: move to bundle tmp
+        $tmpFile = $this->assetTmpDir . DIRECTORY_SEPARATOR . $textFileTmp . '.txt';
+        $tmpPdfFile = $this->assetTmpDir . DIRECTORY_SEPARATOR . $textFileTmp . '.pdf';
+
+        $stream = $resource->getResponse()->getBody();
+        $stream->rewind();
+        $contents = $stream->getContents();
+
+        file_put_contents($tmpPdfFile, $contents);
 
         $verboseCommand = \Pimcore::inDebugMode() ? '' : '-q ';
 
@@ -626,12 +645,12 @@ class Parser
         $this->index->optimize();
 
         //clean up
-        if (is_object($this->index) and $this->index instanceof \Zend_Search_Lucene_Proxy) {
+        if (is_object($this->index) && $this->index instanceof \Zend_Search_Lucene_Proxy) {
             $this->index->removeReference();
             unset($this->index);
-            $this->log('[lucene] ' . 'closed frontend index references', 'debug', FALSE);
+            $this->log('[lucene] closed frontend index references', 'debug', FALSE);
         }
 
-        $this->log('[lucene] ' . 'optimize lucene index', 'debug', FALSE);
+        $this->log('[lucene] optimize lucene index', 'debug', FALSE);
     }
 }

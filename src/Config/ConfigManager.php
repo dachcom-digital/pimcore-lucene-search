@@ -26,6 +26,8 @@ class ConfigManager
 
     const CRAWLER_PERSISTENCE_STORE_DIR_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/persistence-store';
 
+    const CRAWLER_TMP_ASSET_DIR_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/tmp-assets';
+
     const INDEX_DIR_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/index';
 
     const INDEX_DIR_PATH_GENESIS = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/index/genesis';
