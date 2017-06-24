@@ -2,60 +2,22 @@
 
 namespace LuceneSearchBundle\Controller\Admin;
 
-use Symfony\Component\HttpFoundation\Request;
 use Pimcore\Bundle\AdminBundle\Controller\AdminController;
+use LuceneSearchBundle\Config\ConfigManager;
+use LuceneSearchBundle\Processor\Organizer\Handler\StateHandler;
 
 class SettingsController extends AdminController
 {
-    /**
-     *
-     */
-    public function getSettingsAction(Request $request)
-    {
-        $config = new Configuration\Listing();
-
-        $valueArray = [];
-
-        foreach ($config->getConfigurations() as $c) {
-
-            $data = $c->getData();
-            $valueArray[$c->getKey()] = $data;
-        }
-
-        $frontendButtonDisabled = FALSE;
-
-        if (Plugin::frontendCrawlerRunning() || Plugin::frontendCrawlerScheduledForStart() or !Plugin::frontendConfigComplete()) {
-            $frontendButtonDisabled = TRUE;
-        }
-
-        $frontendStopButtonDisabled = FALSE;
-
-        if (!Plugin::frontendConfigComplete() || !Plugin::frontendCrawlerRunning() or Plugin::frontendCrawlerStopLocked()) {
-            $frontendStopButtonDisabled = TRUE;
-        }
-
-        $response = [
-            'values'  => $valueArray,
-            'crawler' => [
-                'state'    => Plugin::getPluginState(),
-                'canStart' => !$frontendButtonDisabled,
-                'canStop'  => !$frontendStopButtonDisabled
-            ]
-        ];
-
-        $this->json($response);
-    }
-
     public function getLogAction()
     {
-        $logFile = PIMCORE_WEBSITE_VAR . '/search/log.txt';
+        $logFile = ConfigManager::CRAWLER_LOG_FILE_PATH;
         $data = '';
 
         if (file_exists($logFile)) {
             $data = file_get_contents($logFile);
         }
 
-        $this->_helper->json(['logData' => $data]);
+        return $this->json(['logData' => $data]);
     }
 
     /**
@@ -63,23 +25,37 @@ class SettingsController extends AdminController
      */
     public function getStateAction()
     {
-        $frontendButtonDisabled = FALSE;
+        $canStart = TRUE;
 
-        if (Plugin::frontendCrawlerRunning() || Plugin::frontendCrawlerScheduledForStart() || !Plugin::frontendConfigComplete()) {
-            $frontendButtonDisabled = TRUE;
+        /** @var ConfigManager $configManager */
+        $configManager = $this->container->get('lucene_search.config_manager');
+        $stateHandler = $this->container->get('lucene_search.organizer.state_handler');
+        $currentState = $stateHandler->getCrawlerState();
+
+        $configComplete = $stateHandler->getConfigCompletionState() === 'complete';
+
+        if ($configComplete === FALSE ||
+            $currentState === StateHandler::CRAWLER_STATE_ACTIVE ||
+            $configManager->getStateConfig('forceStart') === TRUE
+        ) {
+            $canStart = FALSE;
         }
 
-        $frontendStopButtonDisabled = FALSE;
+        $canStop = TRUE;
 
-        if (!Plugin::frontendConfigComplete() || !Plugin::frontendCrawlerRunning() || Plugin::frontendCrawlerStopLocked()) {
-            $frontendStopButtonDisabled = TRUE;
+        if ($configComplete === FALSE ||
+            $currentState !== StateHandler::CRAWLER_STATE_ACTIVE ||
+            $configManager->getStateConfig('forceStop') === TRUE
+        ) {
+            $canStop = FALSE;
         }
 
-        $this->_helper->json(
+        return $this->json(
             [
-                'message'                    => Plugin::getPluginState(),
-                'frontendButtonDisabled'     => $frontendButtonDisabled,
-                'frontendStopButtonDisabled' => $frontendStopButtonDisabled
+                'state'    => $stateHandler->getCrawlerStateDescription(),
+                'enabled'  => $configManager->getConfig('enabled'),
+                'canStart' => $canStart,
+                'canStop'  => $canStop
             ]
         );
     }
@@ -87,19 +63,23 @@ class SettingsController extends AdminController
     /**
      *
      */
-    public function startFrontendCrawlerAction()
+    public function startCrawlerAction()
     {
-        Plugin::forceCrawlerStartOnNextMaintenance('frontend');
-        $this->_helper->json(['success' => TRUE]);
+        $stateHandler = $this->container->get('lucene_search.organizer.state_handler');
+        $stateHandler->forceCrawlerStartOnNextMaintenance(TRUE);
+
+        return $this->json(['success' => TRUE]);
     }
 
     /**
      *
      */
-    public function stopFrontendCrawlerAction()
+    public function stopCrawlerAction()
     {
-        $success = Tool\Executer::stopCrawler();
-        $this->_helper->json(['success' => $success]);
+        $stateHandler = $this->container->get('lucene_search.organizer.state_handler');
+        $stateHandler->stopCrawler(TRUE);
+
+        return $this->json(['success' => TRUE]);
     }
 
 }

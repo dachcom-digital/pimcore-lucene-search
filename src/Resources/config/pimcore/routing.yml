@@ -1,9 +1,3 @@
-lucene_search.controller.admin.set_settings:
-    path: /admin/lucene-search/settings/set
-    defaults: { _controller: LuceneSearchBundle:Admin\Settings:setSettings }
-lucene_search.controller.admin.get_settings:
-    path: /admin/lucene-search/settings/get
-    defaults: { _controller: LuceneSearchBundle:Admin\Settings:getSettings }
 lucene_search.controller.admin.get_state:
     path: /admin/lucene-search/settings/get/state
     defaults: { _controller: LuceneSearchBundle:Admin\Settings:getState }

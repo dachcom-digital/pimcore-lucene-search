@@ -15,11 +15,51 @@ class StateHandler extends AbstractHandler
      */
     public function getCrawlerState()
     {
-        if ($this->configManager->getStateConfig('running') === TRUE) {
+        if ($this->fileSystem->exists(ConfigManager::CRAWLER_PROCESS_FILE_PATH)) {
             return self::CRAWLER_STATE_ACTIVE;
         }
 
         return self::CRAWLER_STATE_IDLE;
+    }
+
+    public function getCrawlerStateDescription()
+    {
+        $messages = [];
+
+        if (!$this->configManager->getConfig('enabled')) {
+            return FALSE;
+        }
+
+        if ($this->configManager->getStateConfig('running')) {
+            $messages[] = $this->getTranslation('lucenesearch_frontend_crawler_running');
+        } else {
+            $messages[] = $this->getTranslation('lucenesearch_frontend_crawler_not_running');
+        }
+
+        $started = 'never';
+        $finished = 'never';
+
+        if (!is_bool($this->configManager->getStateConfig('started'))) {
+            $started = date('d.m.Y H:i', (double)$this->configManager->getStateConfig('started'));
+        }
+
+        if (!is_bool($this->configManager->getStateConfig('finished'))) {
+            $finished = date('d.m.Y H:i', (double)$this->configManager->getStateConfig('finished'));
+        }
+
+        $messages[] = $this->getTranslation('lucenesearch_frontend_crawler_last_started') . ': ' . $started . '. ';
+        $messages[] = $this->getTranslation('lucenesearch_frontend_crawler_last_finished') . ': ' . $finished . '. ';
+
+        if ($this->getConfigCompletionState() === 'incomplete') {
+            $messages[] = 'ERROR: ' . $this->getTranslation('lucenesearch_frontend_config_incomplete');
+        } else {
+            if ($this->configManager->getStateConfig('forceStart')) {
+                $messages[] = $this->getTranslation('lucenesearch_frontend_crawler') . ': ';
+                $messages[] = $this->getTranslation('lucenesearch_frontend_crawler_start_on_next_maintenance');
+            }
+        }
+
+        return $messages;
     }
 
     /**
@@ -42,6 +82,15 @@ class StateHandler extends AbstractHandler
         return TRUE;
     }
 
+    public function forceCrawlerStartOnNextMaintenance()
+    {
+        $this->configManager->setStateConfig('forceStart', TRUE);
+
+        \Pimcore\Logger::debug('LuceneSearch: forced to starting crawl');
+
+        return TRUE;
+    }
+
     /**
      * @param bool $forcedStop
      *
@@ -59,6 +108,22 @@ class StateHandler extends AbstractHandler
         \Pimcore\Logger::debug('LuceneSearch: Stopping crawl');
 
         return TRUE;
+    }
+
+    /**
+     * @return string
+     */
+    public function getConfigCompletionState()
+    {
+        $frontEndUrls = $this->configManager->getConfig('seeds');
+        $validLinks = $this->configManager->getConfig('filter:valid_links');
+
+        if (empty($frontEndUrls) || empty($validLinks)) {
+            return 'incomplete';
+        } else {
+            return 'complete';
+        }
+
     }
 
 }

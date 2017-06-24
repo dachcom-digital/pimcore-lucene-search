@@ -37,6 +37,7 @@ services:
         abstract: true
         arguments:
             - '@lucene_search.config_manager'
+            - '@translator'
 
     lucene_search.organizer.state_handler:
         parent: lucene_search.organizer.abstract_handler

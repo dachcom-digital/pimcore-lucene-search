@@ -14,6 +14,8 @@ pimcore.plugin.luceneSearch.settings = Class.create({
 
     getTabPanel: function () {
 
+        var _ = this;
+
         this.loadMask = pimcore.globalmanager.get('loadingmask');
 
         if (!this.panel) {
@@ -68,8 +70,8 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                     },
                     {   xtype: 'buttongroup',
                         fieldLabel: t('lucenesearch_frontend_crawler'),
-                        hideLabel: !this.getValue('frontend.enabled'),
-                        hidden: !this.getValue('frontend.enabled'),
+                        hideLabel: !this.getCrawlerState('enabled'),
+                        hidden: !this.getCrawlerState('enabled'),
                         columns:2,
                         bodyStyle: 'background-color: #fff;',
                         bodyBorder:false,
@@ -99,16 +101,13 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                                     method: 'get',
                                                     success: function (transport) {
                                                         var res = Ext.decode(transport.responseText);
-                                                        Ext.getCmp('stateMessage').setValue(res.message);
+                                                        Ext.getCmp('stateMessage').setValue(_.parseState(res.state));
                                                     }
                                                 });
-
                                             }
                                         });
-
                                     }
                                 }
-
                             },
                             {
                                 xtype:'button',
@@ -164,21 +163,18 @@ pimcore.plugin.luceneSearch.settings = Class.create({
                                                     success: function (transport) {
 
                                                         var res = Ext.decode(transport.responseText);
-                                                        Ext.getCmp('stateMessage').setValue(res.message);
+                                                        Ext.getCmp('stateMessage').setValue(_.parseState(res.state));
                                                         _self.loadMask.hide();
 
                                                     }
                                                 });
                                             }
                                         });
-
                                     }.bind(this)
                                 }
-
                             }
                         ]
                     }
-
                 ]
             });
 
@@ -222,7 +218,7 @@ pimcore.plugin.luceneSearch.settings = Class.create({
             pimcore.layout.refresh();
 
             this.task = Ext.TaskManager.start({
-                run: this.updateCrawlerState,
+                run: this.updateCrawlerState.bind(_),
                 interval: 10000
             });
 
@@ -241,32 +237,27 @@ pimcore.plugin.luceneSearch.settings = Class.create({
 
     updateCrawlerState : function() {
 
+        var _ = this;
+
         Ext.Ajax.request({
             url: '/admin/lucene-search/settings/get/state',
             method: 'get',
             success: function (response) {
-                var res = Ext.decode( response.responseText);
+                var res = Ext.decode(response.responseText);
                 if(Ext.getCmp('stateMessage') !== undefined) {
-                    Ext.getCmp('stateMessage').setValue(res.message);
-                    Ext.getCmp('startFrontendCrawler').setDisabled(res.frontendButtonDisabled);
-                    Ext.getCmp('stopFrontendCrawler').setDisabled(res.frontendStopButtonDisabled);
+                    Ext.getCmp('stateMessage').setValue(_.parseState(res.state));
+                    Ext.getCmp('startFrontendCrawler').setDisabled(!res.canStart);
+                    Ext.getCmp('stopFrontendCrawler').setDisabled(!res.canStop);
                 }
             }
         });
 
     },
 
-    activate: function () {
-
-        var tabPanel = Ext.getCmp('pimcore_panel_tabs');
-        tabPanel.setActiveItem('lucenesearch_settings');
-
-    },
-
     getData: function () {
 
         Ext.Ajax.request({
-            url: '/admin/lucene-search/settings/get',
+            url: '/admin/lucene-search/settings/get/state',
             success: function (response) {
 
                 this.data = Ext.decode(response.responseText);
@@ -277,55 +268,13 @@ pimcore.plugin.luceneSearch.settings = Class.create({
 
     },
 
-    getValue: function (key) {
-
-        var current = null;
-
-        if(this.data.values.hasOwnProperty(key)) {
-            current = this.data.values[key];
-        }
-
-        if (typeof current != 'function') {
-            return current;
-        }
-
-        return null;
+    getCrawlerState: function(key) {
+        var val = this.data[ key ];
+        return this.parseState(val);
     },
 
-    getCrawlerState: function (key) {
-
-        var current = null;
-
-        if(this.data.crawler.hasOwnProperty(key)) {
-            current = this.data.crawler[key];
-        }
-
-        return current;
-    },
-
-    save: function () {
-
-        var values = this.layout.getForm().getValues();
-
-        Ext.Ajax.request({
-            url: '/admin/lucene-search/settings/set',
-            method: 'post',
-            params: {
-                data: Ext.encode(values)
-            },
-            success: function (response) {
-                try {
-                    var res = Ext.decode(response.responseText);
-                    if (res.success) {
-                        pimcore.helpers.showNotification(t('success'), t('lucenesearch_settings_save_success'), 'success');
-                    } else {
-                        pimcore.helpers.showNotification(t('error'), t('lucenesearch_settings_save_error'),
-                            'error', t(res.message));
-                    }
-                } catch(e) {
-                    pimcore.helpers.showNotification(t('error'), t('lucenesearch_settings_save_error'), 'error');
-                }
-            }
-        });
+    parseState: function(val) {
+        return Ext.isArray(val) ? val.join('<br>') : val;
     }
+
 });
