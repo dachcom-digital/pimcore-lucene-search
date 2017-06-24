@@ -1,22 +1,23 @@
 services:
 
-    # luceneSearch Installer
+    # installer
     lucene_search.installer:
         class: LuceneSearchBundle\Tool\Install
         arguments: ['@logger']
         tags:
             - { name: monolog.logger }
 
-    # luceneSearch config manager
+    # config manager
     lucene_search.config_manager:
         class: LuceneSearchBundle\Config\ConfigManager
         arguments: []
         public: false
 
+    # logger
     lucene_search.logger.engine:
         class: LuceneSearchBundle\Logger\Engine
 
-    # Processor
+    # processor
     lucene_search.processor:
         class: LuceneSearchBundle\Processor\Processor
         arguments:
@@ -24,7 +25,7 @@ services:
             - '@lucene_search.logger.engine'
             - '@lucene_search.organizer.handler_dispatcher'
 
-    # Processor Organizer
+    # processor organizer
     lucene_search.organizer.handler_dispatcher:
         class: LuceneSearchBundle\Processor\Organizer\Dispatcher\HandlerDispatcher
         arguments:
@@ -45,9 +46,52 @@ services:
         parent: lucene_search.organizer.abstract_handler
         class: LuceneSearchBundle\Processor\Organizer\Handler\StoreHandler
 
-     # Event Listener
+     # event listener
     lucene_search.event_listener.maintenance:
         class: LuceneSearchBundle\EventListener\CrawlListener
         arguments: ['@lucene_search.config_manager', '@lucene_search.processor']
         tags:
             - { name: kernel.event_listener, event: pimcore.system.maintenance, method: run }
+
+    # controller
+    lucene_search.controller.frontend:
+        class: LuceneSearchBundle\Controller\FrontendController
+        methods:  [GET]
+        arguments:
+            - '@request_stack'
+            - '@templating'
+            - '@lucene_search.config_manager'
+            - '@lucene_search.helper.lucene'
+            - '@lucene_search.helper.string'
+
+    lucene_search.controller.frontend.auto_complete:
+        class: LuceneSearchBundle\Controller\AutoCompleteController
+        parent: lucene_search.controller.frontend
+        methods: [GET]
+    lucene_search.controller.frontend.sitemap:
+        class: LuceneSearchBundle\Controller\SiteMapController
+        parent: lucene_search.controller.frontend
+        methods: [GET]
+    lucene_search.controller.frontend.list:
+        class: LuceneSearchBundle\Controller\ListController
+        parent: lucene_search.controller.frontend
+        methods: [GET]
+        calls:
+             - [setHighlighterHelper, ['@lucene_search.helper.highlighter']]
+
+    # helper
+    lucene_search.helper.lucene:
+        class: LuceneSearchBundle\Helper\LuceneHelper
+    lucene_search.helper.string:
+        class: LuceneSearchBundle\Helper\StringHelper
+    lucene_search.helper.highlighter:
+        class: LuceneSearchBundle\Helper\HighlighterHelper
+    lucene_search.helper.view.pagination:
+            class: LuceneSearchBundle\Helper\View\PaginationHelper
+
+    # twig extensions
+    lucene_search.twig.extension.pagination:
+        class: LuceneSearchBundle\Twig\Extension\PaginationExtension
+        public: false
+        tags:
+            - { name: twig.extension }

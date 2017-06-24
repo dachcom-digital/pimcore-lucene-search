@@ -14,6 +14,7 @@ class ConfigManager
         'finished'   => NULL
     ];
 
+
     const SYSTEM_CONFIG_FILE_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/config.yml';
 
     const STATE_FILE_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/state.cnf';
@@ -23,6 +24,8 @@ class ConfigManager
     const CRAWLER_PROCESS_FILE_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/processing.tmp';
 
     const CRAWLER_URI_FILTER_FILE_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/uri-filter.tmp';
+
+    const SITEMAP_DIR_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/site-map';
 
     const CRAWLER_PERSISTENCE_STORE_DIR_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/persistence-store';
 

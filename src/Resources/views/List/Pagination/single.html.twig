@@ -1,0 +1,9 @@
+<div class="{{ class }}">
+
+    {% if searchAllPages > 1 %}
+        {% if searchAllPages > currentSearchPage %}
+            <a class="more" href="{{ searchUrl }}{{ searchUrlData }}&page={{ currentSearchPage + 1 }}">{{ 'next page'|trans }}</a>
+        {% endif %}
+    {% endif %}
+
+</div>

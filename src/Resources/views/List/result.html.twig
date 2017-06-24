@@ -1,0 +1,95 @@
+{% block lucene_search_content %}
+
+<div class="container">
+
+    <div class="row">
+
+        <div class="col-xs-12 search-content">
+
+            <h1>{{ pimcore_input('searchTitle') }}</h1>
+
+            <div class="info">
+
+            {% if searchHasResults %}
+                {{ 'Result from'|trans }} {{ searchCurrentPageResultStart }} - {{ searchCurrentPageResultEnd }} {{ 'of'|trans }} {{ searchTotalHits }}
+            {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="row">
+
+        <div class="col-xs-12">
+
+            <div class="search-list">
+
+                {% if searchHasResults %}
+
+                    <h4>{{ 'We found %d entries for "%s".'|trans|format(searchTotalHits, searchQuery) }}</h4>
+                    <ul class="search-results list-unstyled">
+
+                    {% for i,searchResult in searchResults %}
+
+                        <li class="search-result">
+
+                            {% if searchResult.title is not empty %}
+                                <h5>{{ searchResult.title }}</h5>
+                            {% endif %}
+
+                            <span class="result-summary-{{ i }}">
+
+                                {% if searchResult.description is not empty %}
+                                    <p>{{ searchResult.description|raw }}</p>
+                                {% elseif searchResult.summary is not empty %}
+                                    <p>{{ searchResult.summary|raw }} ...</p>
+                                {% endif %}
+
+                            </span>
+
+                            <a href="{{ searchResult.url }}" class="more">{{ 'read more'|trans }}</a>
+
+                        </li>
+
+                        {% endfor %}
+
+                    </ul>
+
+                        {% if searchHasResults %}
+                            {{ lucene_search_pagination({'viewTemplate' : 'default'})  }}
+                        {% endif %}
+
+                {% else %}
+
+                    {% if searchQuery is not empty %}
+
+                        <div class="no-results">
+
+                            <h5>{{ 'no search results found'|trans }}</h5>
+
+                            {% if searchSuggestions is not empty %}
+
+                                {{ 'Did you mean'|trans }}:
+                                {% for i,suggestion in searchSuggestions %}
+                                    <a href="?{{ lucene_search_pagination_url(suggestion) }}">{{ suggestion }}</a>{{ searchSuggestions.length -1 != i ? ',' : '' }}
+                                {% endfor %}
+
+                            {% endif %}
+
+                        </div>
+
+                    {% endif %}
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock lucene_search_content %}

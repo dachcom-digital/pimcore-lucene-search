@@ -1,0 +1,15 @@
+<div class="{{ class }}">
+
+    {% if currentSearchPage > 1 %}
+        <a class="previous icon-arrow-left" href="{{ searchUrl }}{{ searchUrlData }}&page={{ currentSearchPage - 1 }}"></a>
+    {% endif %}
+
+    {% for i in searchPageStart..searchPageEnd %}
+        <a {{ currentSearchPage == i ? 'class="active"' : '' }} href="{{ searchUrl }}{{ searchUrlData }}&page={{ i }}">{{ i }}</a>
+    {% endfor %}
+
+    {% if currentSearchPage > currentSearchPage %}
+        <a class="next icon-arrow-right" href="{{ searchUrl }}{{ searchUrlData }}&page={{ currentSearchPage + 1 }}"></a>
+    {% endif %}
+
+</div>
