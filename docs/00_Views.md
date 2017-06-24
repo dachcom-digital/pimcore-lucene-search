@@ -3,28 +3,27 @@
 This guide will help you to implement a search page into your website in seconds.
 
 ### Setup Search Page
-- Create a document, call it "search".
-- Define a new method in your Controller (eg. search). 
-- Create a view template (eg. `content/search.php`) and add this code:
+- Create a document, call it "search"
+- Create a view template (eg. `AppBundle\Resource\views\Search\sarch.html.twig`)
+- Add this code to the view:
 
-```php
-//viewScript = the template file in your website structure.
-$this->action('find', 'frontend', 'LuceneSearch', array('viewScript' => 'frontend/find.php'));
+```twig
+{{ render(controller('lucene_search.controller.frontend.list:getResultAction')) }}
 ```
 
-You'll find the `frontend/find.php` Template in `LuceneSearch/views/scripts/`. If you want to change the markup, just copy the template into your website script folder and change the `viewScript` parameter.
+This will load the result template from `@LuceneSearch/Resources/views/List/result.html.twig`.
 
-## Using Ajax AutoComplete
-Use this snippet to allow ajax driven autocomplete search. you may want to use this [plugin](https://github.com/devbridge/jQuery-Autocomplete) to do the job.
+### Ajax AutoComplete
+Use this snippet to allow ajax driven auto-complete search. you may want to use this [plugin](https://github.com/devbridge/jQuery-Autocomplete) to do the job.
 
-Add some JS files:
+1. Add some JS files:
 
 ```html
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.devbridge-autocomplete/1.4.1/jquery.autocomplete.min.js"></script>
 ```
 
-Add this to your project:
+2. Add auto-complete to your project:
 
 ```javascript
 $(function() {
@@ -39,7 +38,7 @@ $(function() {
         lookup: function(term, done) {
 
             $.getJSON(
-                '/plugin/LuceneSearch/frontend/auto-complete/',
+                '/lucence-search/auto-complete',
                 {
                     q: term,
                     language : language,
@@ -71,3 +70,23 @@ $(function() {
 
 });
 ```
+
+3. Place this html snippet in your header for example:
+
+```html
+<form id="search" method="get" action="/en/search">
+    <div class="input-group">
+        <input type="text" name="q" class="form-control input-lg search-field" data-language="en" placeholder="{{ 'search'|trans }}">
+        <input type="hidden" name="language" id="searchLanguage" value="en">
+        <span class="input-group-btn">
+            <button class="btn btn-lg" type="button">
+                <i class="fa fa-search"></i>
+            </button>
+        </span>
+    </div>
+</form>
+```
+
+4. Done. Now try to search something without hitting return.
+
+> Don't forget to start your crawler before testing the autocompleter.
