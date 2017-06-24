@@ -156,4 +156,51 @@ class ListController extends FrontendController
 
         return $response;
     }
+
+    private function getFuzzySuggestions($searchResults = [])
+    {
+        $suggestions = [];
+
+        //look for similar search terms
+        if (!empty($this->query) && (empty($searchResults) || count($searchResults) < 1)) {
+            $terms = $this->luceneHelper->fuzzyFindTerms($this->query, $this->frontendIndex, 3);
+
+            if (empty($terms) || count($terms) < 1) {
+                $terms = $this->luceneHelper->fuzzyFindTerms($this->query, $this->frontendIndex, 0);
+            }
+
+            if (is_array($terms)) {
+                $counter = 0;
+
+                foreach ($terms as $term) {
+                    $t = $term->text;
+
+                    $hits = NULL;
+
+                    $query = new \Zend_Search_Lucene_Search_Query_Boolean();
+                    $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($t, 'utf-8');
+                    $query->addSubquery($userQuery, TRUE);
+
+                    $this->addLanguageQuery($query);
+                    $this->addCategoryQuery($query);
+                    $this->addCountryQuery($query);
+                    $this->addRestrictionQuery($query);
+
+                    $validHits = $this->getValidHits($this->frontendIndex->find($query));
+
+                    if (count($validHits) > 0 && !in_array($t, $suggestions)) {
+                        $suggestions[] = $t;
+
+                        if ($counter >= $this->maxSuggestions) {
+                            break;
+                        }
+
+                        $counter++;
+                    }
+                }
+            }
+        }
+
+        return $suggestions;
+    }
 }
