@@ -13,7 +13,6 @@ class TaskPass implements CompilerPassInterface
 
     public function process(ContainerBuilder $container)
     {
-        // always first check if the primary service is defined
         if (!$container->has('lucene_search.task_manager')) {
             return;
         }
@@ -23,7 +22,7 @@ class TaskPass implements CompilerPassInterface
         $tasks = $this->findAndSortTaggedServices('lucene_search.task', $container);
 
         if (empty($tasks)) {
-            throw new RuntimeException('You must tag at least one tak as "lucene_search.task" to ');
+            throw new RuntimeException('You must tag at least one tak as "lucene_search.task".');
         }
 
         foreach ($tasks as $id => $task) {

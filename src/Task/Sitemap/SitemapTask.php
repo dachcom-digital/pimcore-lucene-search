@@ -17,20 +17,28 @@ class SitemapTask extends AbstractTask
      */
     protected $sitemapDir = NULL;
 
+    /**
+     * @return bool
+     */
     public function isValid()
     {
         return TRUE;
     }
 
+    /**
+     * @param mixed $data
+     *
+     * @return bool
+     */
     public function process($data)
     {
         $this->index = \Zend_Search_Lucene::open(Configuration::INDEX_DIR_PATH_STABLE);
+        $this->generateSiteMap();
 
-        var_dump('SitemapTask: DONE!');
         return TRUE;
     }
 
-    private function generateSitemap()
+    private function generateSiteMap()
     {
         $this->prepareSiteMapFolder();
 
@@ -85,7 +93,8 @@ class SitemapTask extends AbstractTask
                     //first host must be main domain - see hint in plugin settings
                     $currenthost = $hosts[0];
                     fwrite($fh, '<sitemap>' . "\r\n");
-                    fwrite($fh, '    <loc>http://' . $currenthost . '/plugin/LuceneSearch/frontend/sitemap/?sitemap=sitemap-' . $name . '.xml' . '</loc>' . "\r\n");
+                    //@todo: implement sitemap xml route
+                    fwrite($fh, '    <loc>http://' . $currenthost . '/sitemap/?sitemap=sitemap-' . $name . '.xml' . '</loc>' . "\r\n");
                     fwrite($fh, '</sitemap>' . "\r\n");
 
                     $this->log('LuceneSearch: ' . $hostName . ' for sitemap.xml added.', 'debug');
@@ -94,10 +103,10 @@ class SitemapTask extends AbstractTask
                 fwrite($fh, '</sitemapindex>' . "\r\n");
                 fclose($fh);
             } else {
-                \Pimcore\Logger::debug('LuceneSearch: could not generate sitemaps, did not find any hosts in index.');
+                $this->logger->log('LuceneSearch: could not generate sitemaps, did not find any hosts in index.');
             }
         } else {
-            \Pimcore\Logger::emerg('LuceneSearch: Cannot generate sitemap. Sitemap directory [ ' . $this->sitemapDir . ' ]  not available/not writeable and cannot be created');
+            $this->logger->log('LuceneSearch: Cannot generate sitemap. Sitemap directory [ ' . $this->sitemapDir . ' ]  not available/not writeable and cannot be created', 'emergency');
         }
     }
 
@@ -106,7 +115,7 @@ class SitemapTask extends AbstractTask
      */
     private function getValidHosts()
     {
-        $urls = Configuration::get('frontend.urls');
+        $urls = $this->configuration->getConfig('seeds');
 
         if (empty($urls)) {
             return [];
@@ -127,7 +136,7 @@ class SitemapTask extends AbstractTask
      */
     private function prepareSiteMapFolder()
     {
-        $sitemapDir = PIMCORE_WEBSITE_PATH . '/var/search/sitemap';
+        $sitemapDir = Configuration::SITEMAP_DIR_PATH;
 
         if (is_dir($sitemapDir) && !is_writable($sitemapDir)) {
             $sitemapDirAvailable = FALSE;
