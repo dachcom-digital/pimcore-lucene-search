@@ -2,82 +2,83 @@
 
 namespace LuceneSearchBundle\EventListener;
 
-use Symfony\Component\EventDispatcher\GenericEvent;
+use LuceneSearchBundle\Logger\Logger;
+use LuceneSearchBundle\Organizer\Handler\StateHandler;
+use LuceneSearchBundle\Organizer\Dispatcher\HandlerDispatcher;
 
-use LuceneSearchBundle\Config\ConfigManager;
-use LuceneSearchBundle\Processor\Processor;
+use LuceneSearchBundle\Task\TaskManager;
+use Pimcore\Event\System\MaintenanceEvent;
 
 class CrawlListener
 {
     /**
-     * @var ConfigManager
+     * @var HandlerDispatcher
      */
-    protected $configManager;
+    protected $handlerDispatcher;
 
     /**
-     * @var Processor
+     * @var TaskManager
      */
-    protected $processor;
+    protected $taskManager;
 
     /**
      * Worker constructor.
      *
-     * @param ConfigManager $configManager
-     * @param Processor $processor
+     * @param HandlerDispatcher $handlerDispatcher
+     * @param TaskManager $taskManager
      */
-    public function __construct(ConfigManager $configManager = NULL, Processor $processor)
+    public function __construct(HandlerDispatcher $handlerDispatcher, TaskManager $taskManager)
     {
-        $this->configManager = $configManager;
-        $this->processor = $processor;
+        $this->handlerDispatcher = $handlerDispatcher;
+        $this->taskManager = $taskManager;
     }
 
     /**
-     * @param GenericEvent $e
+     * @param MaintenanceEvent $ev
      *
      * @return void
      */
-    public function run(GenericEvent $e)
+    public function run(MaintenanceEvent $ev)
     {
-        \Pimcore\Logger::err('lucene: maintanence running');
-
-        if ($this->processor->isInstalled()) {
-            \Pimcore\Logger::debug('LuceneSearch: Plugin is not installed - no maintenance to do for this plugin.');
+        if ($this->handlerDispatcher->getStateHandler()->isCrawlerEnabled() === FALSE) {
             return;
         }
 
+
         $currentHour = date('H', time());
 
-        //Frontend recrawl
-        $running = self::frontendCrawlerRunning();
+        $running = $this->handlerDispatcher->getStateHandler()->getCrawlerState() === StateHandler::CRAWLER_STATE_ACTIVE;
 
-        $enabled = Configuration::get('frontend.enabled');
-        $lastStarted = Configuration::getCoreSetting('started');
-        $lastFinished = Configuration::getCoreSetting('finished');
-        $forceStart = Configuration::getCoreSetting('forceStart');
+        $lastStarted = $this->handlerDispatcher->getStateHandler()->getCrawlerLastStarted();
+        $lastFinished = $this->handlerDispatcher->getStateHandler()->getCrawlerLastFinished();
+        $forceStart = $this->handlerDispatcher->getStateHandler()->isCrawlerInForceStart();
         $aDayAgo = time() - (24 * 60 * 60);
 
         /**
-         * + If Crawler is enabled
          * + If Crawler is not running
          * + If last start of Crawler is initial or a day ago
          * + If it's between 1 + 3 o clock in the night
          * + OR if its force
          * => RUN
          */
-        if ($enabled && !$running && (((is_bool($lastStarted) || $lastStarted <= $aDayAgo) && $currentHour > 1 && $currentHour < 3) || $forceStart)) {
-            \Pimcore\Logger::debug('starting frontend recrawl...');
-            $this->frontendCrawl();
+        if ($running === FALSE &&
+            (((is_bool($lastStarted) || $lastStarted <= $aDayAgo) && $currentHour > 1 && $currentHour < 3) || $forceStart)
+        ) {
+            \Pimcore\Logger::debug('LuceneSearch: crawling started from maintenance listener.');
+
+            $consoleLogger = new Logger();
+            $this->taskManager->setLogger($consoleLogger);
+            $this->taskManager->processTaskChain(['force' => FALSE]);
+
             /**
              * + If Crawler is Running
              * + If last stop of crawler is before last start
              * + If last start is older than one day
              * => We have some errors: EXIT CRAWLING!
              */
-        } else if ($running && $lastFinished < $lastStarted && $lastStarted <= $aDayAgo) {
+        } else if ($running === TRUE && $lastFinished < $lastStarted && $lastStarted <= $aDayAgo) {
             \Pimcore\Logger::error('LuceneSearch: There seems to be a problem with the search crawler! Trying to stop it.');
-            $this->stopFrontendCrawler();
+            $this->handlerDispatcher->getStateHandler()->stopCrawler(TRUE);
         }
-
-
     }
 }

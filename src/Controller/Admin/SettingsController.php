@@ -3,14 +3,14 @@
 namespace LuceneSearchBundle\Controller\Admin;
 
 use Pimcore\Bundle\AdminBundle\Controller\AdminController;
-use LuceneSearchBundle\Config\ConfigManager;
-use LuceneSearchBundle\Processor\Organizer\Handler\StateHandler;
+use LuceneSearchBundle\Configuration\Configuration;
+use LuceneSearchBundle\Organizer\Handler\StateHandler;
 
 class SettingsController extends AdminController
 {
     public function getLogAction()
     {
-        $logFile = ConfigManager::CRAWLER_LOG_FILE_PATH;
+        $logFile = Configuration::CRAWLER_LOG_FILE_PATH;
         $data = '';
 
         if (file_exists($logFile)) {
@@ -27,8 +27,9 @@ class SettingsController extends AdminController
     {
         $canStart = TRUE;
 
-        /** @var ConfigManager $configManager */
-        $configManager = $this->container->get('lucene_search.config_manager');
+        /** @var Configuration $configManager */
+        $configManager = $this->container->get('lucene_search.configuration');
+        /** @var StateHandler $stateHandler */
         $stateHandler = $this->container->get('lucene_search.organizer.state_handler');
         $currentState = $stateHandler->getCrawlerState();
 
@@ -36,7 +37,7 @@ class SettingsController extends AdminController
 
         if ($configComplete === FALSE ||
             $currentState === StateHandler::CRAWLER_STATE_ACTIVE ||
-            $configManager->getStateConfig('forceStart') === TRUE
+            $stateHandler->isCrawlerInForceStart() === TRUE
         ) {
             $canStart = FALSE;
         }
@@ -45,7 +46,7 @@ class SettingsController extends AdminController
 
         if ($configComplete === FALSE ||
             $currentState !== StateHandler::CRAWLER_STATE_ACTIVE ||
-            $configManager->getStateConfig('forceStop') === TRUE
+            $stateHandler->isCrawlerInForceStop() === TRUE
         ) {
             $canStop = FALSE;
         }

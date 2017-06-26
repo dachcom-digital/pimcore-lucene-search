@@ -2,7 +2,7 @@
 
 namespace LuceneSearchBundle\Controller;
 
-use LuceneSearchBundle\Config\ConfigManager;
+use LuceneSearchBundle\Configuration\Configuration;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -10,7 +10,7 @@ class SiteMapController extends FrontendController
 {
     public function renderAction()
     {
-        if ($this->configManager->getConfig('sitemap:render') === FALSE) {
+        if ($this->configuration->getConfig('sitemap:render') === FALSE) {
             throw new NotFoundHttpException('no sitemap.xml found.');
         }
 
@@ -22,8 +22,8 @@ class SiteMapController extends FrontendController
             throw new \Exception(get_class($this) . ': Attempted access to invalid sitemap [' . $siteMapFile . ']');
         }
 
-        $requestedSiteMap = ConfigManager::SITEMAP_DIR_PATH . '/' . $siteMapFile;
-        $indexSiteMap = ConfigManager::SITEMAP_DIR_PATH . '/sitemap.xml';
+        $requestedSiteMap = Configuration::SITEMAP_DIR_PATH . '/' . $siteMapFile;
+        $indexSiteMap = Configuration::SITEMAP_DIR_PATH . '/sitemap.xml';
 
         $content = NULL;
 

@@ -17,7 +17,7 @@ class LuceneSearchExtension extends Extension
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yml');
 
-        $configManagerDefinition = $container->getDefinition('lucene_search.config_manager');
+        $configManagerDefinition = $container->getDefinition('lucene_search.configuration');
         $configManagerDefinition->addMethodCall('setConfig', [ $config ]);
     }
 

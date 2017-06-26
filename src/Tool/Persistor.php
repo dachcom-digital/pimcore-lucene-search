@@ -2,7 +2,7 @@
 
 namespace LuceneSearchBundle\Tool;
 
-use LuceneSearchBundle\Config\ConfigManager;
+use LuceneSearchBundle\Configuration\Configuration;
 
 class Persistor
 {
@@ -35,7 +35,7 @@ class Persistor
     public function __construct($options = [])
     {
         // Set current database
-        $this->db = ConfigManager::CRAWLER_URI_FILTER_FILE_PATH;
+        $this->db = Configuration::CRAWLER_URI_FILTER_FILE_PATH;
 
         // Set options
         if (!empty($options)) {

@@ -2,13 +2,12 @@
 
 namespace LuceneSearchBundle\Tool;
 
-use Pimcore\Config;
 use Pimcore\Extension\Bundle\Installer\AbstractInstaller;
 
 use Symfony\Component\Filesystem\Filesystem;
 use Pimcore\Model\Property;
 use Psr\Log\LoggerInterface;
-use LuceneSearchBundle\Config\ConfigManager;
+use LuceneSearchBundle\Configuration\Configuration;
 
 class Install extends AbstractInstaller
 {
@@ -51,9 +50,9 @@ class Install extends AbstractInstaller
      */
     public function uninstall()
     {
-        if ($this->fileSystem->exists(ConfigManager::SYSTEM_CONFIG_FILE_PATH)) {
+        if ($this->fileSystem->exists(Configuration::SYSTEM_CONFIG_FILE_PATH)) {
             $this->fileSystem->rename(
-                ConfigManager::SYSTEM_CONFIG_FILE_PATH,
+                Configuration::SYSTEM_CONFIG_FILE_PATH,
                 PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/config_backup.yml'
             );
         }
@@ -64,7 +63,7 @@ class Install extends AbstractInstaller
      */
     public function isInstalled()
     {
-        return $this->fileSystem->exists(ConfigManager::SYSTEM_CONFIG_FILE_PATH);
+        return $this->fileSystem->exists(Configuration::SYSTEM_CONFIG_FILE_PATH);
     }
 
     /**
@@ -72,7 +71,7 @@ class Install extends AbstractInstaller
      */
     public function canBeInstalled()
     {
-        return !$this->fileSystem->exists(ConfigManager::SYSTEM_CONFIG_FILE_PATH);
+        return !$this->fileSystem->exists(Configuration::SYSTEM_CONFIG_FILE_PATH);
     }
 
     /**
@@ -80,7 +79,7 @@ class Install extends AbstractInstaller
      */
     public function canBeUninstalled()
     {
-        return $this->fileSystem->exists(ConfigManager::SYSTEM_CONFIG_FILE_PATH);
+        return $this->fileSystem->exists(Configuration::SYSTEM_CONFIG_FILE_PATH);
     }
 
     /**
@@ -104,16 +103,16 @@ class Install extends AbstractInstaller
      */
     private function copyConfigFiles()
     {
-        if (!$this->fileSystem->exists(ConfigManager::SYSTEM_CONFIG_FILE_PATH)) {
+        if (!$this->fileSystem->exists(Configuration::SYSTEM_CONFIG_FILE_PATH)) {
             $this->fileSystem->copy(
                 $this->installSourcesPath . '/config.yml',
-                ConfigManager::SYSTEM_CONFIG_FILE_PATH
+                Configuration::SYSTEM_CONFIG_FILE_PATH
             );
         }
 
-        if (!$this->fileSystem->exists(ConfigManager::STATE_FILE_PATH)) {
-            $content = serialize(ConfigManager::STATE_DEFAULT_VALUES);
-            $this->fileSystem->appendToFile(ConfigManager::STATE_FILE_PATH, $content);
+        if (!$this->fileSystem->exists(Configuration::STATE_FILE_PATH)) {
+            $content = serialize(Configuration::STATE_DEFAULT_VALUES);
+            $this->fileSystem->appendToFile(Configuration::STATE_FILE_PATH, $content);
         }
 
     }
@@ -123,20 +122,20 @@ class Install extends AbstractInstaller
      */
     public function createDirectories()
     {
-        if (!$this->fileSystem->exists(ConfigManager::CRAWLER_PERSISTENCE_STORE_DIR_PATH)) {
-            $this->fileSystem->mkdir(ConfigManager::CRAWLER_PERSISTENCE_STORE_DIR_PATH, 0755);
+        if (!$this->fileSystem->exists(Configuration::CRAWLER_PERSISTENCE_STORE_DIR_PATH)) {
+            $this->fileSystem->mkdir(Configuration::CRAWLER_PERSISTENCE_STORE_DIR_PATH, 0755);
         }
 
-        if (!$this->fileSystem->exists(ConfigManager::INDEX_DIR_PATH)) {
-            $this->fileSystem->mkdir(ConfigManager::INDEX_DIR_PATH, 0755);
+        if (!$this->fileSystem->exists(Configuration::INDEX_DIR_PATH)) {
+            $this->fileSystem->mkdir(Configuration::INDEX_DIR_PATH, 0755);
         }
 
-        if (!$this->fileSystem->exists(ConfigManager::INDEX_DIR_PATH_STABLE)) {
-            $this->fileSystem->mkdir(ConfigManager::INDEX_DIR_PATH_STABLE, 0755);
+        if (!$this->fileSystem->exists(Configuration::INDEX_DIR_PATH_STABLE)) {
+            $this->fileSystem->mkdir(Configuration::INDEX_DIR_PATH_STABLE, 0755);
         }
 
-        if (!$this->fileSystem->exists(ConfigManager::INDEX_DIR_PATH_GENESIS)) {
-            $this->fileSystem->mkdir(ConfigManager::INDEX_DIR_PATH_GENESIS, 0755);
+        if (!$this->fileSystem->exists(Configuration::INDEX_DIR_PATH_GENESIS)) {
+            $this->fileSystem->mkdir(Configuration::INDEX_DIR_PATH_GENESIS, 0755);
         }
 
         return TRUE;

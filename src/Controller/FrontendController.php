@@ -2,7 +2,7 @@
 
 namespace LuceneSearchBundle\Controller;
 
-use LuceneSearchBundle\Config\ConfigManager;
+use LuceneSearchBundle\Configuration\Configuration;
 use LuceneSearchBundle\Helper\LuceneHelper;
 use LuceneSearchBundle\Helper\StringHelper;
 
@@ -17,9 +17,9 @@ class FrontendController
     protected $requestStack;
 
     /**
-     * @var ConfigManager
+     * @var Configuration
      */
-    protected $configManager;
+    protected $configuration;
 
     /**
      * @var EngineInterface
@@ -109,7 +109,7 @@ class FrontendController
      *
      * @param RequestStack    $requestStack
      * @param EngineInterface $templating
-     * @param ConfigManager   $configManager
+     * @param Configuration   $configuration
      * @param LuceneHelper    $luceneHelper
      * @param StringHelper    $stringHelper
      *
@@ -118,19 +118,19 @@ class FrontendController
     public function __construct(
         RequestStack $requestStack,
         EngineInterface $templating,
-        ConfigManager $configManager,
+        Configuration $configuration,
         LuceneHelper $luceneHelper,
         StringHelper $stringHelper
     ) {
         $this->requestStack = $requestStack;
         $this->templating = $templating;
-        $this->configManager = $configManager;
+        $this->configuration = $configuration;
         $this->luceneHelper = $luceneHelper;
         $this->stringHelper = $stringHelper;
 
         $requestQuery = $this->requestStack->getMasterRequest()->query;
 
-        if (!$this->configManager->getConfig('enabled')) {
+        if (!$this->configuration->getConfig('enabled')) {
             return FALSE;
         }
 
@@ -140,8 +140,8 @@ class FrontendController
                 new \Zend_Search_Lucene_Analysis_Analyzer_Common_Utf8Num_CaseInsensitive()
             );
 
-            $this->frontendIndex = \Zend_Search_Lucene::open(ConfigManager::INDEX_DIR_PATH_STABLE);
-            $this->categories = $this->configManager->getConfig('categories');
+            $this->frontendIndex = \Zend_Search_Lucene::open(Configuration::INDEX_DIR_PATH_STABLE);
+            $this->categories = $this->configuration->getConfig('categories');
 
             //set search term query
             $searchQuery = $this->stringHelper->cleanRequestString($requestQuery->get('q'));
@@ -152,7 +152,7 @@ class FrontendController
             }
 
             //set Language
-            if ($this->configManager->getConfig('locale:ignore_language') === FALSE) {
+            if ($this->configuration->getConfig('locale:ignore_language') === FALSE) {
 
                 $requestLang = $requestQuery->get('language');
 
@@ -177,7 +177,7 @@ class FrontendController
             }
 
             //Set Country
-            if ($this->configManager->getConfig('locale:ignore_country') !== TRUE) {
+            if ($this->configuration->getConfig('locale:ignore_country') !== TRUE) {
                 $this->searchCountry = $requestQuery->get('country');
 
                 if ($this->searchCountry == 'global') {
@@ -190,30 +190,30 @@ class FrontendController
             }
 
             //Set Restrictions (Auth)
-            if ($this->configManager->getConfig('restriction:ignore') === FALSE) {
+            if ($this->configuration->getConfig('restriction:ignore') === FALSE) {
                 $this->searchRestriction = TRUE;
             }
 
             //Set Fuzzy Search (Auth)
             $fuzzySearchRequest = $requestQuery->get('fuzzy');
-            if ($this->configManager->getConfig('fuzzy_search') == TRUE || (!empty($fuzzySearchRequest)) && $fuzzySearchRequest !== 'false') {
+            if ($this->configuration->getConfig('fuzzy_search') == TRUE || (!empty($fuzzySearchRequest)) && $fuzzySearchRequest !== 'false') {
                 $this->fuzzySearch = TRUE;
             }
 
             //Set own Host Only
-            if ($this->configManager->getConfig('own_host_only') == TRUE) {
+            if ($this->configuration->getConfig('own_host_only') == TRUE) {
                 $this->ownHostOnly = TRUE;
             }
 
             //Set Entries per Page
-            $this->perPage = $this->configManager->getConfig('view:max_per_page');
+            $this->perPage = $this->configuration->getConfig('view:max_per_page');
             $perPage = $requestQuery->get('perPage');
             if (!empty($perPage)) {
                 $this->perPage = (int)$perPage;
             }
 
             //Set max Suggestions
-            $this->maxSuggestions = $this->configManager->getConfig('view:max_suggestions');
+            $this->maxSuggestions = $this->configuration->getConfig('view:max_suggestions');
 
             //Set Current Page
             $currentPage = $requestQuery->get('page');
@@ -329,8 +329,8 @@ class FrontendController
 
             $signs = [NULL];
 
-            $class = $this->configManager->getConfig('restriction:class');
-            $method = $this->configManager->getConfig('restriction:method');
+            $class = $this->configuration->getConfig('restriction:class');
+            $method = $this->configuration->getConfig('restriction:method');
 
             $call = [$class, $method];
 

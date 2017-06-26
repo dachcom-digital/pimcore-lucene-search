@@ -2,6 +2,7 @@
 
 namespace LuceneSearchBundle\Command;
 
+use LuceneSearchBundle\Logger\ConsoleLogger;
 use Pimcore\Console\AbstractCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputArgument;
@@ -35,19 +36,16 @@ class CrawlCommand extends AbstractCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $currentRevision = NULL;
-
-        /** @var \LuceneSearchBundle\Processor\Processor $processor */
-        $processor = $this->getContainer()->get('lucene_search.processor');
-
         if ($input->getArgument('crawl') === 'crawl') {
 
-            $this->output->writeln('<comment>LuceneSearch: Start Crawling...</comment>');
 
-            $processor->addLogOutput($output);
-            $processor->runCrawler($input->getOption('force'));
+            /** @var \LuceneSearchBundle\Task\TaskManager $taskManager */
+            $taskManager = $this->getContainer()->get('lucene_search.task_manager');
 
-            //Tool\Executer::generateSitemap();
+            $consoleLogger = new ConsoleLogger();
+            $consoleLogger->setConsoleOutput($output);
+            $taskManager->setLogger($consoleLogger);
+            $taskManager->processTaskChain(['force' => $input->getOption('force')]);
 
             $this->output->writeln('<fg=green>LuceneSearch: Finished crawl.</>');
         }
