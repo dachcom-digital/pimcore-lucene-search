@@ -2,7 +2,7 @@
 
 namespace LuceneSearchBundle\Tool;
 
-class Request
+class CrawlerState
 {
     /**
      * Check if current request is a LuceneSearch crawler.
@@ -10,7 +10,7 @@ class Request
      * custom injected elements like "lucene-search" won't appear. So maybe we do have some issues with servers running with NGINX or IIS
      * @see   https://github.com/zendframework/zend-xmlrpc/blob/master/src/Request/Http.php#L81
      */
-    public static function isLuceneSearchCrawler()
+    public function isLuceneSearchCrawler()
     {
         $isLuceneSearch = FALSE;
 

@@ -21,7 +21,7 @@ class LuceneSearchBundle extends AbstractPimcoreBundle
      */
     public function getInstaller()
     {
-        return $this->container->get('lucene_search.installer');
+        return $this->container->get('lucene_search.tool.installer');
     }
 
     /**
