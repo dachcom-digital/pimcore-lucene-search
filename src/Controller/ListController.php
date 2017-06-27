@@ -140,9 +140,10 @@ class ListController extends FrontendController
                 'searchCurrentPageResultStart' => $currentPageResultStart + 1,
                 'searchCurrentPageResultEnd'   => $currentPageResultEnd
             ];
+            
         } catch (\Exception $e) {
 
-            \Pimcore\Logger::debug('An Exception occurred during search: ' . $e->getMessage());
+            \Pimcore\Logger::debug('LuceneSearch: An Exception occurred during search: ' . $e->getMessage());
 
             $viewParams = [
                 'searchResults'    => [],

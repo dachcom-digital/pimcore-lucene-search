@@ -57,7 +57,7 @@ class StateHandler extends AbstractHandler
     {
         $messages = [];
 
-        if (!$this->isCrawlerEnabled() === FALSE) {
+        if ($this->isCrawlerEnabled() === FALSE) {
             return FALSE;
         }
 

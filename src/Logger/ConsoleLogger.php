@@ -31,15 +31,12 @@ class ConsoleLogger extends Logger
      * @param bool $logToBackend
      * @param bool $logToSystem
      *
-     * @return bool
+     * @return void
      */
-    public function log($message, $level = 'debug', $logToBackend = FALSE, $logToSystem = FALSE)
+    public function log($message, $level = 'debug', $logToBackend = TRUE, $logToSystem = TRUE)
     {
         parent::log($message, $level, $logToBackend, $logToSystem);
-
         $this->addToConsoleLog($message, $level);
-
-        return TRUE;
     }
 
     /**
@@ -59,6 +56,8 @@ class ConsoleLogger extends Logger
         if ($this->verbosity !== Output\OutputInterface::VERBOSITY_VERBOSE) {
             return FALSE;
         }
+
+        $message = $this->getPrefix() . $message;
 
         $debugLevel = 'fg=white';
         if ($level === 'debug') {

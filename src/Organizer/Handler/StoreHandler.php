@@ -91,16 +91,8 @@ class StoreHandler extends AbstractHandler
             $this->fileSystem->mkdir($to);
         }
 
-        foreach (
-            $iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($from, \RecursiveDirectoryIterator::SKIP_DOTS),
-                \RecursiveIteratorIterator::SELF_FIRST) as $item) {
-            if ($item->isDir()) {
-                mkdir($to . DIRECTORY_SEPARATOR . $iterator->getSubPathName());
-            } else {
-                copy($item, $to . DIRECTORY_SEPARATOR . $iterator->getSubPathName());
-            }
-        }
+        $this->fileSystem->mirror($from, $to, null, ['override' => TRUE, 'delete' => TRUE]);
+
     }
 
     private function removeFolder($path, $pattern = '*')

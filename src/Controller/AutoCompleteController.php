@@ -7,6 +7,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class AutoCompleteController extends FrontendController
 {
+    /**
+     * @param Request $request
+     *
+     * @return JsonResponse
+     */
     public function searchAction(Request $request)
     {
         $terms = $this->luceneHelper->wildcardFindTerms($this->query, $this->frontendIndex);

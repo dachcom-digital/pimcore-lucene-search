@@ -13,7 +13,13 @@ class ShutDownTask extends AbstractTask
 
     public function process($crawlData)
     {
-        $this->logger->log('uceneSearch: Stopping Crawling...', 'debug', FALSE, FALSE);
+        $this->logger->setPrefix('task.shutdown');
+
+        if($this->isLastCycle() === FALSE) {
+            return FALSE;
+        }
+
+        $this->logger->log('Stopping Crawling...', 'debug', FALSE, FALSE);
 
         $this->handlerDispatcher->getStoreHandler()->resetPersistenceStore();
         $this->handlerDispatcher->getStoreHandler()->resetUriFilterPersistenceStore();

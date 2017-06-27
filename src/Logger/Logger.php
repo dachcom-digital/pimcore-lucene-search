@@ -17,30 +17,15 @@ class Logger extends AbstractLogger
      * @param bool $logToBackend
      * @param bool $logToSystem
      *
-     * @return bool
+     * @return void
      */
-    public function log($message, $level = 'debug', $logToBackend = FALSE, $logToSystem = FALSE)
+    public function log($message, $level = 'debug', $logToBackend = TRUE, $logToSystem = TRUE)
     {
-        $this->addToBackendLog($message, $level, $logToBackend, $logToSystem);
-
-        return TRUE;
-    }
-
-    /**
-     * @param string $message
-     * @param string $level
-     * @param bool   $addToBackendLog
-     * @param bool   $addToSystemLog
-     *
-     * @return bool
-     */
-    public function addToBackendLog($message = '', $level = 'debug', $addToBackendLog = TRUE, $addToSystemLog = TRUE)
-    {
-        if ($addToSystemLog === TRUE) {
-            \Pimcore\Logger::log('LuceneSearch: ' . $message, $this->getRealLevel($level));
+        if ($logToSystem === TRUE) {
+            \Pimcore\Logger::log($this->getSystemPrefix() . $this->getPrefix() . $message, $this->getRealLevel($level));
         }
 
-        if ($addToBackendLog === TRUE) {
+        if ($logToBackend === TRUE) {
             $file = Configuration::CRAWLER_LOG_FILE_PATH;
             $current = '';
             if (file_exists($file)) {
@@ -49,8 +34,6 @@ class Logger extends AbstractLogger
             $current .= date('d.m.Y H:i') . '|' . $this->getRealLevel($level) . '|' . $message . "\n";
             file_put_contents($file, $current);
         }
-
-        return TRUE;
     }
 
     /**
@@ -65,5 +48,13 @@ class Logger extends AbstractLogger
         }
 
         return $level;
+    }
+
+    /**
+     * @return string
+     */
+    private function getSystemPrefix()
+    {
+        return 'LuceneSearch: ';
     }
 }

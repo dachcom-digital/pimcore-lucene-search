@@ -28,10 +28,40 @@ class ParserTask extends AbstractTask
      */
     protected $assetBoost = 1;
 
+    /**
+     * indicates where the content relevant for search starts
+     * @var string
+     */
+    protected $searchStartIndicator;
+
+    /**
+     * indicates where the content relevant for search ends
+     * @var string
+     */
+    protected $searchEndIndicator;
+
+    /**
+     * indicates where the content irrelevant for search starts
+     * @var string
+     */
+    protected $searchExcludeStartIndicator;
+
+    /**
+     * indicates where the content irrelevant for search ends
+     * @var string
+     */
+    protected $searchExcludeEndIndicator;
+
     public function isValid()
     {
         $this->documentBoost = $this->configuration->getConfig('boost:documents');
         $this->assetBoost = $this->configuration->getConfig('boost:assets');
+
+        $this->searchStartIndicator = $this->configuration->getConfig('crawler:content_start_indicator');
+        $this->searchEndIndicator = $this->configuration->getConfig('crawler:content_end_indicator');
+        $this->searchExcludeStartIndicator = $this->configuration->getConfig('crawler:content_exclude_start_indicator');
+        $this->searchExcludeEndIndicator = $this->configuration->getConfig('crawler:content_exclude_end_indicator');
+
         $this->assetTmpDir = Configuration::CRAWLER_TMP_ASSET_DIR_PATH;
 
         return TRUE;
@@ -39,15 +69,19 @@ class ParserTask extends AbstractTask
 
     public function process($crawlData)
     {
+        $this->logger->setPrefix('task.parser');
+
         $this->checkAndPrepareIndex();
 
         foreach ($crawlData as $resource) {
             if ($resource instanceof Resource) {
                 $this->parseResponse($resource);
             } else {
-                $this->log('[crawler] crawler resource not a instance of \VDB\Spider\Resource. Given type: ' . gettype($resource), 'notice');
+                $this->log('crawler resource not a instance of \VDB\Spider\Resource. Given type: ' . gettype($resource), 'notice');
             }
         }
+
+        $this->optimizeIndex();
 
         return TRUE;
     }
@@ -71,10 +105,10 @@ class ParserTask extends AbstractTask
             } else if ($mimeType == 'application/pdf') {
                 $this->parsePdf($uri, $resource, $host);
             } else {
-                $this->log('[resource] cannot parse mime type [ ' . $mimeType . ' ] provided by uri [ ' . $uri . ' ]', 'debug');
+                $this->log('cannot parse mime type [ ' . $mimeType . ' ] provided by uri [ ' . $uri . ' ]', 'debug');
             }
         } else {
-            $this->log('[resource] could not determine content type of [ ' . $uri . ' ]', 'debug');
+            $this->log('could not determine content type of [ ' . $uri . ' ]', 'debug');
         }
     }
 
@@ -105,7 +139,7 @@ class ParserTask extends AbstractTask
         $hasCanonicalLink = $crawler->filterXpath('//link[@rel="canonical"]')->count() > 0;
 
         if ($hasCanonicalLink === TRUE) {
-            $this->log('[parser] skip indexing [ ' . $link . ' ] because it has canonical links');
+            $this->log('skip indexing [ ' . $link . ' ] because it has canonical links');
             return FALSE;
         }
 
@@ -113,7 +147,7 @@ class ParserTask extends AbstractTask
         $hasNoFollow = $crawler->filterXpath('//meta[@content="nofollow"]')->count() > 0;
 
         if ($hasNoFollow === TRUE) {
-            $this->log('[parser] skip indexing [ ' . $link . ' ] because it has a nofollow tag');
+            $this->log('skip indexing [ ' . $link . ' ] because it has a nofollow tag');
             return FALSE;
         }
 
@@ -189,7 +223,7 @@ class ParserTask extends AbstractTask
 
         $this->addHtmlToIndex($html, $title, $description, $link, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost);
 
-        $this->log('[parser] added html to indexer stack: ' . $link);
+        $this->log('added html to indexer stack: ' . $link);
 
         return TRUE;
     }
@@ -203,7 +237,7 @@ class ParserTask extends AbstractTask
      */
     private function parsePdf($link, $resource, $host)
     {
-        $this->log('[parser] added pdf to indexer stack: ' . $link);
+        $this->log('added pdf to indexer stack: ' . $link);
 
         $metaData = $this->getMetaDataFromAsset($link);
 
@@ -251,7 +285,7 @@ class ParserTask extends AbstractTask
             $cmd = $verboseCommand . $tmpPdfFile . ' ' . $tmpFile;
             exec($pdfToTextBin . ' ' . $cmd);
         } catch (\Exception $e) {
-            $this->log('[parser] ' . $e->getMessage());
+            $this->log($e->getMessage());
         }
 
         $uri = $resource->getUri()->toString();
@@ -281,7 +315,7 @@ class ParserTask extends AbstractTask
                 //no add document to lucene index!
                 $this->addDocumentToIndex($doc);
             } catch (\Exception $e) {
-                $this->log('[parser] ' . $e->getMessage());
+                $this->log($e->getMessage());
             }
 
             @unlink($tmpFile);
@@ -370,7 +404,7 @@ class ParserTask extends AbstractTask
             //no add document to lucene index!
             $this->addDocumentToIndex($doc);
         } catch (\Exception $e) {
-            $this->log('[lucene] ' . $e->getMessage());
+            $this->log($e->getMessage());
         }
     }
 
@@ -382,7 +416,7 @@ class ParserTask extends AbstractTask
         if ($doc instanceof \Zend_Search_Lucene_Document) {
             $this->index->addDocument($doc);
         } else {
-            $this->log('[lucene] could not parse lucene document', 'error');
+            $this->log('could not parse lucene document', 'error');
         }
     }
 
@@ -588,13 +622,20 @@ class ParserTask extends AbstractTask
         if (!$this->index) {
             $indexDir = Configuration::INDEX_DIR_PATH_GENESIS;
 
-            //always create new tmp index.
+            \Zend_Search_Lucene_Analysis_Analyzer::setDefault(new \Zend_Search_Lucene_Analysis_Analyzer_Common_Utf8Num_CaseInsensitive());
+
             try {
-                \Zend_Search_Lucene_Analysis_Analyzer::setDefault(new \Zend_Search_Lucene_Analysis_Analyzer_Common_Utf8Num_CaseInsensitive());
-                \Zend_Search_Lucene::create($indexDir);
-                $this->index = \Zend_Search_Lucene::open($indexDir);
-            } catch (\Exception $e) {
-                $this->log('[lucene] ' . $e->getMessage(), 'debug', FALSE);
+                $index = \Zend_Search_Lucene::open($indexDir);
+            } catch(\Zend_Search_Lucene_Exception $e) {
+                $index = \Zend_Search_Lucene::create($indexDir);
+            }
+
+            $this->index = $index;
+
+            if(!$this->index instanceof \Zend_Search_Lucene_Proxy) {
+                $this->log('could not create/open index at ' . $indexDir, 'error', TRUE);
+                $this->handlerDispatcher->getStateHandler()->stopCrawler(TRUE);
+                exit;
             }
         }
     }
@@ -611,9 +652,9 @@ class ParserTask extends AbstractTask
         if (is_object($this->index) && $this->index instanceof \Zend_Search_Lucene_Proxy) {
             $this->index->removeReference();
             unset($this->index);
-            $this->log('[lucene] closed frontend index references', 'debug', FALSE);
+            $this->log('closed frontend index references', 'debug', FALSE);
         }
 
-        $this->log('[lucene] optimize lucene index', 'debug', FALSE);
+        $this->log('optimize lucene index', 'debug', FALSE);
     }
 }

@@ -99,10 +99,6 @@ class Persistor
      */
     private function openFile($file, $mode)
     {
-        if ($this->options['gzip'] === TRUE) {
-            $file = 'compress.zlib://' . $file;
-        }
-
         return @fopen($file, $mode);
     }
 

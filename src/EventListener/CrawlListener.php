@@ -44,7 +44,6 @@ class CrawlListener
             return;
         }
 
-
         $currentHour = date('H', time());
 
         $running = $this->handlerDispatcher->getStateHandler()->getCrawlerState() === StateHandler::CRAWLER_STATE_ACTIVE;
@@ -66,8 +65,8 @@ class CrawlListener
         ) {
             \Pimcore\Logger::debug('LuceneSearch: crawling started from maintenance listener.');
 
-            $consoleLogger = new Logger();
-            $this->taskManager->setLogger($consoleLogger);
+            $logger = new Logger();
+            $this->taskManager->setLogger($logger);
             $this->taskManager->processTaskChain(['force' => FALSE]);
 
             /**

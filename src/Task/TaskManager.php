@@ -67,14 +67,19 @@ class TaskManager
             throw new \Exception('no valid task iterators defined!');
         }
 
-        foreach ($this->taskIterators as $iterator) {
+        foreach ($this->taskIterators as $iteratorIndex => $iterator) {
 
-            foreach ($this->tasks as $task) {
+            foreach ($this->tasks as $taskIndex => $task) {
 
                 /** @var AbstractTask $taskClass */
                 $taskClass = $task['task'];
 
                 $options['iterator'] = $iterator;
+
+                $taskClass->setIsFirstCycle($iteratorIndex == 0);
+                $taskClass->setIsFirstTask($taskIndex == 0);
+                $taskClass->setIsLastCycle($iteratorIndex === count( $this->taskIterators) -1);
+                $taskClass->setIsLastTask($taskIndex === count( $this->tasks) -1);
                 $taskClass->setOptions($options);
 
                 if ($taskClass->isValid()) {

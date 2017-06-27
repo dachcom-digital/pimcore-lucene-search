@@ -48,6 +48,11 @@ class Configuration
     private $config;
 
     /**
+     * @var array
+     */
+    private $systemConfig;
+
+    /**
      * Configuration constructor.
      */
     public function __construct()
@@ -71,6 +76,24 @@ class Configuration
     public function getConfig($slot)
     {
         return $this->config[$slot];
+    }
+
+    /**
+     * @param array $config
+     */
+    public function setSystemConfig($config = [])
+    {
+        $this->systemConfig = $config;
+    }
+
+    /**
+     * @param null $slot
+     *
+     * @return mixed
+     */
+    public function getSystemConfig($slot = NULL)
+    {
+        return $this->systemConfig[$slot];
     }
 
     /**

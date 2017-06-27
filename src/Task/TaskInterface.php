@@ -40,6 +40,21 @@ interface TaskInterface
      *
      * @return mixed
      */
-    public function log($message, $level, $logToBackend = FALSE, $logToSystem = FALSE);
+    public function log($message, $level, $logToBackend = TRUE, $logToSystem = TRUE);
 
+    public function setIsLastCycle($isLastCycle = FALSE);
+
+    public function isLastCycle();
+
+    public function setIsLastTask($isLastTask = FALSE);
+
+    public function isLastTask();
+
+    public function setIsFirstCycle($isFirstCycle = FALSE);
+
+    public function isFirstCycle();
+
+    public function setIsFirstTask($istFirstTask = FALSE);
+
+    public function isFirstTask();
 }

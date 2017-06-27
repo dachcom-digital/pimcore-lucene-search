@@ -38,7 +38,6 @@ class CrawlCommand extends AbstractCommand
     {
         if ($input->getArgument('crawl') === 'crawl') {
 
-
             /** @var \LuceneSearchBundle\Task\TaskManager $taskManager */
             $taskManager = $this->getContainer()->get('lucene_search.task_manager');
 

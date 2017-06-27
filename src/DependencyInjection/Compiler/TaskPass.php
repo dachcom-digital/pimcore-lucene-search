@@ -11,6 +11,9 @@ class TaskPass implements CompilerPassInterface
 {
     use PriorityTaggedServiceTrait;
 
+    /**
+     * @param ContainerBuilder $container
+     */
     public function process(ContainerBuilder $container)
     {
         if (!$container->has('lucene_search.task_manager')) {
@@ -28,6 +31,5 @@ class TaskPass implements CompilerPassInterface
         foreach ($tasks as $id => $task) {
             $definition->addMethodCall('addTask', [$task, (string)$task]);
         }
-
     }
 }

@@ -2,6 +2,7 @@
 
 namespace LuceneSearchBundle\Task\Crawler\Event;
 
+use LuceneSearchBundle\Logger\AbstractLogger;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use VDB\Spider\Event\SpiderEvents;
@@ -11,20 +12,20 @@ class Logger implements EventSubscriberInterface
     private $debug = FALSE;
 
     /**
-     * @var \LuceneSearchBundle\Logger\AbstractLogger
+     * @var AbstractLogger
      */
-    private $logEngine = FALSE;
+    private $logger = FALSE;
 
     /**
      * Logger constructor.
      *
      * @param bool $debug
-     * @param bool \LuceneSearch\Model\Logger\Engine $logEngine
+     * @param AbstractLogger $logger
      */
-    public function __construct($debug = FALSE, $logEngine)
+    public function __construct($debug = FALSE, $logger)
     {
         $this->debug = $debug;
-        $this->logEngine = $logEngine;
+        $this->logger = $logger;
     }
 
     /**
@@ -74,13 +75,16 @@ class Logger implements EventSubscriberInterface
      */
     public function logFailed(GenericEvent $event)
     {
-        $message = preg_replace('/\s\s+/', ' ', $event->getArgument('message'));
+        $message = preg_replace('/\s+/S', ' ', $event->getArgument('message'));
         $this->logEvent('failed', $event, 'error', $message);
     }
 
-    public function logStoppedByUser($event)
+    /**
+     * @param GenericEvent$event
+     */
+    public function logStoppedByUser(GenericEvent $event)
     {
-        $this->logEvent('stopped', $event, 'debugHighlight');
+        $this->logEvent('stopped', $event, 'debugHighlight', $event->getArgument('errorMessage'));
     }
 
     /**
@@ -104,17 +108,18 @@ class Logger implements EventSubscriberInterface
         $logToSystem = $this->debug === TRUE;
 
         if ($triggerLog) {
-            $message = '[crawler.' . $name . '] ';
+
+            $prefix = '[spider.' . $name . '] ';
+
+            $message = $prefix;
+
             if(!empty($additionalMessage)) {
-                $message .= ' ' . $additionalMessage . ' ';
+                $message .= $additionalMessage . ' ';
             }
 
             $message .= $event->getArgument('uri')->toString();
 
-            if($event->hasArgument('errorMessage')) {
-                $message .= ' | Error Message: ' . $event->getArgument('errorMessage');
-            }
-            $this->logEngine->log($message, $debugLevel, $logToBackend, $logToSystem);
+            $this->logger->log($message, $debugLevel, $logToBackend, $logToSystem);
         }
     }
 }

@@ -189,18 +189,22 @@ class CrawlerTask extends AbstractTask
     }
 
     /**
+     * @param mixed $previousData
+     *
      * @return bool|\VDB\Spider\PersistenceHandler\PersistenceHandlerInterface
      * @throws \Exception
      */
     public function process($previousData)
     {
+        $this->logger->setPrefix('task.crawler');
+
         $start = microtime(TRUE);
 
         try {
             $spider = new Spider($this->seed);
         } catch (\Exception $e) {
 
-            $this->log('[crawler] error: ' . $e->getMessage(), 'error');
+            $this->log('error: ' . $e->getMessage(), 'error');
             return FALSE;
         }
 
@@ -278,9 +282,7 @@ class CrawlerTask extends AbstractTask
             }), 'lucene-search-auth');
         }
 
-        // add LuceneSearch to Headers! @todo: get version of plugin!
-        //$pluginInfo = \Pimcore\ExtensionManager::getPluginConfig('LuceneSearch');
-        $pluginVersion = '2.0.0';
+        $pluginVersion = $this->configuration->getSystemConfig('version');
 
         $handler->push(Middleware::mapRequest(function (RequestInterface $request) use ($pluginVersion) {
             return $request->withHeader('Lucene-Search', $pluginVersion);
@@ -290,14 +292,13 @@ class CrawlerTask extends AbstractTask
         try {
             $spider->crawl();
         } catch (\Exception $e) {
-            $this->log('[crawler] ' . $e->getMessage(), 'error');
-            throw new \Exception($e->getMessage());
+            $this->log($e->getMessage(), 'error');
         }
 
-        $this->log('[crawler] Enqueued Links: ' . $statsHandler->getQueued(), 'debug');
-        $this->log('[crawler] Skipped Links: ' . $statsHandler->getFiltered(), 'debug');
-        $this->log('[crawler] Failed Links: ' . $statsHandler->getFailed(), 'debug');
-        $this->log('[crawler] Persisted Links: ' . $statsHandler->getPersisted(), 'debug');
+        $this->log('enqueued links: ' . $statsHandler->getQueued(), 'debug');
+        $this->log('skipped links: ' . $statsHandler->getFiltered(), 'debug');
+        $this->log('failed links: ' . $statsHandler->getFailed(), 'debug');
+        $this->log('persisted links: ' . $statsHandler->getPersisted(), 'debug');
 
         $peakMem = round(memory_get_peak_usage(TRUE) / 1024 / 1024, 2);
         $totalDelay = round($politenessPolicyEventListener->totalDelay / 1000 / 1000, 2);
@@ -307,9 +308,9 @@ class CrawlerTask extends AbstractTask
         $minutes = str_pad(floor($totalTime / 60), 2, '0', STR_PAD_LEFT);
         $seconds = str_pad($totalTime % 60, 2, '0', STR_PAD_LEFT);
 
-        $this->log('[crawler] Memory Peak Usage: ' . $peakMem . 'MB', 'debug');
-        $this->log('[crawler] Total Time: ' . $minutes . ':' . $seconds, 'debug');
-        $this->log('[crawler] Politeness Wait Time: ' . $totalDelay . ' seconds', 'debug');
+        $this->log('memory peak usage: ' . $peakMem . 'MB', 'debug');
+        $this->log('total time: ' . $minutes . ':' . $seconds, 'debug');
+        $this->log('politeness wait time: ' . $totalDelay . ' seconds', 'debug');
 
         return $spider->getDownloader()->getPersistenceHandler();
     }
