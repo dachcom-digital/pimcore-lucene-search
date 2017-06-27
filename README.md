@@ -61,13 +61,13 @@ $ php bin/console lucenesearch crawl -f -v
 
 
 ## Frontend Implementation
-click [here](docs/00_Views.md) to get a step by step walkthrough to implement lucene search into your website.
+[Click here](docs/00_Views.md) to get a step by step walkthrough to implement lucene search into your website.
 
-### Logs
+## Logs
 You'll find some logs from the last crawl in your backend (at the bottom on the LuceneSearch settings page). Of course you'll also find some logs in your `var/logs` folder.
 **Note:** please enable the debug mode in pimcore settings to get all types of logs.
 
-### Document Restrictions
+## Document Restrictions
 If you want a seamless integration of protected document crawling, install our [member](https://github.com/dachcom-digital/pimcore-members) plugin.
 
 #### How does the document restriction work?
@@ -97,7 +97,7 @@ This Element should be visible while crawling only.
 
 **Example:**
 
-```twig
+```html
 {% if lucene_search_crawler_active() %}
     <meta name="lucene-search:meta" content="meta data for lucene search">
 {% endif %}
@@ -117,7 +117,6 @@ Open *Document* => *Settings* go to *Meta Data* and add a new field:
 **Custom Meta in Objects**  
 Because Object may have some front-end capability (a news detail page for example), you have to integrate the custom meta field by yourself (see example above).
 
-```
 **Custom Meta in Assets**  
 TBD
 
