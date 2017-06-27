@@ -1,10 +1,10 @@
 <?php
 
-namespace LuceneSearchBundle\Tool;
+namespace LuceneSearchBundle\Task\Crawler\Filter;
 
 use LuceneSearchBundle\Configuration\Configuration;
 
-class Persistor
+class FilterPersistor
 {
     /**
      * @var string

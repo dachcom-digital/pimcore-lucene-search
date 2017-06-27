@@ -2,7 +2,6 @@
 
 namespace LuceneSearchBundle\Task\Crawler\Filter;
 
-use LuceneSearchBundle\Tool\Persistor;
 use VDB\Spider\Event\SpiderEvents;
 use Symfony\Component\EventDispatcher\GenericEvent;
 
@@ -19,7 +18,7 @@ trait LogDispatcher {
     private $dispatcher;
 
     /**
-     * @var Persistor
+     * @var FilterPersistor
      */
     private $persistor;
 
@@ -28,7 +27,7 @@ trait LogDispatcher {
      */
     function setDispatcher($dispatcher)
     {
-        $this->persistor = new Persistor();
+        $this->persistor = new FilterPersistor();
         $this->dispatcher = $dispatcher;
     }
 

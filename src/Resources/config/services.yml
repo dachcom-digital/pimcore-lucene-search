@@ -1,12 +1,13 @@
 services:
 
-    # installer
+    # tool installer
     lucene_search.tool.installer:
         class: LuceneSearchBundle\Tool\Install
         arguments: ['@logger']
         tags:
             - { name: monolog.logger }
 
+    # tool crawler state
     lucene_search.tool.crawler_state:
         class: LuceneSearchBundle\Tool\CrawlerState
 
