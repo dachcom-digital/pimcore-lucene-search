@@ -114,7 +114,7 @@ class ParserTask extends AbstractTask
 
     /**
      * @param                      $link
-     * @param Resource $resource
+     * @param Resource             $resource
      * @param                      $host
      *
      * @return bool
@@ -135,12 +135,14 @@ class ParserTask extends AbstractTask
 
         $language = strtolower(str_replace('_', '-', $language));
 
-        //page has canonical link: do not track!
+        //page has canonical link: do not track if this is not the canonical document
         $hasCanonicalLink = $crawler->filterXpath('//link[@rel="canonical"]')->count() > 0;
 
         if ($hasCanonicalLink === TRUE) {
-            $this->log('skip indexing [ ' . $link . ' ] because it has canonical links');
-            return FALSE;
+            if ($link != $crawler->filterXpath('//link[@rel="canonical"]')->attr('href')) {
+                $this->log('skip indexing [ ' . $link . ' ] because it has canonical link ' . $crawler->filterXpath('//link[@rel="canonical"]')->attr('href'));
+                return FALSE;
+            }
         }
 
         //page has no follow: do not track!
@@ -230,7 +232,7 @@ class ParserTask extends AbstractTask
 
     /**
      * @param                      $link
-     * @param Resource $resource
+     * @param Resource             $resource
      * @param                      $host
      *
      * @return bool
@@ -248,10 +250,10 @@ class ParserTask extends AbstractTask
      * adds a PDF page to lucene index and mysql table for search result sumaries
      *
      * @param Resource $resource
-     * @param string               $language
-     * @param string               $country
-     * @param string               $host
-     * @param integer              $customBoost
+     * @param string   $language
+     * @param string   $country
+     * @param string   $host
+     * @param integer  $customBoost
      *
      * @return bool
      */
@@ -626,13 +628,13 @@ class ParserTask extends AbstractTask
 
             try {
                 $index = \Zend_Search_Lucene::open($indexDir);
-            } catch(\Zend_Search_Lucene_Exception $e) {
+            } catch (\Zend_Search_Lucene_Exception $e) {
                 $index = \Zend_Search_Lucene::create($indexDir);
             }
 
             $this->index = $index;
 
-            if(!$this->index instanceof \Zend_Search_Lucene_Proxy) {
+            if (!$this->index instanceof \Zend_Search_Lucene_Proxy) {
                 $this->log('could not create/open index at ' . $indexDir, 'error', TRUE);
                 $this->handlerDispatcher->getStateHandler()->stopCrawler(TRUE);
                 exit;
