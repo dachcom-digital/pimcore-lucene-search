@@ -7,11 +7,14 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
 use LuceneSearchBundle\Configuration\Configuration as BundleConfiguration;
-
 use Symfony\Component\Yaml\Yaml;
 
 class LuceneSearchExtension extends Extension
 {
+    /**
+     * @param array            $configs
+     * @param ContainerBuilder $container
+     */
     public function load(array $configs, ContainerBuilder $container)
     {
         $configuration = new Configuration();
@@ -25,6 +28,8 @@ class LuceneSearchExtension extends Extension
         $configManagerDefinition = $container->getDefinition('lucene_search.configuration');
         $configManagerDefinition->addMethodCall('setConfig', [ $config ]);
         $configManagerDefinition->addMethodCall('setSystemConfig', [ $bundleConfig ]);
-    }
 
+        $container->setParameter('lucene_search.categories', $config['categories']);
+
+    }
 }

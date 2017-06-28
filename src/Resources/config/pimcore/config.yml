@@ -4,17 +4,11 @@ lucene_search:
     fuzzy_search: false
     own_host_only: false
 
-    # frontend.urls
     seeds: []
-    categories: []
+    categories: ~
 
-    # validLinkRegexes
     filter:valid_links: []
-
-    # invalidLinkRegexesEditable
     filter:user_invalid_links: []
-
-    # invalidLinkRegexes
     filter:core_invalid_links: '@.*\.(js|JS|gif|GIF|jpg|JPG|png|PNG|ico|ICO|eps|jpeg|JPEG|bmp|BMP|css|CSS|sit|wmf|zip|ppt|mpg|xls|gz|rpm|tgz|mov|MOV|exe|mp3|MP3|kmz|gpx|kml|swf|SWF)$@'
 
     allowed_mime_types: ['text/html', 'application/pdf']

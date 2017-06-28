@@ -53,6 +53,11 @@ class Configuration
     private $systemConfig;
 
     /**
+     * @var array
+     */
+    private $categories;
+
+    /**
      * Configuration constructor.
      */
     public function __construct()
@@ -126,5 +131,19 @@ class Configuration
         $content[$slot] = $value;
 
         $this->fileSystem->dumpFile(self::STATE_FILE_PATH, serialize($content));
+    }
+
+    /**
+     * @param array $categories
+     */
+    public function setCategories(array $categories) {
+        $this->categories = $categories;
+    }
+
+    /**
+     * @return array
+     */
+    public function getCategories() {
+        return $this->categories;
     }
 }

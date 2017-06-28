@@ -47,6 +47,12 @@ class FrontendController
     protected $categories = [];
 
     /**
+     * category, to restrict query, incoming argument
+     * @var array
+     */
+    protected $queryCategories = [];
+
+    /**
      * query, incoming argument
      * @var String
      */
@@ -57,12 +63,6 @@ class FrontendController
      * @var String
      */
     protected $untouchedQuery = '';
-
-    /**
-     * category, to restrict query, incoming argument
-     * @var array
-     */
-    protected $category = '';
 
     /**
      * @var string
@@ -141,7 +141,6 @@ class FrontendController
             );
 
             $this->frontendIndex = \Zend_Search_Lucene::open(Configuration::INDEX_DIR_PATH_STABLE);
-            $this->categories = $this->configuration->getConfig('categories');
 
             //set search term query
             $searchQuery = $this->stringHelper->cleanRequestString($requestQuery->get('q'));
@@ -169,11 +168,16 @@ class FrontendController
                 }
             }
 
-            //Set Category
-            $queryCategory = $this->stringHelper->cleanRequestString($requestQuery->get('category'));
+            //Set Categories
+            $this->categories = $this->configuration->getCategories();
 
-            if (!empty($queryCategory)) {
-                $this->category = $queryCategory;
+            $queryCategories = $requestQuery->get('categories');
+
+            if (!empty($queryCategories)) {
+                if(!is_array($queryCategories)) {
+                    $queryCategories = [$queryCategories];
+                }
+                $this->queryCategories = array_map('intval', $queryCategories);
             }
 
             //Set Country
@@ -221,7 +225,7 @@ class FrontendController
                 $this->currentPage = (int)$currentPage;
             }
         } catch (\Exception $e) {
-            throw new \Exception('could not open index');
+            throw new \Exception('Error while parsing lucene search params (message was: ' . $e->getMessage() . ').');
         }
     }
 
@@ -279,9 +283,20 @@ class FrontendController
      */
     protected function addCategoryQuery($query)
     {
-        if (!empty($this->category)) {
-            $categoryTerm = new \Zend_Search_Lucene_Index_Term($this->category, 'cat');
-            $categoryQuery = new \Zend_Search_Lucene_Search_Query_Term($categoryTerm);
+        if (!empty($this->queryCategories) && is_array($this->categories)) {
+
+            $categoryTerms = [];
+            $signs = [];
+
+            foreach ($this->queryCategories as $categoryId) {
+                $key = array_search($categoryId, array_column($this->categories, 'id'));
+                if($key !== FALSE) {
+                    $categoryTerms[] = new \Zend_Search_Lucene_Index_Term(TRUE, 'category_' . $categoryId);
+                    $signs[] = NULL;
+                }
+            }
+
+            $categoryQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm($categoryTerms, $signs);
             $query->addSubquery($categoryQuery, TRUE);
         }
 

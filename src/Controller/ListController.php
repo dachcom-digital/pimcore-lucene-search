@@ -92,11 +92,14 @@ class ListController extends FrontendController
                     } catch (\Zend_Search_Lucene_Exception $e) {
                     }
 
-                    foreach ($this->categories as $category) {
-                        try {
-                            $searchResult['categories'][] = $hit->getDocument()->getField('cat')->value;
-                        } catch (\Zend_Search_Lucene_Exception $e) {
+                    $searchResult['categories'] = [];
+
+                    try {
+                        $categories = $hit->getDocument()->getField('categories')->value;
+                        if(!empty($categories)) {
+                            $searchResult['categories'] = $this->mapCategories($categories);
                         }
+                    } catch (\Zend_Search_Lucene_Exception $e) {
                     }
 
                     $searchResults[] = $searchResult;
@@ -123,12 +126,11 @@ class ListController extends FrontendController
             }
 
             $viewParams = [
-                'searchCurrentPage' => $this->currentPage,
-                'searchAllPages'    => $pages,
 
-                'searchCategory'            => $this->category,
-                'searchAvailableCategories' => $this->categories,
-
+                'searchCurrentPage'            => $this->currentPage,
+                'searchAllPages'               => $pages,
+                'searchCategory'               => $this->queryCategories,
+                'searchAvailableCategories'    => $this->categories,
                 'searchSuggestions'            => $suggestions,
                 'searchLanguage'               => $this->searchLanguage,
                 'searchCountry'                => $this->searchCountry,
@@ -140,18 +142,20 @@ class ListController extends FrontendController
                 'searchCurrentPageResultStart' => $currentPageResultStart + 1,
                 'searchCurrentPageResultEnd'   => $currentPageResultEnd
             ];
-            
+
+            $viewName = 'result';
+
         } catch (\Exception $e) {
 
-            \Pimcore\Logger::debug('LuceneSearch: An Exception occurred during search: ' . $e->getMessage());
-
             $viewParams = [
-                'searchResults'    => [],
-                'searchHasResults' => FALSE
+                'error'        => TRUE,
+                'errorMessage' => $e->getMessage() . ' (' . $e->getFile() . ' Line: ' . $e->getLine() . ')',
             ];
+
+            $viewName = 'error';
         }
 
-        $content = $this->templating->render('@LuceneSearch/List/result.html.twig', $viewParams);
+        $content = $this->templating->render('@LuceneSearch/List/' . $viewName . '.html.twig', $viewParams);
 
         $response = new Response($content);
 
@@ -203,5 +207,33 @@ class ListController extends FrontendController
         }
 
         return $suggestions;
+    }
+
+    /**
+     * @param string $documentCategories
+     *
+     * @return array
+     */
+    private function mapCategories($documentCategories = '')
+    {
+        $categoryStore = [];
+        $validCategories = $this->configuration->getCategories();
+
+        if(empty($validCategories)) {
+            return $categoryStore;
+        }
+
+        $categories = explode(',', $documentCategories);
+
+        foreach($categories as $categoryId)
+        {
+            $key = array_search($categoryId, array_column($validCategories, 'id'));
+            if($key !== FALSE) {
+                $categoryStore[] = ['id' => $categoryId, 'label' => $validCategories[$key]['label']];
+            }
+        }
+
+        return $categoryStore;
+
     }
 }

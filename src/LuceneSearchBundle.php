@@ -2,6 +2,7 @@
 
 namespace LuceneSearchBundle;
 
+use LuceneSearchBundle\DependencyInjection\Compiler\CategoriesPass;
 use LuceneSearchBundle\DependencyInjection\Compiler\TaskPass;
 use Pimcore\Extension\Bundle\AbstractPimcoreBundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -14,6 +15,7 @@ class LuceneSearchBundle extends AbstractPimcoreBundle
     public function build(ContainerBuilder $container)
     {
         $container->addCompilerPass(new TaskPass());
+        $container->addCompilerPass(new CategoriesPass());
     }
 
     /**

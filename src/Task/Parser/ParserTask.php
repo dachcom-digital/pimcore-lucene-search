@@ -67,6 +67,11 @@ class ParserTask extends AbstractTask
         return TRUE;
     }
 
+    /**
+     * @param mixed $crawlData
+     *
+     * @return bool
+     */
     public function process($crawlData)
     {
         $this->logger->setPrefix('task.parser');
@@ -159,6 +164,7 @@ class ParserTask extends AbstractTask
         $hasTitle = $crawler->filterXpath('//title')->count() > 0;
         $hasDescription = $crawler->filterXpath('//meta[@name="description"]')->count() > 0;
         $hasRestriction = $crawler->filterXpath('//meta[@name="m:groups"]')->count() > 0;
+        $hasCategories = $crawler->filterXpath('//meta[@name="lucene-search:categories"]')->count() > 0;
         $hasCustomMeta = $crawler->filterXpath('//meta[@name="lucene-search:meta"]')->count() > 0;
         $hasCustomBoostMeta = $crawler->filterXpath('//meta[@name="lucene-search:boost"]')->count() > 0;
 
@@ -168,6 +174,7 @@ class ParserTask extends AbstractTask
         $customBoost = 1;
 
         $restrictions = FALSE;
+        $categories = FALSE;
         $country = FALSE;
 
         if ($hasTitle === TRUE) {
@@ -188,6 +195,10 @@ class ParserTask extends AbstractTask
 
         if ($hasCustomMeta === TRUE) {
             $customMeta = $crawler->filterXpath('//meta[@name="lucene-search:meta"]')->attr('content');
+        }
+
+        if ($hasCategories === TRUE) {
+            $categories = $crawler->filterXpath('//meta[@name="lucene-search:categories"]')->attr('content');
         }
 
         if ($hasCustomBoostMeta === TRUE) {
@@ -223,7 +234,7 @@ class ParserTask extends AbstractTask
             }
         }
 
-        $this->addHtmlToIndex($html, $title, $description, $link, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost);
+        $this->addHtmlToIndex($html, $title, $description, $link, $language, $country, $restrictions, $categories, $customMeta, $encoding, $host, $customBoost);
 
         $this->log('added html to indexer stack: ' . $link);
 
@@ -337,6 +348,7 @@ class ParserTask extends AbstractTask
      * @param  string  $language
      * @param  string  $country
      * @param  string  $restrictions
+     * @param  string  $categories
      * @param  string  $customMeta
      * @param  string  $encoding
      * @param  string  $host
@@ -344,7 +356,7 @@ class ParserTask extends AbstractTask
      *
      * @return void
      */
-    protected function addHtmlToIndex($html, $title, $description, $url, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost = NULL)
+    protected function addHtmlToIndex($html, $title, $description, $url, $language, $country, $restrictions, $categories, $customMeta, $encoding, $host, $customBoost = NULL)
     {
         try {
             $content = $this->getPlainTextFromHtml($html);
@@ -400,6 +412,28 @@ class ParserTask extends AbstractTask
                 $restrictionGroups = explode(',', $restrictions);
                 foreach ($restrictionGroups as $restrictionGroup) {
                     $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_' . $restrictionGroup, TRUE));
+                }
+            }
+
+            if ($categories !== FALSE) {
+
+                $validCategories = $this->configuration->getCategories();
+
+                if(!empty($validCategories)) {
+                    $validIds = [];
+                    $categoryIds = array_map('intval', explode(',', $categories));
+                    foreach ($categoryIds as $categoryId) {
+                        $key = array_search($categoryId, array_column($validCategories, 'id'));
+                        if($key !== FALSE) {
+                            $validIds[] = $categoryId;
+                            $doc->addField(\Zend_Search_Lucene_Field::Keyword('category_' . $categoryId, TRUE));
+
+                        }
+                    }
+
+                    if(!empty($validIds)) {
+                        $doc->addField(\Zend_Search_Lucene_Field::Text('categories', implode(',', $validIds)));
+                    }
                 }
             }
 
