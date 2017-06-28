@@ -44,6 +44,7 @@
                                 {% for category in searchResult.categories %}
                                     {{ category.label }}{{ loop.last == false ? ', ' : ''}}
                                 {% endfor %}
+                                </span>
                             {% endif %}
 
                             {% if searchResult.description is not empty %}
