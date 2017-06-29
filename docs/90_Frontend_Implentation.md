@@ -30,19 +30,25 @@ $(function() {
 
     var $el = $('input.search-field'),
         language = $el.data('language'), //optional
-        country = $el.data('country'); //optional
+        country = $el.data('country'),
+        $categoryEl = $el.closest('form').find('select.categories'),
+        categories = []; //optional
 
     $el.autocomplete({
         minChars: 3,
         triggerSelectOnValidInput: false,
         lookup: function(term, done) {
 
+            //update on every lookup because user may changed the the dropdown selection.
+            categories = $categoryEl.val(); //optional
+
             $.getJSON(
                 '/lucence-search/auto-complete',
                 {
                     q: term,
                     language : language,
-                    country: country
+                    country: country,
+                    categories: categories
                 },
                 function(data) {
 
@@ -75,15 +81,28 @@ $(function() {
 
 ```html
 <form id="search" method="get" action="/en/search">
-    <div class="input-group">
-        <input type="text" name="q" class="form-control input-lg search-field" data-language="en" placeholder="{{ 'search'|trans }}">
-        <input type="hidden" name="language" id="searchLanguage" value="en">
-        <span class="input-group-btn">
-            <button class="btn btn-lg" type="button">
-                <i class="fa fa-search"></i>
-            </button>
-        </span>
+
+    <div class="row">
+
+        <div class="col-xs-12 col-sm-6">
+            <label for="search-field">{{ 'Search'|trans }}</label>
+            <input type="text" name="q" id="search-field" class="form-control input-lg search-field" data-country="AT" data-language="en" placeholder="{{ 'search'|trans }}">
+        </div>
+
+        <!-- optional, let user choose some categories (multiple) -->
+        <div class="col-xs-12 col-sm-6">
+            <label for="search-categories">{{ 'Categories'|trans }}</label>
+            <select name="categories[]" id="search-categories" class="categories form-control" multiple>
+                {% for category in lucene_search_get_categories() %}
+                    <option value="{{ category.id }}">{{ category.label}}</option>
+                {% endfor %}
+            </select>
+        </div>
     </div>
+
+    <input type="hidden" name="language" id="searchLanguage" value="{{ i18n.getLanguage(document) }}">
+    <input type="hidden" name="country" id="searchCountry" value="{{ i18n.getCountry(document) }}">
+
 </form>
 ```
 

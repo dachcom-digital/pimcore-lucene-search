@@ -1,6 +1,6 @@
 # Pimcore 5 Lucene Search
 
-> This Lucene Search Repo is for pimcore 5 only and under heavy development.
+> This Lucene Search Repo is for Pimcore5 only.
 
 ![lucenesearch crawler](https://cloud.githubusercontent.com/assets/700119/25579028/7da66f40-2e74-11e7-8da5-988d61feb2e2.jpg)
 
@@ -36,6 +36,8 @@ $ bin/console config:dump-reference LuceneSearchBundle
 $ bin/console config:dump-reference LuceneSearchBundle fuzzy_search_results
 ```
 
+We also added a [detailed documentation](docs/00_Configuration_Values.md) about all possible config values.
+
 ### Features
 * Maintenance driven indexing
 * Auto Complete
@@ -59,66 +61,21 @@ $ php bin/console lucenesearch crawl -f -v
 | ```force``` | `-f` | force crawler start | sometimes the crawler stuck because of a critical error mostly triggered because of wrong configuration. use this command to force a restart |
 | ```verbose``` | `-v` | show some logs | good for debugging. you'll get some additional information about filtered and forbidden links while crawling. |
 
-
-## Frontend Implementation
-[Click here](docs/00_Views.md) to get a step by step walkthrough to implement lucene search into your website.
-
 ## Logs
 You'll find some logs from the last crawl in your backend (at the bottom on the LuceneSearch settings page). Of course you'll also find some logs in your `var/logs` folder.
 **Note:** please enable the debug mode in pimcore settings to get all types of logs.
 
-## Document Restrictions
-If you want a seamless integration of protected document crawling, install our [member](https://github.com/dachcom-digital/pimcore-members) plugin.
+## Categories
+[Click here](docs/20_Categories.md) to learn more about category based crawling / searching.
 
-#### How does the document restriction work?
-Each document needs a meta tag in the head section. the crawler extract and stores the usergroup id(s) from that meta property. 
-To allow the crawler to follow all the restricted documents, you need to configure the crawler authentication settings. 
-
-**Meta Property Example**
-
-```html
-<meta name="m:groups" content="4">
-```
-
-If the document is restricted to a specific usergroup, the meta `content` contains its id. Otherwise, the meta property needs to be filled with a `default` value.
-
-## Asset Language restriction
-Because Assets does not have any language hierarchy, you need to add a property called `assigned_language`. This Property will be installed during the install process of LuceneSearch.
-If you add some additional language afterwards, you need to add this language to the property. if you do not set any information at all, the asset will be found in any language context.
-
-## Asset Country restriction
-Because Assets does not have any country hierarchy, you need to add a property called `assigned_country`. This Property will be installed during the install process of LuceneSearch.
-If you add some additional countries afterwards, you need to add this country to the property. if you do not set any information at all, the asset will be found in any country context.
+## Restrictions
+[Click here](docs/30_Restrictions.md) to learn more about restricted crawling / indexing.
 
 ## Custom Meta Content
-In some cases you need to add some content or keywords to improve the search accuracy. 
-But it's not meant for the public crawlers like Google. LuceneSearch is using a custom meta property called `lucene-search:meta`.
-This Element should be visible while crawling only.
+[Click here](docs/40_Restrctions.md) to learn more about crawling / searching custom meta.
 
-**Example:**
-
-```html
-{% if lucene_search_crawler_active() %}
-    <meta name="lucene-search:meta" content="meta data for lucene search">
-{% endif %}
-```
-
-**Custom Meta in Documents**  
-It's also possible to add the custom meta property in backend.
- 
-Open *Document* => *Settings* go to *Meta Data* and add a new field:
-
-```html
-<meta name="lucene-search:meta" content="your content">
-```
-
-> **Note:** Currently it's not possible to hide this meta tag if you're adding it via backend since pimcore provides no way to add/remove/modify those elements programmatically.
-
-**Custom Meta in Objects**  
-Because Object may have some front-end capability (a news detail page for example), you have to integrate the custom meta field by yourself (see example above).
-
-**Custom Meta in Assets**  
-TBD
+## Frontend Implementation
+[Click here](docs/90_Frontend_Implementation.md) to get a step by step walkthrough to implement lucene search into your website.
 
 ## Copyright and license
 Copyright: [DACHCOM.DIGITAL](http://dachcom-digital.ch)  
