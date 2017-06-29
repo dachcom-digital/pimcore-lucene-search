@@ -39,7 +39,7 @@ $(function() {
         triggerSelectOnValidInput: false,
         lookup: function(term, done) {
 
-            //update on every lookup because user may changed the the dropdown selection.
+            //update on every lookup because user may have changed the dropdown selection.
             categories = $categoryEl.val(); //optional
 
             $.getJSON(
@@ -100,8 +100,8 @@ $(function() {
         </div>
     </div>
 
-    <input type="hidden" name="language" id="searchLanguage" value="{{ i18n.getLanguage(document) }}">
-    <input type="hidden" name="country" id="searchCountry" value="{{ i18n.getCountry(document) }}">
+    <input type="hidden" name="language" id="searchLanguage" value="en">
+    <input type="hidden" name="country" id="searchCountry" value="AT">
 
 </form>
 ```
