@@ -37,7 +37,8 @@ class ListController extends FrontendController
             $validHits = [];
 
             if (!empty($this->query)) {
-                if ($this->fuzzySearch) {
+                //fuzzy search term if enabled
+                if ($this->fuzzySearchResults) {
                     $this->query = str_replace(' ', '~ ', $this->query);
                     $this->query .= '~';
                     \Zend_Search_Lucene_Search_Query_Fuzzy::setDefaultPrefixLength(3);
@@ -108,8 +109,8 @@ class ListController extends FrontendController
             }
 
             $suggestions = FALSE;
-            if ($this->fuzzySearch) {
-                $suggestions = $this->getFuzzySuggestions($searchResults);
+            if ($this->searchSuggestion && count($searchResults) === 0) {
+                $suggestions = $this->getFuzzySuggestions();
             }
 
             $currentPageResultStart = $this->perPage * ($this->currentPage - 1);
@@ -162,46 +163,52 @@ class ListController extends FrontendController
         return $response;
     }
 
-    private function getFuzzySuggestions($searchResults = [])
+    /**
+     * look for similar search terms
+     *
+     * @return array
+     */
+    private function getFuzzySuggestions()
     {
         $suggestions = [];
 
-        //look for similar search terms
-        if (!empty($this->query) && (empty($searchResults) || count($searchResults) < 1)) {
-            $terms = $this->luceneHelper->fuzzyFindTerms($this->query, $this->frontendIndex, 3);
+        if (empty($this->untouchedQuery)) {
+            return $suggestions;
+        }
 
-            if (empty($terms) || count($terms) < 1) {
-                $terms = $this->luceneHelper->fuzzyFindTerms($this->query, $this->frontendIndex, 0);
-            }
+        $terms = $this->luceneHelper->fuzzyFindTerms($this->untouchedQuery, $this->frontendIndex, 3);
 
-            if (is_array($terms)) {
-                $counter = 0;
+        if (empty($terms) || count($terms) < 1) {
+            $terms = $this->luceneHelper->fuzzyFindTerms($this->untouchedQuery, $this->frontendIndex, 0);
+        }
 
-                foreach ($terms as $term) {
-                    $t = $term->text;
+        if (is_array($terms)) {
+            $counter = 0;
 
-                    $hits = NULL;
+            foreach ($terms as $term) {
+                $t = $term->text;
 
-                    $query = new \Zend_Search_Lucene_Search_Query_Boolean();
-                    $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($t, 'utf-8');
-                    $query->addSubquery($userQuery, TRUE);
+                $hits = NULL;
 
-                    $this->addLanguageQuery($query);
-                    $this->addCategoryQuery($query);
-                    $this->addCountryQuery($query);
-                    $this->addRestrictionQuery($query);
+                $query = new \Zend_Search_Lucene_Search_Query_Boolean();
+                $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($t, 'utf-8');
+                $query->addSubquery($userQuery, TRUE);
 
-                    $validHits = $this->getValidHits($this->frontendIndex->find($query));
+                $this->addLanguageQuery($query);
+                $this->addCategoryQuery($query);
+                $this->addCountryQuery($query);
+                $this->addRestrictionQuery($query);
 
-                    if (count($validHits) > 0 && !in_array($t, $suggestions)) {
-                        $suggestions[] = $t;
+                $validHits = $this->getValidHits($this->frontendIndex->find($query));
 
-                        if ($counter >= $this->maxSuggestions) {
-                            break;
-                        }
+                if (count($validHits) > 0 && !in_array($t, $suggestions)) {
+                    $suggestions[] = $t;
 
-                        $counter++;
+                    if ($counter >= $this->maxSuggestions) {
+                        break;
                     }
+
+                    $counter++;
                 }
             }
         }

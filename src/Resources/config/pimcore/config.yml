@@ -1,7 +1,10 @@
 lucene_search:
 
     enabled: false
-    fuzzy_search: false
+
+    fuzzy_search_results: false
+    search_suggestion: true
+
     own_host_only: false
 
     seeds: []

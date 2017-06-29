@@ -87,7 +87,12 @@ class FrontendController
     /**
      * @var bool
      */
-    protected $fuzzySearch = FALSE;
+    protected $fuzzySearchResults = FALSE;
+
+    /**
+     * @var bool
+     */
+    protected $searchSuggestion = FALSE;
 
     /**
      * @var int
@@ -198,14 +203,18 @@ class FrontendController
                 $this->searchRestriction = TRUE;
             }
 
-            //Set Fuzzy Search (Auth)
-            $fuzzySearchRequest = $requestQuery->get('fuzzy');
-            if ($this->configuration->getConfig('fuzzy_search') == TRUE || (!empty($fuzzySearchRequest)) && $fuzzySearchRequest !== 'false') {
-                $this->fuzzySearch = TRUE;
+            //Set Fuzzy Search
+            if ($this->configuration->getConfig('fuzzy_search_results') === TRUE) {
+                $this->fuzzySearchResults = TRUE;
+            }
+
+            //Set Search Suggestions
+            if ($this->configuration->getConfig('search_suggestion') === TRUE) {
+                $this->searchSuggestion = TRUE;
             }
 
             //Set own Host Only
-            if ($this->configuration->getConfig('own_host_only') == TRUE) {
+            if ($this->configuration->getConfig('own_host_only') === TRUE) {
                 $this->ownHostOnly = TRUE;
             }
 

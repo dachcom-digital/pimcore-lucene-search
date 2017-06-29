@@ -90,7 +90,7 @@ class PaginationExtension extends \Twig_Extension
         ];
 
         return $environment->render(
-            '@LuceneSearch/List/Pagination/' . $params['viewTemplate'] . '.html.twig',
+            '@LuceneSearch/List/Partial/Pagination/' . $params['viewTemplate'] . '.html.twig',
             $viewParams
         );
     }

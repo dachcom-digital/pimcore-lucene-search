@@ -1,0 +1,8 @@
+{% if searchSuggestions is not empty %}
+
+    {{ 'Did you mean'|trans }}:
+    {% for i,suggestion in searchSuggestions %}
+        <a href="?{{ lucene_search_pagination_url(suggestion) }}">{{ suggestion }}</a>{{ searchSuggestions|length -1 != i ? ',' : '' }}
+    {% endfor %}
+
+{% endif %}

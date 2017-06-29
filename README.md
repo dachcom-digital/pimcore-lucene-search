@@ -32,8 +32,8 @@ Execute this command to get some information about all the config elements of Lu
 # configuration about all config parameters
 $ bin/console config:dump-reference LuceneSearchBundle
 
-# configuration info about the "fuzzy_search" parameter
-$ bin/console config:dump-reference LuceneSearchBundle fuzzy_search
+# configuration info about the "fuzzy_search_results" parameter
+$ bin/console config:dump-reference LuceneSearchBundle fuzzy_search_results
 ```
 
 ### Features
