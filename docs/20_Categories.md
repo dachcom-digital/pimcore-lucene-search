@@ -1,5 +1,5 @@
 # Categories
-It's possible to add activate a category based indexing / searching. 
+It's possible to activate a category based indexing / searching. 
 
 ### Configuration
 
