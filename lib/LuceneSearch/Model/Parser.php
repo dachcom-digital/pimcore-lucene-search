@@ -748,11 +748,11 @@ class Parser
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $uri));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $host));
 
-                if ($restrictions !== FALSE) {
+                if (is_array($restrictions)) {
                     foreach ($restrictions as $restrictionGroup) {
                         $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_' . $restrictionGroup, TRUE));
                     }
-                } else {
+                } else if($restrictions === NULL) {
                     $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_default', TRUE));
                 }
 
@@ -885,7 +885,6 @@ class Parser
             $decodedData = \Members\Tool\UrlServant::parseUrlFragment($key);
             if (is_array($decodedData) && count($decodedData) === 1) {
                 $assetId = $decodedData[0]->f;
-
                 return \Pimcore\Model\Asset::getById($assetId);
             }
 
@@ -933,10 +932,16 @@ class Parser
         return $meta;
     }
 
+    /**
+     * only reachable if members extension is available
+     * @param $asset
+     *
+     * @return array|bool|null
+     */
     protected function getRestrictionFromAsset($asset)
     {
         if (!$asset instanceof \Pimcore\Model\Asset) {
-            return FALSE;
+            return NULL;
         }
 
         $restriction = FALSE;
@@ -951,6 +956,13 @@ class Parser
             try {
                 $userGroups = $restriction->getRelatedGroups();
             } catch (\Exception $e) {
+            }
+        }
+
+        //check if asset is maybe in restricted mode without any restriction settings
+        if($userGroups === FALSE) {
+            if(strpos($asset->getPath(), \Members\Tool\UrlServant::PROTECTED_ASSET_FOLDER) === FALSE) {
+                $userGroups = NULL;
             }
         }
 
@@ -1141,7 +1153,6 @@ class Parser
     /**
      * @param string $message
      * @param string $level
-     * @param bool   $addToBackendLog
      * @param bool   $addToBackendLog
      *
      * @return bool
