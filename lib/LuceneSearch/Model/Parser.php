@@ -881,15 +881,20 @@ class Parser
 
         //members extension is available and it's a restricted asset
         if ($hasPossibleRestriction && strpos($assetPath, 'members/request-data') !== FALSE) {
-            $method = new \ReflectionMethod('\Members\Tool\UrlServant::getAssetUrlInformation');
-            if ($method->isStatic()) {
-                $key = end(explode('/', $assetPath));
-                $restrictedAssetInfo = \Members\Tool\UrlServant::getAssetUrlInformation($key);
-                if ($restrictedAssetInfo !== FALSE) {
-                    $asset = $restrictedAssetInfo['asset'];
-                    $restrictions = $restrictedAssetInfo['restrictionGroups'];
+            try {
+                $method = new \ReflectionMethod('\Members\Tool\UrlServant', 'getAssetUrlInformation');
+                if ($method->isStatic()) {
+                    $key = end(explode('/', $assetPath));
+                    $restrictedAssetInfo = \Members\Tool\UrlServant::getAssetUrlInformation($key);
+                    if ($restrictedAssetInfo !== FALSE) {
+                        $asset = $restrictedAssetInfo['asset'];
+                        $restrictions = $restrictedAssetInfo['restrictionGroups'];
+                    }
                 }
+            } catch(\ReflectionException $e) {
+                $this->log('[parser] ' . $e->getMessage(), 'error');
             }
+
         } else {
             $asset = Asset::getByPath($assetPath);
         }

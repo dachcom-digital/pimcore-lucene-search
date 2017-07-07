@@ -13,12 +13,7 @@ class Request
     public static function isLuceneSearchCrawler()
     {
         $isLuceneSearch = FALSE;
-
-        if (!function_exists('getallheaders')) {
-            return $isLuceneSearch;
-        }
-
-        $headers = getallheaders();
+        $headers = self::getHeaders();
 
         if (empty($headers)) {
             return $isLuceneSearch;
@@ -33,5 +28,20 @@ class Request
         }
 
         return $isLuceneSearch;
+    }
+
+    private static function getHeaders()
+    {
+        if (!function_exists('getallheaders')) {
+            $headers = [];
+            foreach ($_SERVER as $name => $value) {
+                if (substr($name, 0, 5) == 'HTTP_') {
+                    $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+                }
+            }
+            return $headers;
+        } else {
+            return getallheaders();
+        }
     }
 }
