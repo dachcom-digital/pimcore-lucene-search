@@ -2,6 +2,8 @@
 
 namespace LuceneSearch\Model;
 
+use Pimcore\ExtensionManager;
+use Pimcore\Model\Asset;
 use LuceneSearch\Plugin;
 use LuceneSearch\Crawler\Listener;
 use LuceneSearch\Crawler\Filter\Discovery;
@@ -471,7 +473,7 @@ class Parser
         }
 
         // add LuceneSearch to Headers!
-        $pluginInfo = \Pimcore\ExtensionManager::getPluginConfig('LuceneSearch');
+        $pluginInfo = ExtensionManager::getPluginConfig('LuceneSearch');
         $handler->push(Middleware::mapRequest(function (\Psr\Http\Message\RequestInterface $request) use ($pluginInfo) {
             return $request->withHeader('Lucene-Search', $pluginInfo['plugin']['pluginVersion']);
         }), 'lucene-search-header');
@@ -530,9 +532,9 @@ class Parser
             $mimeType = trim($parts[0]);
 
             if ($mimeType === 'text/html') {
-                $this->parseHtml($uri, $resource, $host);
+                $this->parseHtml($resource, $host);
             } else if ($mimeType === 'application/pdf') {
-                $this->parsePdf($uri, $resource, $host);
+                $this->parsePdf($resource, $host);
             } else {
                 $this->log('[resource] cannot parse mime type [ ' . $mimeType . ' ] provided by uri [ ' . $uri . ' ]', 'debug');
             }
@@ -542,15 +544,15 @@ class Parser
     }
 
     /**
-     * @param                      $link
      * @param \VDB\Spider\Resource $resource
      * @param                      $host
      *
      * @return bool
      */
-    private function parseHtml($link, $resource, $host)
+    private function parseHtml($resource, $host)
     {
         /** @var \Symfony\Component\DomCrawler\Crawler $crawler */
+        $uri = $resource->getUri()->toString();
         $crawler = $resource->getCrawler();
         $html = $resource->getResponse()->getBody();
         $contentTypeInfo = $resource->getResponse()->getHeaderLine('Content-Type');
@@ -566,8 +568,8 @@ class Parser
         $hasCanonicalLink = $crawler->filterXpath('//link[@rel="canonical"]')->count() > 0;
 
         if ($hasCanonicalLink === TRUE) {
-            if($link != $crawler->filterXpath('//link[@rel="canonical"]')->attr('href')){
-                $this->log('[parser] skip indexing [ ' . $link . ' ] because it has canonical link '.$crawler->filterXpath('//link[@rel="canonical"]')->attr('href').'');
+            if($uri != $crawler->filterXpath('//link[@rel="canonical"]')->attr('href')){
+                $this->log('[parser] skip indexing [ ' . $uri . ' ] because it has canonical link '.$crawler->filterXpath('//link[@rel="canonical"]')->attr('href').'');
 
                 return FALSE;
             }
@@ -577,7 +579,7 @@ class Parser
         $hasNoFollow = $crawler->filterXpath('//meta[@content="nofollow"]')->count() > 0;
 
         if ($hasNoFollow === TRUE) {
-            $this->log('[parser] skip indexing [ ' . $link . ' ] because it has a nofollow tag');
+            $this->log('[parser] skip indexing [ ' . $uri . ' ] because it has a nofollow tag');
 
             return FALSE;
         }
@@ -652,53 +654,35 @@ class Parser
             }
         }
 
-        $this->addHtmlToIndex($html, $title, $description, $link, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost);
+        $this->addHtmlToIndex($html, $title, $description, $uri, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost);
 
-        $this->log('[parser] added html to indexer stack: ' . $link);
+        $this->log('[parser] added html to indexer stack: ' . $uri);
 
         return TRUE;
     }
 
     /**
-     * @param string               $link
      * @param \VDB\Spider\Resource $resource
      * @param                      $host
      *
      * @return bool
      */
-    private function parsePdf($link, $resource, $host)
+    private function parsePdf($resource, $host)
     {
-        $this->log('[parser] added pdf to indexer stack: ' . $link);
-
-        $hasPossibleRestriction = FALSE;
-        $restrictions = FALSE;
-
-        if (\Pimcore\ExtensionManager::isEnabled('plugin', 'Members')) {
-            $hasPossibleRestriction = TRUE;
-        }
-
-        $asset = $this->getAssetFromUrl($link, $hasPossibleRestriction);
-        $metaData = $this->getMetaDataFromAsset($asset);
-
-        if ($hasPossibleRestriction) {
-            $restrictions = $this->getRestrictionFromAsset($asset);
-        }
-
-        return $this->addPdfToIndex($resource, $metaData, $restrictions, $host);
+        $this->log('[parser] added pdf to indexer stack: ' . $resource->getUri()->toString());
+        return $this->addPdfToIndex($resource, $host);
     }
 
     /**
      * adds a PDF page to lucene index and mysql table for search result sumaries
      *
      * @param \VDB\Spider\Resource $resource
-     * @param array                $meta
-     * @param bool|array           $restrictions
      * @param string               $host
      * @param integer              $customBoost
      *
      * @return bool
      */
-    protected function addPdfToIndex($resource, $meta, $restrictions, $host, $customBoost = NULL)
+    protected function addPdfToIndex($resource, $host, $customBoost = NULL)
     {
         try {
             $pdfToTextBin = \Pimcore\Document\Adapter\Ghostscript::getPdftotextCli();
@@ -726,6 +710,7 @@ class Parser
         }
 
         $uri = $resource->getUri()->toString();
+        $assetMeta = $this->getAssetMeta($uri);
 
         if (is_file($tmpFile)) {
             $fileContent = file_get_contents($tmpFile);
@@ -739,20 +724,20 @@ class Parser
                 $text = preg_replace('/[^\p{Latin}\d ]/u', '', $text);
                 $text = preg_replace('/\n[\s]*/', "\n", $text); // remove all leading blanks
 
-                $title = $meta['key'] !== FALSE ? $meta['key'] : basename($uri);
+                $title = $assetMeta['key'] !== FALSE ? $assetMeta['key'] : basename($uri);
                 $doc->addField(\Zend_Search_Lucene_Field::Text('title', $title), 'utf-8');
                 $doc->addField(\Zend_Search_Lucene_Field::Text('content', $text, 'utf-8'));
-                $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $meta['language']));
-                $doc->addField(\Zend_Search_Lucene_Field::Keyword('country', $meta['country']));
+                $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $assetMeta['language']));
+                $doc->addField(\Zend_Search_Lucene_Field::Keyword('country', $assetMeta['country']));
 
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $uri));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $host));
 
-                if (is_array($restrictions)) {
-                    foreach ($restrictions as $restrictionGroup) {
+                if (is_array($assetMeta['restrictions'])) {
+                    foreach ($assetMeta['restrictions'] as $restrictionGroup) {
                         $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_' . $restrictionGroup, TRUE));
                     }
-                } else if($restrictions === NULL) {
+                } else if ($assetMeta['restrictions'] === NULL) {
                     $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_default', TRUE));
                 }
 
@@ -775,7 +760,7 @@ class Parser
      * @param  string  $html
      * @param  string  $title
      * @param  string  $description
-     * @param  string  $url
+     * @param  string  $uri
      * @param  string  $language
      * @param  string  $country
      * @param  string  $restrictions
@@ -786,7 +771,7 @@ class Parser
      *
      * @return void
      */
-    protected function addHtmlToIndex($html, $title, $description, $url, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost = NULL)
+    protected function addHtmlToIndex($html, $title, $description, $uri, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost = NULL)
     {
         try {
             $content = $this->getPlainTextFromHtml($html);
@@ -824,7 +809,7 @@ class Parser
 
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('charset', $encoding));
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $language));
-            $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $url));
+            $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $uri));
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $host));
 
             $doc->addField(\Zend_Search_Lucene_Field::Text('title', $title, $encoding));
@@ -866,107 +851,70 @@ class Parser
 
     /**
      * @param string $link
-     * @param bool   $hasPossibleRestriction
-     *
-     * @return bool|\Pimcore\Model\Asset
-     */
-    protected function getAssetFromUrl($link, $hasPossibleRestriction = FALSE)
-    {
-        if (empty($link) || !is_string($link)) {
-            return FALSE;
-        }
-
-        $assetPath = NULL;
-        $pathFragments = parse_url($link);
-        $assetPath = $pathFragments['path'];
-
-        if ($hasPossibleRestriction && strpos($assetPath, 'members/request-data') !== FALSE) {
-            $key = end(explode('/', $assetPath));
-            $decodedData = \Members\Tool\UrlServant::parseUrlFragment($key);
-            if (is_array($decodedData) && count($decodedData) === 1) {
-                $assetId = $decodedData[0]->f;
-                return \Pimcore\Model\Asset::getById($assetId);
-            }
-
-            return FALSE;
-        }
-
-        $asset = \Pimcore\Model\Asset::getByPath($assetPath);
-
-        if ($asset instanceof \Pimcore\Model\Asset) {
-            return $asset;
-        }
-
-        return FALSE;
-    }
-
-    /**
-     * Because Assets are not language or country restricted, we need to get them from db
-     *
-     * @param \Pimcore\Model\Asset $asset
      *
      * @return array
      */
-    protected function getMetaDataFromAsset($asset)
+    protected function getAssetMeta($link)
     {
-        $meta = ['language' => 'all', 'country' => 'all', 'key' => FALSE];
+        $assetMetaData = [
+            'language'     => 'all',
+            'country'      => 'all',
+            'key'          => FALSE,
+            'restrictions' => FALSE
+        ];
 
-        if (!$asset instanceof \Pimcore\Model\Asset) {
-            return $meta;
+        if (empty($link) || !is_string($link)) {
+            return $assetMetaData;
         }
+
+        $hasPossibleRestriction = FALSE;
+
+        if (ExtensionManager::isEnabled('plugin', 'Members')) {
+            $hasPossibleRestriction = TRUE;
+        }
+
+        $asset = FALSE;
+        $restrictions = FALSE;
+
+        $pathFragments = parse_url($link);
+        $assetPath = $pathFragments['path'];
+
+        //members extension is available and it's a restricted asset
+        if ($hasPossibleRestriction && strpos($assetPath, 'members/request-data') !== FALSE) {
+            $method = new \ReflectionMethod('\Members\Tool\UrlServant::getAssetUrlInformation');
+            if ($method->isStatic()) {
+                $key = end(explode('/', $assetPath));
+                $restrictedAssetInfo = \Members\Tool\UrlServant::getAssetUrlInformation($key);
+                if ($restrictedAssetInfo !== FALSE) {
+                    $asset = $restrictedAssetInfo['asset'];
+                    $restrictions = $restrictedAssetInfo['restrictionGroups'];
+                }
+            }
+        } else {
+            $asset = Asset::getByPath($assetPath);
+        }
+
+        if (!$asset instanceof Asset) {
+            return $assetMetaData;
+        }
+
+        $assetMetaData['restrictions'] = $restrictions;
 
         //check for assigned language
         $languageProperty = $asset->getProperty('assigned_language');
         if (!empty($languageProperty)) {
-            $meta['language'] = $languageProperty;
+            $assetMetaData['language'] = $languageProperty;
         }
 
         //checked for assigned country
         $countryProperty = $asset->getProperty('assigned_country');
         if (!empty($countryProperty)) {
-            $meta['country'] = $countryProperty;
+            $assetMetaData['country'] = $countryProperty;
         }
 
-        $meta['key'] = $asset->getKey();
+        $assetMetaData['key'] = $asset->getKey();
 
-        return $meta;
-    }
-
-    /**
-     * only reachable if members extension is available
-     * @param $asset
-     *
-     * @return array|bool|null
-     */
-    protected function getRestrictionFromAsset($asset)
-    {
-        if (!$asset instanceof \Pimcore\Model\Asset) {
-            return NULL;
-        }
-
-        $restriction = FALSE;
-        $userGroups = FALSE;
-
-        try {
-            $restriction = \Members\Model\Restriction::getByTargetId($asset->getId(), 'asset');
-        } catch (\Exception $e) {
-        }
-
-        if ($restriction !== FALSE) {
-            try {
-                $userGroups = $restriction->getRelatedGroups();
-            } catch (\Exception $e) {
-            }
-        }
-
-        //check if asset is maybe in restricted mode without any restriction settings
-        if($userGroups === FALSE) {
-            if(strpos($asset->getPath(), \Members\Tool\UrlServant::PROTECTED_ASSET_FOLDER) === FALSE) {
-                $userGroups = NULL;
-            }
-        }
-
-        return $userGroups;
+        return $assetMetaData;
     }
 
     /**
