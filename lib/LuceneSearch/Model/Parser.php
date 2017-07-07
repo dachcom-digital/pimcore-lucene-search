@@ -552,8 +552,9 @@ class Parser
     private function parseHtml($resource, $host)
     {
         /** @var \Symfony\Component\DomCrawler\Crawler $crawler */
-        $uri = $resource->getUri()->toString();
         $crawler = $resource->getCrawler();
+
+        $uri = $resource->getUri()->toString();
         $html = $resource->getResponse()->getBody();
         $contentTypeInfo = $resource->getResponse()->getHeaderLine('Content-Type');
         $contentLanguage = $resource->getResponse()->getHeaderLine('Content-Language');

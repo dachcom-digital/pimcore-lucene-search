@@ -30,6 +30,9 @@ class Request
         return $isLuceneSearch;
     }
 
+    /**
+     * @return array|false
+     */
     private static function getHeaders()
     {
         if (!function_exists('getallheaders')) {

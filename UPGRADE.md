@@ -1,5 +1,8 @@
 # Upgrade Notes
 
+#### Update from Version 1.4.x to Version 1.4.5
+- if you're using the [Members Extension](https://github.com/dachcom-digital/pimcore-members), please be sure you're using the latest version (at least 1.5.0)
+
 #### Update from Version 1.3.x to Version 1.4
 - configuration: content crawl size added. check and update lucene configuration after updating
 - configuration: mime type restriction added. check and update lucene configuration after updating
