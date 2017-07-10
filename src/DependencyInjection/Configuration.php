@@ -39,7 +39,7 @@ class Configuration implements ConfigurationInterface
                     ->info('Categories: If search results should be displayed by categories, please enter all valid categories here. The crawler sorts a page into a category if it contains a html meta tag with the name cat.')
                 ->end()
                 ->arrayNode('filter:valid_links')
-                    ->info('Regex for valid Uris: Specify PREG regexes with start and end delimiter to define allowed links. e.g. @^www\.pimcore\.org*@i')
+                    ->info('Regex for valid Uris: Specify PREG regexes with start and end delimiter to define allowed links. e.g. @^http://www\.pimcore\.org*@i')
                     ->prototype('scalar')->end()
                 ->end()
                 ->arrayNode('filter:user_invalid_links')
