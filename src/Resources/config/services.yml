@@ -14,6 +14,8 @@ services:
     # configuration
     lucene_search.configuration:
         class: LuceneSearchBundle\Configuration\Configuration
+        arguments:
+            - '@pimcore.extension.bundle_manager'
 
     # organizer dispatcher
     lucene_search.organizer.handler_dispatcher:

@@ -4,6 +4,7 @@ namespace LuceneSearchBundle\Task\Parser;
 
 use LuceneSearchBundle\Task\AbstractTask;
 use LuceneSearchBundle\Configuration\Configuration;
+use Pimcore\Model\Asset;
 use VDB\Spider\Resource;
 
 class ParserTask extends AbstractTask
@@ -105,10 +106,10 @@ class ParserTask extends AbstractTask
             $parts = explode(';', $contentTypeInfo);
             $mimeType = trim($parts[0]);
 
-            if ($mimeType == 'text/html') {
-                $this->parseHtml($uri, $resource, $host);
-            } else if ($mimeType == 'application/pdf') {
-                $this->parsePdf($uri, $resource, $host);
+            if ($mimeType === 'text/html') {
+                $this->parseHtml($resource, $host);
+            } else if ($mimeType === 'application/pdf') {
+                $this->parsePdf($resource, $host);
             } else {
                 $this->log('cannot parse mime type [ ' . $mimeType . ' ] provided by uri [ ' . $uri . ' ]', 'debug');
             }
@@ -118,16 +119,16 @@ class ParserTask extends AbstractTask
     }
 
     /**
-     * @param                      $link
      * @param Resource             $resource
      * @param                      $host
      *
      * @return bool
      */
-    private function parseHtml($link, $resource, $host)
+    private function parseHtml($resource, $host)
     {
         /** @var \Symfony\Component\DomCrawler\Crawler $crawler */
         $crawler = $resource->getCrawler();
+        $uri = $resource->getUri()->toString();
         $stream = $resource->getResponse()->getBody();
         $stream->rewind();
         $html = $stream->getContents();
@@ -144,8 +145,8 @@ class ParserTask extends AbstractTask
         $hasCanonicalLink = $crawler->filterXpath('//link[@rel="canonical"]')->count() > 0;
 
         if ($hasCanonicalLink === TRUE) {
-            if ($link != $crawler->filterXpath('//link[@rel="canonical"]')->attr('href')) {
-                $this->log('skip indexing [ ' . $link . ' ] because it has canonical link ' . $crawler->filterXpath('//link[@rel="canonical"]')->attr('href'));
+            if ($uri != $crawler->filterXpath('//link[@rel="canonical"]')->attr('href')) {
+                $this->log('skip indexing [ ' . $uri . ' ] because it has canonical link ' . $crawler->filterXpath('//link[@rel="canonical"]')->attr('href'));
                 return FALSE;
             }
         }
@@ -154,7 +155,7 @@ class ParserTask extends AbstractTask
         $hasNoFollow = $crawler->filterXpath('//meta[@content="nofollow"]')->count() > 0;
 
         if ($hasNoFollow === TRUE) {
-            $this->log('skip indexing [ ' . $link . ' ] because it has a nofollow tag');
+            $this->log('skip indexing [ ' . $uri . ' ] because it has a nofollow tag');
             return FALSE;
         }
 
@@ -234,41 +235,35 @@ class ParserTask extends AbstractTask
             }
         }
 
-        $this->addHtmlToIndex($html, $title, $description, $link, $language, $country, $restrictions, $categories, $customMeta, $encoding, $host, $customBoost);
+        $this->addHtmlToIndex($html, $title, $description, $uri, $language, $country, $restrictions, $categories, $customMeta, $encoding, $host, $customBoost);
 
-        $this->log('added html to indexer stack: ' . $link);
+        $this->log('added html to indexer stack: ' . $uri);
 
         return TRUE;
     }
 
     /**
-     * @param                      $link
-     * @param Resource             $resource
+     * @param \VDB\Spider\Resource $resource
      * @param                      $host
      *
      * @return bool
      */
-    private function parsePdf($link, $resource, $host)
+    private function parsePdf($resource, $host)
     {
-        $this->log('added pdf to indexer stack: ' . $link);
-
-        $metaData = $this->getMetaDataFromAsset($link);
-
-        return $this->addPdfToIndex($resource, $metaData['language'], $metaData['country'], $host);
+        $this->log('[parser] added pdf to indexer stack: ' . $resource->getUri()->toString());
+        return $this->addPdfToIndex($resource, $host);
     }
 
     /**
      * adds a PDF page to lucene index and mysql table for search result sumaries
      *
-     * @param Resource $resource
-     * @param string   $language
-     * @param string   $country
+     * @param \VDB\Spider\Resource $resource
      * @param string   $host
      * @param integer  $customBoost
      *
      * @return bool
      */
-    protected function addPdfToIndex($resource, $language, $country, $host, $customBoost = NULL)
+    protected function addPdfToIndex($resource, $host, $customBoost = NULL)
     {
         try {
             $pdfToTextBin = \Pimcore\Document\Adapter\Ghostscript::getPdftotextCli();
@@ -302,6 +297,7 @@ class ParserTask extends AbstractTask
         }
 
         $uri = $resource->getUri()->toString();
+        $assetMeta = $this->getAssetMeta($uri);
 
         if (is_file($tmpFile)) {
             $fileContent = file_get_contents($tmpFile);
@@ -315,15 +311,22 @@ class ParserTask extends AbstractTask
                 $text = preg_replace('/[^\p{Latin}\d ]/u', '', $text);
                 $text = preg_replace('/\n[\s]*/', "\n", $text); // remove all leading blanks
 
-                $doc->addField(\Zend_Search_Lucene_Field::Text('title', basename($uri), 'utf-8'));
+                $title = $assetMeta['key'] !== FALSE ? $assetMeta['key'] : basename($uri);
+                $doc->addField(\Zend_Search_Lucene_Field::Text('title', $title), 'utf-8');
                 $doc->addField(\Zend_Search_Lucene_Field::Text('content', $text, 'utf-8'));
-                $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $language));
-                $doc->addField(\Zend_Search_Lucene_Field::Keyword('country', $country));
+                $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $assetMeta['language']));
+                $doc->addField(\Zend_Search_Lucene_Field::Keyword('country', $assetMeta['country']));
 
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $uri));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $host));
 
-                $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_default', TRUE));
+                if (is_array($assetMeta['restrictions'])) {
+                    foreach ($assetMeta['restrictions'] as $restrictionGroup) {
+                        $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_' . $restrictionGroup, TRUE));
+                    }
+                } else if ($assetMeta['restrictions'] === NULL) {
+                    $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_default', TRUE));
+                }
 
                 //no add document to lucene index!
                 $this->addDocumentToIndex($doc);
@@ -456,39 +459,79 @@ class ParserTask extends AbstractTask
         }
     }
 
+
     /**
-     * Because Assets are not language or country restricted, we need to get them from db
-     *
-     * @param string $url
+     * @todo: fix Members Dependencies
+     * @param string $link
      *
      * @return array
      */
-    protected function getMetaDataFromAsset($url = '')
+    protected function getAssetMeta($link)
     {
-        $urlData = parse_url($url);
-        $meta = ['language' => 'all', 'country' => 'all'];
+        $assetMetaData = [
+            'language'     => 'all',
+            'country'      => 'all',
+            'key'          => FALSE,
+            'restrictions' => FALSE
+        ];
 
-        if (empty($urlData['path'])) {
-            return $meta;
+        if (empty($link) || !is_string($link)) {
+            return $assetMetaData;
         }
 
-        $asset = \Pimcore\Model\Asset::getByPath($urlData['path']);
+        $hasPossibleRestriction = FALSE;
 
-        if ($asset instanceof \Pimcore\Model\Asset) {
-            //check for assigned language
-            $languageProperty = $asset->getProperty('assigned_language');
-            if (!empty($languageProperty)) {
-                $meta['language'] = $languageProperty;
-            }
-
-            //checked for assigned country
-            $countryProperty = $asset->getProperty('assigned_country');
-            if (!empty($countryProperty)) {
-                $meta['country'] = $countryProperty;
-            }
+        if ($this->configuration->hasBundle('MembersBundle\MembersBundle')) {
+            $hasPossibleRestriction = TRUE;
         }
 
-        return $meta;
+        $asset = FALSE;
+        $restrictions = FALSE;
+
+        $pathFragments = parse_url($link);
+        $assetPath = $pathFragments['path'];
+
+        //members extension is available and it's a restricted asset
+        if ($hasPossibleRestriction && strpos($assetPath, 'members/request-data') !== FALSE) {
+            try {
+                $method = new \ReflectionMethod('\Members\Tool\UrlServant', 'getAssetUrlInformation');
+                if ($method->isStatic()) {
+                    $key = end(explode('/', $assetPath));
+                    $restrictedAssetInfo = \MembersBundle\Tool\UrlServant::getAssetUrlInformation($key);
+                    if ($restrictedAssetInfo !== FALSE) {
+                        $asset = $restrictedAssetInfo['asset'];
+                        $restrictions = $restrictedAssetInfo['restrictionGroups'];
+                    }
+                }
+            } catch(\ReflectionException $e) {
+                $this->log($e->getMessage(), 'error');
+            }
+
+        } else {
+            $asset = Asset::getByPath($assetPath);
+        }
+
+        if (!$asset instanceof Asset) {
+            return $assetMetaData;
+        }
+
+        $assetMetaData['restrictions'] = $restrictions;
+
+        //check for assigned language
+        $languageProperty = $asset->getProperty('assigned_language');
+        if (!empty($languageProperty)) {
+            $assetMetaData['language'] = $languageProperty;
+        }
+
+        //checked for assigned country
+        $countryProperty = $asset->getProperty('assigned_country');
+        if (!empty($countryProperty)) {
+            $assetMetaData['country'] = $countryProperty;
+        }
+
+        $assetMetaData['key'] = $asset->getKey();
+
+        return $assetMetaData;
     }
 
     /**

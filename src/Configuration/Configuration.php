@@ -2,6 +2,7 @@
 
 namespace LuceneSearchBundle\Configuration;
 
+use Pimcore\Extension\Bundle\PimcoreBundleManager;
 use Symfony\Component\Filesystem\Filesystem;
 
 class Configuration
@@ -13,7 +14,6 @@ class Configuration
         'started'    => NULL,
         'finished'   => NULL
     ];
-
 
     const SYSTEM_CONFIG_FILE_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/config.yml';
 
@@ -38,6 +38,11 @@ class Configuration
     const INDEX_DIR_PATH_STABLE = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/index/stable';
 
     /**
+     * @var PimcoreBundleManager
+     */
+    protected $bundleManager;
+
+    /**
      * @var Filesystem
      */
     private $fileSystem;
@@ -59,9 +64,12 @@ class Configuration
 
     /**
      * Configuration constructor.
+     *
+     * @param PimcoreBundleManager $bundleManager
      */
-    public function __construct()
+    public function __construct(PimcoreBundleManager $bundleManager)
     {
+        $this->bundleManager = $bundleManager;
         $this->fileSystem = new FileSystem();
     }
 
@@ -136,14 +144,32 @@ class Configuration
     /**
      * @param array $categories
      */
-    public function setCategories(array $categories) {
+    public function setCategories(array $categories)
+    {
         $this->categories = $categories;
     }
 
     /**
      * @return array
      */
-    public function getCategories() {
+    public function getCategories()
+    {
         return $this->categories;
+    }
+
+    /**
+     * @param string $bundleName
+     *
+     * @return bool
+     */
+    public function hasBundle($bundleName = 'ExtensionBundle\ExtensionBundle')
+    {
+        try {
+            $hasExtension = $this->bundleManager->isEnabled($bundleName);
+        } catch (\Exception $e) {
+            $hasExtension = FALSE;
+        }
+
+        return $hasExtension;
     }
 }

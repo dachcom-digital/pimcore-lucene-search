@@ -47,9 +47,9 @@
                                 </span>
                             {% endif %}
 
-                            {% if searchResult.description is not empty %}
+                            {% if searchResult.description is defined and searchResult.description is not empty %}
                                 <p>{{ searchResult.description|raw }}</p>
-                            {% elseif searchResult.summary is not empty %}
+                            {% elseif searchResult.summary is defined and searchResult.summary is not empty %}
                                 <p>{{ searchResult.summary|raw }} ...</p>
                             {% endif %}
 
