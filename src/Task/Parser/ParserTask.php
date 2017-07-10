@@ -494,7 +494,7 @@ class ParserTask extends AbstractTask
         //members extension is available and it's a restricted asset
         if ($hasPossibleRestriction && strpos($assetPath, 'members/request-data') !== FALSE) {
             try {
-                $method = new \ReflectionMethod('\Members\Tool\UrlServant', 'getAssetUrlInformation');
+                $method = new \ReflectionMethod('\MembersBundle\Tool\UrlServant', 'getAssetUrlInformation');
                 if ($method->isStatic()) {
                     $key = end(explode('/', $assetPath));
                     $restrictedAssetInfo = \MembersBundle\Tool\UrlServant::getAssetUrlInformation($key);
