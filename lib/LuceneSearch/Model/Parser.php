@@ -593,11 +593,13 @@ class Parser
         $hasRestriction = $crawler->filterXpath('//meta[@name="m:groups"]')->count() > 0;
         $hasCustomMeta = $crawler->filterXpath('//meta[@name="lucene-search:meta"]')->count() > 0;
         $hasCustomBoostMeta = $crawler->filterXpath('//meta[@name="lucene-search:boost"]')->count() > 0;
+        $hasCategories = $crawler->filterXpath('//meta[@name="lucene-search:categories"]')->count() > 0;
 
         $title = '';
         $description = '';
         $customMeta = '';
         $customBoost = 1;
+        $categories = FALSE;
 
         $restrictions = FALSE;
         $country = FALSE;
@@ -624,6 +626,10 @@ class Parser
 
         if ($hasCustomBoostMeta === TRUE) {
             $customBoost = (int)$crawler->filterXpath('//meta[@name="lucene-search:boost"]')->attr('content');
+        }
+
+        if ($hasCategories === TRUE) {
+            $categories = $crawler->filterXpath('//meta[@name="lucene-search:categories"]')->attr('content');
         }
 
         $documentHasDelimiter = FALSE;
@@ -655,7 +661,7 @@ class Parser
             }
         }
 
-        $this->addHtmlToIndex($html, $title, $description, $uri, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost);
+        $this->addHtmlToIndex($html, $title, $description, $link, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost, $categories);
 
         $this->log('[parser] added html to indexer stack: ' . $uri);
 
@@ -769,10 +775,11 @@ class Parser
      * @param  string  $encoding
      * @param  string  $host
      * @param  integer $customBoost
+     * @param  string  $categories
      *
      * @return void
      */
-    protected function addHtmlToIndex($html, $title, $description, $uri, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost = NULL)
+    protected function addHtmlToIndex($html, $title, $description, $url, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost = NULL, $categories = FALSE)
     {
         try {
             $content = $this->getPlainTextFromHtml($html);
@@ -829,6 +836,24 @@ class Parser
                 foreach ($restrictionGroups as $restrictionGroup) {
                     $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_' . $restrictionGroup, TRUE));
                 }
+            }
+
+            if ($categories !== FALSE) {
+                $validCategories = \LuceneSearch\Model\Configuration::get('frontend.categories');
+                if(!empty($validCategories)) {
+                    $validIds = [];
+                    $categoryIds = explode(',', $categories);
+                    foreach ($categoryIds as $categoryId) {
+                        if(in_array($categoryId, $validCategories)) {
+                            $validIds[] = $categoryId;
+                            $doc->addField(\Zend_Search_Lucene_Field::Keyword('category_' . $categoryId, 'category_' . $categoryId));
+                        }
+                    }
+                    if(!empty($validIds)) {
+                        $doc->addField(\Zend_Search_Lucene_Field::Text('categories', implode(',', $validIds)));
+                    }
+                }
+
             }
 
             //no add document to lucene index!
