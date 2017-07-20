@@ -25,6 +25,7 @@ Because of additional dependencies you need to install this plugin via composer.
 * Auto Complete
 * Restricted Documents & Usergroups ([member](https://github.com/dachcom-digital/pimcore-members) plugin recommended but not required)
 * Authenticated Crawling
+* Search with categories
 
 ### Usage
 
@@ -126,6 +127,24 @@ $el.autocomplete({
     }
 
 });
+```
+## Search with Categories
+Add your category to the available categories in the Lucene Search config
+in lucenesearch_configurations.php:
+
+```php
+"key" => "frontend.categories",
+"data" => [
+    "category1",
+    "category2",
+    "category3",
+    "category4"
+],
+```
+
+In *Document* => *Settings* go to *Meta Data* and add a new field with any number of categories:
+```html
+<meta name="lucene-search:categories" content="category1,category3">
 ```
 
 ## Custom Meta Content
