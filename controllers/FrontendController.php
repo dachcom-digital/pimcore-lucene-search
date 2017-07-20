@@ -34,7 +34,7 @@ class LuceneSearch_FrontendController extends Action
      * category, to restrict query, incoming argument
      * @var array
      */
-    protected $category = '';
+    protected $searchCategories = [];
 
     /**
      * @var
@@ -117,10 +117,15 @@ class LuceneSearch_FrontendController extends Action
             }
 
             //Set Category
-            $queryCategory = $this->cleanRequestString($this->getParam('category'));
+            $this->categories = Configuration::get('frontend.categories');
 
-            if (!empty($queryCategory)) {
-                $this->category = $queryCategory;
+            $searchCategories = $this->cleanRequestString($this->getParam('categories'));
+
+            if (!empty($searchCategories)) {
+                if(is_string($searchCategories)) {
+                    $searchCategories = explode(',', $searchCategories);
+                }
+                $this->searchCategories = $searchCategories;
             }
 
             //Set Country
@@ -374,7 +379,7 @@ class LuceneSearch_FrontendController extends Action
                 'searchCurrentPage' => $this->currentPage,
                 'searchAllPages'    => $pages,
 
-                'searchCategory'            => $this->category,
+                'searchCategories'          => $this->searchCategories,
                 'searchAvailableCategories' => $this->categories,
 
                 'searchSuggestions'            => $suggestions,
@@ -449,9 +454,16 @@ class LuceneSearch_FrontendController extends Action
 
     private function addCategoryQuery($query)
     {
-        if (!empty($this->category)) {
-            $categoryTerm = new \Zend_Search_Lucene_Index_Term($this->category, 'cat');
-            $categoryQuery = new \Zend_Search_Lucene_Search_Query_Term($categoryTerm);
+        if (!empty($this->searchCategories) && is_array($this->categories)) {
+            $categoryTerms = [];
+            $signs = [];
+            foreach ($this->searchCategories as $categoryId) {
+                if(in_array($categoryId, $this->categories)) {
+                    $categoryTerms[] = new \Zend_Search_Lucene_Index_Term('category_' . $categoryId, 'category_' . $categoryId);
+                    $signs[] = TRUE;
+                }
+            }
+            $categoryQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm($categoryTerms, $signs);
             $query->addSubquery($categoryQuery, TRUE);
         }
 
