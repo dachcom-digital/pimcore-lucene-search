@@ -459,11 +459,8 @@ class ParserTask extends AbstractTask
         }
     }
 
-
     /**
-     * @todo: fix Members Dependencies
      * @param string $link
-     *
      * @return array
      */
     protected function getAssetMeta($link)
@@ -481,7 +478,7 @@ class ParserTask extends AbstractTask
 
         $hasPossibleRestriction = FALSE;
 
-        if ($this->configuration->hasBundle('MembersBundle\MembersBundle')) {
+        if ($this->bundleConnector->hasBundle('MembersBundle\MembersBundle')) {
             $hasPossibleRestriction = TRUE;
         }
 
@@ -492,17 +489,15 @@ class ParserTask extends AbstractTask
         $assetPath = $pathFragments['path'];
 
         //members extension is available and it's a restricted asset
-        if ($hasPossibleRestriction && strpos($assetPath, 'members/request-data') !== FALSE) {
+        if ($hasPossibleRestriction && !strpos($assetPath, 'members/request-data') !== FALSE) {
             try {
-                $method = new \ReflectionMethod('\MembersBundle\Tool\UrlServant', 'getAssetUrlInformation');
-                if ($method->isStatic()) {
-                    $key = end(explode('/', $assetPath));
-                    $restrictedAssetInfo = \MembersBundle\Tool\UrlServant::getAssetUrlInformation($key);
-                    if ($restrictedAssetInfo !== FALSE) {
-                        $asset = $restrictedAssetInfo['asset'];
-                        $restrictions = $restrictedAssetInfo['restrictionGroups'];
-                    }
+                $key = end(explode('/', $assetPath));
+                $restrictedAssetInfo =  $this->bundleConnector->getBundleService('members.security.restriction.uri')->getAssetUrlInformation($key);
+                if ($restrictedAssetInfo !== FALSE) {
+                    $asset = $restrictedAssetInfo['asset'];
+                    $restrictions = $restrictedAssetInfo['restrictionGroups'];
                 }
+
             } catch(\ReflectionException $e) {
                 $this->log($e->getMessage(), 'error');
             }

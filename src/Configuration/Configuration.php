@@ -156,20 +156,4 @@ class Configuration
     {
         return $this->categories;
     }
-
-    /**
-     * @param string $bundleName
-     *
-     * @return bool
-     */
-    public function hasBundle($bundleName = 'ExtensionBundle\ExtensionBundle')
-    {
-        try {
-            $hasExtension = $this->bundleManager->isEnabled($bundleName);
-        } catch (\Exception $e) {
-            $hasExtension = FALSE;
-        }
-
-        return $hasExtension;
-    }
 }
