@@ -93,7 +93,6 @@ services:
     # controller
     lucene_search.controller.frontend:
         class: LuceneSearchBundle\Controller\FrontendController
-        methods:  [GET]
         arguments:
             - '@request_stack'
             - '@templating'
@@ -103,15 +102,12 @@ services:
     lucene_search.controller.frontend.auto_complete:
         class: LuceneSearchBundle\Controller\AutoCompleteController
         parent: lucene_search.controller.frontend
-        methods: [GET]
     lucene_search.controller.frontend.sitemap:
         class: LuceneSearchBundle\Controller\SiteMapController
         parent: lucene_search.controller.frontend
-        methods: [GET]
     lucene_search.controller.frontend.list:
         class: LuceneSearchBundle\Controller\ListController
         parent: lucene_search.controller.frontend
-        methods: [GET]
         calls:
              - [setHighlighterHelper, ['@lucene_search.helper.highlighter']]
 
