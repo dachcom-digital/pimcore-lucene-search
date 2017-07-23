@@ -3,7 +3,6 @@
 namespace LuceneSearchBundle\Task;
 
 use LuceneSearchBundle\Configuration\Configuration;
-use LuceneSearchBundle\Connector\BundleConnector;
 use LuceneSearchBundle\Logger\AbstractLogger;
 use LuceneSearchBundle\Organizer\Dispatcher\HandlerDispatcher;
 
@@ -18,11 +17,6 @@ abstract class AbstractTask implements TaskInterface
      * @var HandlerDispatcher
      */
     protected $handlerDispatcher;
-
-    /**
-     * @var BundleConnector
-     */
-    protected $bundleConnector;
 
     /**
      * AbstractLogger
@@ -60,11 +54,10 @@ abstract class AbstractTask implements TaskInterface
      * @param Configuration     $configuration
      * @param HandlerDispatcher $handlerDispatcher
      */
-    public function __construct(Configuration $configuration, HandlerDispatcher $handlerDispatcher, BundleConnector $bundleConnector)
+    public function __construct(Configuration $configuration, HandlerDispatcher $handlerDispatcher)
     {
         $this->configuration = $configuration;
         $this->handlerDispatcher = $handlerDispatcher;
-        $this->bundleConnector = $bundleConnector;
     }
 
     /**

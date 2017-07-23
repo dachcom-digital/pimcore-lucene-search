@@ -2,8 +2,10 @@
 
 namespace LuceneSearchBundle\Task\Parser;
 
+use LuceneSearchBundle\Event\AssetResourceRestrictionEvent;
 use LuceneSearchBundle\Task\AbstractTask;
 use LuceneSearchBundle\Configuration\Configuration;
+use Pimcore\Document\Adapter\Ghostscript;
 use Pimcore\Model\Asset;
 use VDB\Spider\Resource;
 
@@ -53,6 +55,9 @@ class ParserTask extends AbstractTask
      */
     protected $searchExcludeEndIndicator;
 
+    /**
+     * @return bool
+     */
     public function isValid()
     {
         $this->documentBoost = $this->configuration->getConfig('boost:documents');
@@ -243,8 +248,8 @@ class ParserTask extends AbstractTask
     }
 
     /**
-     * @param \VDB\Spider\Resource $resource
-     * @param                      $host
+     * @param Resource $resource
+     * @param $host
      *
      * @return bool
      */
@@ -255,9 +260,9 @@ class ParserTask extends AbstractTask
     }
 
     /**
-     * adds a PDF page to lucene index and mysql table for search result sumaries
+     * adds a PDF page to lucene index and mysql table for search result summaries
      *
-     * @param \VDB\Spider\Resource $resource
+     * @param Resource $resource
      * @param string   $host
      * @param integer  $customBoost
      *
@@ -266,7 +271,7 @@ class ParserTask extends AbstractTask
     protected function addPdfToIndex($resource, $host, $customBoost = NULL)
     {
         try {
-            $pdfToTextBin = \Pimcore\Document\Adapter\Ghostscript::getPdftotextCli();
+            $pdfToTextBin = Ghostscript::getPdftotextCli();
         } catch (\Exception $e) {
             $pdfToTextBin = FALSE;
         }
@@ -297,7 +302,7 @@ class ParserTask extends AbstractTask
         }
 
         $uri = $resource->getUri()->toString();
-        $assetMeta = $this->getAssetMeta($uri);
+        $assetMeta = $this->getAssetMeta($resource);
 
         if (is_file($tmpFile)) {
             $fileContent = file_get_contents($tmpFile);
@@ -460,11 +465,13 @@ class ParserTask extends AbstractTask
     }
 
     /**
-     * @param string $link
+     * @param Resource $resource
      * @return array
      */
-    protected function getAssetMeta($link)
+    protected function getAssetMeta($resource)
     {
+        $link = $resource->getUri()->toString();
+
         $assetMetaData = [
             'language'     => 'all',
             'country'      => 'all',
@@ -476,32 +483,20 @@ class ParserTask extends AbstractTask
             return $assetMetaData;
         }
 
-        $hasPossibleRestriction = FALSE;
-
-        if ($this->bundleConnector->hasBundle('MembersBundle\MembersBundle')) {
-            $hasPossibleRestriction = TRUE;
-        }
-
-        $asset = FALSE;
         $restrictions = FALSE;
 
         $pathFragments = parse_url($link);
         $assetPath = $pathFragments['path'];
 
-        //members extension is available and it's a restricted asset
-        if ($hasPossibleRestriction && !strpos($assetPath, 'members/request-data') !== FALSE) {
-            try {
-                $key = end(explode('/', $assetPath));
-                $restrictedAssetInfo =  $this->bundleConnector->getBundleService('members.security.restriction.uri')->getAssetUrlInformation($key);
-                if ($restrictedAssetInfo !== FALSE) {
-                    $asset = $restrictedAssetInfo['asset'];
-                    $restrictions = $restrictedAssetInfo['restrictionGroups'];
-                }
+        $event = new AssetResourceRestrictionEvent($resource);
+        \Pimcore::getEventDispatcher()->dispatch(
+            'lucene_search.task.parser.asset_restriction',
+            $event
+        );
 
-            } catch(\ReflectionException $e) {
-                $this->log($e->getMessage(), 'error');
-            }
-
+        if ($event->getAsset() instanceof Asset) {
+            $asset = $event->getAsset();
+            $restrictions = $event->getRestrictions();
         } else {
             $asset = Asset::getByPath($assetPath);
         }

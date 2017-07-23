@@ -52,7 +52,6 @@ services:
         arguments:
             - '@lucene_search.configuration'
             - '@lucene_search.organizer.handler_dispatcher'
-            - '@lucene_search.connector.bundle'
 
     # tasks
     lucene_search.task.start_up:
@@ -123,12 +122,6 @@ services:
         class: LuceneSearchBundle\Helper\StringHelper
     lucene_search.helper.highlighter:
         class: LuceneSearchBundle\Helper\HighlighterHelper
-
-    # lucene_search bundle connector
-    lucene_search.connector.bundle:
-        class: LuceneSearchBundle\Connector\BundleConnector
-        arguments:
-            - '@pimcore.extension.bundle_manager'
 
     # twig extensions
     lucene_search.twig.extension.pagination:
