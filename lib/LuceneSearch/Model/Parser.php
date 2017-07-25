@@ -503,6 +503,9 @@ class Parser
         $this->log('[crawler] Total Time: ' . $minutes . ':' . $seconds, 'debug');
         $this->log('[crawler] Politeness Wait Time: ' . $totalDelay . ' seconds', 'debug');
 
+        //reset db connection since db maybe has lost its connection.
+        \Pimcore\Db::reset();
+
         //parse all resources!
         /** @var \VDB\Spider\Resource $resource */
         foreach ($spider->getDownloader()->getPersistenceHandler() as $resource) {
