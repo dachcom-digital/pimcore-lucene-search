@@ -130,7 +130,7 @@ $el.autocomplete({
 ```
 ## Search with Categories
 Add your category to the available categories in the Lucene Search config
-in lucenesearch_configurations.php:
+in your `lucenesearch_configurations.php`:
 
 ```php
 "key" => "frontend.categories",

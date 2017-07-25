@@ -91,7 +91,6 @@ class LuceneSearch_FrontendController extends Action
             \Zend_Search_Lucene_Analysis_Analyzer::setDefault(new \Zend_Search_Lucene_Analysis_Analyzer_Common_Utf8Num_CaseInsensitive());
 
             $this->frontendIndex = \Zend_Search_Lucene::open(Plugin::getFrontendSearchIndex());
-            $this->categories = Configuration::get('frontend.categories');
 
             //set search term query
             $searchQuery = $this->cleanRequestString($this->getParam('q'));
@@ -118,11 +117,10 @@ class LuceneSearch_FrontendController extends Action
 
             //Set Category
             $this->categories = Configuration::get('frontend.categories');
-
             $searchCategories = $this->cleanRequestString($this->getParam('categories'));
 
             if (!empty($searchCategories)) {
-                if(is_string($searchCategories)) {
+                if (is_string($searchCategories)) {
                     $searchCategories = explode(',', $searchCategories);
                 }
                 $this->searchCategories = $searchCategories;
@@ -458,7 +456,7 @@ class LuceneSearch_FrontendController extends Action
             $categoryTerms = [];
             $signs = [];
             foreach ($this->searchCategories as $categoryId) {
-                if(in_array($categoryId, $this->categories)) {
+                if (in_array($categoryId, $this->categories)) {
                     $categoryTerms[] = new \Zend_Search_Lucene_Index_Term('category_' . $categoryId, 'category_' . $categoryId);
                     $signs[] = TRUE;
                 }

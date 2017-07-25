@@ -572,8 +572,8 @@ class Parser
         $hasCanonicalLink = $crawler->filterXpath('//link[@rel="canonical"]')->count() > 0;
 
         if ($hasCanonicalLink === TRUE) {
-            if($uri != $crawler->filterXpath('//link[@rel="canonical"]')->attr('href')){
-                $this->log('[parser] skip indexing [ ' . $uri . ' ] because it has canonical link '.$crawler->filterXpath('//link[@rel="canonical"]')->attr('href').'');
+            if ($uri != $crawler->filterXpath('//link[@rel="canonical"]')->attr('href')) {
+                $this->log('[parser] skip indexing [ ' . $uri . ' ] because it has canonical link ' . $crawler->filterXpath('//link[@rel="canonical"]')->attr('href') . '');
 
                 return FALSE;
             }
@@ -664,7 +664,7 @@ class Parser
             }
         }
 
-        $this->addHtmlToIndex($html, $title, $description, $link, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost, $categories);
+        $this->addHtmlToIndex($html, $title, $description, $uri, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost, $categories);
 
         $this->log('[parser] added html to indexer stack: ' . $uri);
 
@@ -767,22 +767,22 @@ class Parser
     /**
      * adds a HTML page to lucene index and mysql table for search result summaries
      *
-     * @param  string  $html
-     * @param  string  $title
-     * @param  string  $description
-     * @param  string  $uri
-     * @param  string  $language
-     * @param  string  $country
-     * @param  string  $restrictions
-     * @param  string  $customMeta
-     * @param  string  $encoding
-     * @param  string  $host
-     * @param  integer $customBoost
-     * @param  string  $categories
+     * @param  string      $html
+     * @param  string      $title
+     * @param  string      $description
+     * @param  string      $uri
+     * @param  string      $language
+     * @param  string      $country
+     * @param  string      $restrictions
+     * @param  string      $customMeta
+     * @param  string      $encoding
+     * @param  string      $host
+     * @param  integer     $customBoost
+     * @param  bool|string $categories
      *
      * @return void
      */
-    protected function addHtmlToIndex($html, $title, $description, $url, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost = NULL, $categories = FALSE)
+    protected function addHtmlToIndex($html, $title, $description, $uri, $language, $country, $restrictions, $customMeta, $encoding, $host, $customBoost, $categories = FALSE)
     {
         try {
             $content = $this->getPlainTextFromHtml($html);
@@ -843,20 +843,19 @@ class Parser
 
             if ($categories !== FALSE) {
                 $validCategories = \LuceneSearch\Model\Configuration::get('frontend.categories');
-                if(!empty($validCategories)) {
+                if (!empty($validCategories)) {
                     $validIds = [];
                     $categoryIds = explode(',', $categories);
                     foreach ($categoryIds as $categoryId) {
-                        if(in_array($categoryId, $validCategories)) {
+                        if (in_array($categoryId, $validCategories)) {
                             $validIds[] = $categoryId;
                             $doc->addField(\Zend_Search_Lucene_Field::Keyword('category_' . $categoryId, 'category_' . $categoryId));
                         }
                     }
-                    if(!empty($validIds)) {
+                    if (!empty($validIds)) {
                         $doc->addField(\Zend_Search_Lucene_Field::Text('categories', implode(',', $validIds)));
                     }
                 }
-
             }
 
             //no add document to lucene index!
@@ -920,10 +919,9 @@ class Parser
                         $restrictions = $restrictedAssetInfo['restrictionGroups'];
                     }
                 }
-            } catch(\ReflectionException $e) {
+            } catch (\ReflectionException $e) {
                 $this->log('[parser] ' . $e->getMessage(), 'error');
             }
-
         } else {
             $asset = Asset::getByPath($assetPath);
         }
