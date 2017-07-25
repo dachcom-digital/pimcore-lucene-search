@@ -16,7 +16,7 @@ Because of additional dependencies you need to install this plugin via composer.
 
 ```json
 "require" : {
-    "dachcom-digital/lucene-search" : "1.4.0",
+    "dachcom-digital/lucene-search" : "1.6.0",
 }
 ```
 
@@ -133,13 +133,16 @@ Add your category to the available categories in the Lucene Search config
 in your `lucenesearch_configurations.php`:
 
 ```php
-"key" => "frontend.categories",
-"data" => [
-    "category1",
-    "category2",
-    "category3",
-    "category4"
-],
+<?php
+[
+    "key" => "frontend.categories",
+    "data" => [
+        "category1",
+        "category2",
+        "category3",
+        "category4"
+    ]
+];
 ```
 
 In *Document* => *Settings* go to *Meta Data* and add a new field with any number of categories:
