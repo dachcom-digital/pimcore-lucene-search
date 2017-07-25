@@ -342,11 +342,13 @@ class LuceneSearch_FrontendController extends Action
                     } catch (\Zend_Search_Lucene_Exception $e) {
                     }
 
-                    foreach ($this->categories as $category) {
-                        try {
-                            $searchResult['categories'][] = $hit->getDocument()->getField('cat')->value;
-                        } catch (\Zend_Search_Lucene_Exception $e) {
+                    $searchResult['categories'] = [];
+                    try {
+                        $categories = $doc->getField('categories')->value;
+                        if(!empty($categories)) {
+                            $searchResult['categories'] = $this->mapCategories($categories);
                         }
+                    } catch (\Zend_Search_Lucene_Exception $e) {
                     }
 
                     $searchResults[] = $searchResult;
@@ -569,6 +571,28 @@ class LuceneSearch_FrontendController extends Action
         }
 
         return $suggestions;
+    }
+
+    /**
+     * @param string $documentCategories
+     *
+     * @return array
+     */
+    private function mapCategories($documentCategories = '')
+    {
+        $categoryStore = [];
+        $validCategories = $this->categories;
+        if(empty($validCategories)) {
+            return $categoryStore;
+        }
+
+        $categories = explode(',', $documentCategories);
+        foreach($categories as $categoryId) {
+            if(in_array($categoryId, $validCategories)) {
+                $categoryStore[] = $categoryId;
+            }
+        }
+        return $categoryStore;
     }
 
     /**
