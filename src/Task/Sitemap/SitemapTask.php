@@ -33,8 +33,9 @@ class SitemapTask extends AbstractTask
     public function process($data)
     {
         $this->logger->setPrefix('task.sitemap');
+        $siteMapConfig = $this->configuration->getConfig('sitemap');
 
-        if($this->configuration->getConfig('sitemap:render') === FALSE) {
+        if($siteMapConfig['render'] === FALSE) {
             $this->log('skip generating of sitemap because it\'s disabled in settings.');
             return TRUE;
         }

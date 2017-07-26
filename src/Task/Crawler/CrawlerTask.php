@@ -128,25 +128,29 @@ class CrawlerTask extends AbstractTask
     {
         $this->allowSubDomains = FALSE;
 
-        $maxLinkDepth = $this->configuration->getConfig('crawler:max_link_depth');
+        $filterLinks = $this->configuration->getConfig('filter');
+        $crawlerConfig = $this->configuration->getConfig('crawler');
+        $authConfig = $this->configuration->getConfig('auth');
+
+        $maxLinkDepth = $crawlerConfig['max_link_depth'];
         $this->maxLinkDepth = !is_numeric($maxLinkDepth) ? 1 : $maxLinkDepth;
 
-        $this->validLinks = $this->configuration->getConfig('filter:valid_links');
+        $this->validLinks = $filterLinks['valid_links'];
         $this->invalidLinks = $this->getInvalidLinks();
-        $this->contentMaxSize = $this->configuration->getConfig('crawler:content_max_size');
-        $this->searchStartIndicator = $this->configuration->getConfig('crawler:content_start_indicator');
-        $this->searchEndIndicator = $this->configuration->getConfig('crawler:content_end_indicator');
-        $this->searchExcludeStartIndicator = $this->configuration->getConfig('crawler:content_exclude_start_indicator');
-        $this->searchExcludeEndIndicator = $this->configuration->getConfig('crawler:content_exclude_end_indicator');
+        $this->contentMaxSize = $crawlerConfig['content_max_size'];
+        $this->searchStartIndicator = $crawlerConfig['content_start_indicator'];
+        $this->searchEndIndicator = $crawlerConfig['content_end_indicator'];
+        $this->searchExcludeStartIndicator = $crawlerConfig['content_exclude_start_indicator'];
+        $this->searchExcludeEndIndicator = $crawlerConfig['content_exclude_end_indicator'];
 
         $this->validMimeTypes = $this->configuration->getConfig('allowed_mime_types');
         $this->allowedSchemes = $this->configuration->getConfig('allowed_schemes');
-        $this->downloadLimit = $this->configuration->getConfig('crawler:max_download_limit');
+        $this->downloadLimit = $crawlerConfig['max_download_limit'];
 
         $this->seed = $this->options['iterator'];
 
-        if ($this->configuration->getConfig('auth:use_auth') === TRUE) {
-            $this->setAuth($this->configuration->getConfig('auth:username'), $this->configuration->getConfig('auth:password'));
+        if ($authConfig['enabled'] === TRUE) {
+            $this->setAuth($authConfig['username'], $authConfig['password']);
         }
 
         return TRUE;
@@ -172,8 +176,10 @@ class CrawlerTask extends AbstractTask
 
     private function getInvalidLinks()
     {
-        $userInvalidLinks = $this->configuration->getConfig('filter:user_invalid_links');
-        $coreInvalidLinks = $this->configuration->getConfig('filter:core_invalid_links');
+        $filterLinks = $this->configuration->getConfig('filter');
+
+        $userInvalidLinks = $filterLinks['user_invalid_links'];
+        $coreInvalidLinks = $filterLinks['core_invalid_links'];
 
         if (!empty($userInvalidLinks) && !empty($coreInvalidLinks)) {
             $invalidLinkRegex = array_merge($userInvalidLinks, [$coreInvalidLinks]);

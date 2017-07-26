@@ -155,9 +155,12 @@ class FrontendController
                 $this->untouchedQuery = $this->query;
             }
 
-            //set Language
-            if ($this->configuration->getConfig('locale:ignore_language') === FALSE) {
+            $localeConfig = $this->configuration->getConfig('sitemap');
+            $restrictionConfig = $this->configuration->getConfig('restriction');
+            $viewConfig = $this->configuration->getConfig('view');
 
+            //set Language
+            if ($localeConfig['ignore_language'] === FALSE) {
                 $requestLang = $requestQuery->get('language');
 
                 //no language provided, try to get from requestStack.
@@ -186,7 +189,7 @@ class FrontendController
             }
 
             //Set Country
-            if ($this->configuration->getConfig('locale:ignore_country') !== TRUE) {
+            if ($localeConfig['ignore_country'] !== TRUE) {
                 $this->searchCountry = $requestQuery->get('country');
 
                 if ($this->searchCountry == 'global') {
@@ -199,9 +202,7 @@ class FrontendController
             }
 
             //Set Restrictions (Auth)
-            if ($this->configuration->getConfig('restriction:ignore') === FALSE) {
-                $this->searchRestriction = TRUE;
-            }
+            $this->searchRestriction = $restrictionConfig['enabled'] === TRUE;
 
             //Set Fuzzy Search
             if ($this->configuration->getConfig('fuzzy_search_results') === TRUE) {
@@ -219,14 +220,13 @@ class FrontendController
             }
 
             //Set Entries per Page
-            $this->perPage = $this->configuration->getConfig('view:max_per_page');
-            $perPage = $requestQuery->get('perPage');
-            if (!empty($perPage)) {
-                $this->perPage = (int)$perPage;
+            $this->perPage = $viewConfig['max_per_page'];
+            if (!empty($requestQuery->get('perPage'))) {
+                $this->perPage = (int)$requestQuery->get('perPage');
             }
 
             //Set max Suggestions
-            $this->maxSuggestions = $this->configuration->getConfig('view:max_suggestions');
+            $this->maxSuggestions = $viewConfig['max_suggestions'];
 
             //Set Current Page
             $currentPage = $requestQuery->get('page');
@@ -346,33 +346,37 @@ class FrontendController
      */
     protected function addRestrictionQuery($query)
     {
-        if ($this->searchRestriction) {
-            $restrictionTerms = [
-                new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default')
-            ];
+        if (!$this->searchRestriction) {
+            return $query;
+        }
 
-            $signs = [NULL];
+        $restrictionTerms = [
+            new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default')
+        ];
 
-            $class = $this->configuration->getConfig('restriction:class');
-            $method = $this->configuration->getConfig('restriction:method');
+        $signs = [NULL];
 
-            $call = [$class, $method];
+        $restrictionConfig = $this->configuration->getConfig('restriction');
 
-            if (is_callable($call, FALSE)) {
-                $allowedGroups = call_user_func($call);
+        $class = $restrictionConfig['class'];
+        $method = $restrictionConfig['method'];
 
-                if (is_array($allowedGroups)) {
-                    foreach ($allowedGroups as $group) {
-                        $restrictionTerms[] = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_' . $group);
-                        $signs[] = NULL;
-                    }
+        $call = [$class, $method];
+
+        if (is_callable($call, FALSE)) {
+            $allowedGroups = call_user_func($call);
+
+            if (is_array($allowedGroups)) {
+                foreach ($allowedGroups as $group) {
+                    $restrictionTerms[] = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_' . $group);
+                    $signs[] = NULL;
                 }
-
-                $restrictionQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm($restrictionTerms, $signs);
-                $query->addSubquery($restrictionQuery, TRUE);
-            } else {
-                throw new \Exception('Method "' . $method . '" in "' . $class . '" not callable');
             }
+
+            $restrictionQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm($restrictionTerms, $signs);
+            $query->addSubquery($restrictionQuery, TRUE);
+        } else {
+            throw new \Exception('Method "' . $method . '" in "' . $class . '" not callable');
         }
 
         return $query;

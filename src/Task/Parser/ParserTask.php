@@ -60,13 +60,16 @@ class ParserTask extends AbstractTask
      */
     public function isValid()
     {
-        $this->documentBoost = $this->configuration->getConfig('boost:documents');
-        $this->assetBoost = $this->configuration->getConfig('boost:assets');
+        $crawlerConfig = $this->configuration->getConfig('crawler');
+        $boostConfig = $this->configuration->getConfig('boost');
 
-        $this->searchStartIndicator = $this->configuration->getConfig('crawler:content_start_indicator');
-        $this->searchEndIndicator = $this->configuration->getConfig('crawler:content_end_indicator');
-        $this->searchExcludeStartIndicator = $this->configuration->getConfig('crawler:content_exclude_start_indicator');
-        $this->searchExcludeEndIndicator = $this->configuration->getConfig('crawler:content_exclude_end_indicator');
+        $this->documentBoost = $boostConfig['documents'];
+        $this->assetBoost = $boostConfig['assets'];
+
+        $this->searchStartIndicator = $crawlerConfig['content_start_indicator'];
+        $this->searchEndIndicator = $crawlerConfig['content_end_indicator'];
+        $this->searchExcludeStartIndicator = $crawlerConfig['content_exclude_start_indicator'];
+        $this->searchExcludeEndIndicator = $crawlerConfig['content_exclude_end_indicator'];
 
         $this->assetTmpDir = Configuration::CRAWLER_TMP_ASSET_DIR_PATH;
 

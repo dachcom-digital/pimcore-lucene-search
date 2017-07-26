@@ -10,7 +10,9 @@ class SiteMapController extends FrontendController
 {
     public function renderAction()
     {
-        if ($this->configuration->getConfig('sitemap:render') === FALSE) {
+        $siteMapConfig = $this->configuration->getConfig('sitemap');
+
+        if ($siteMapConfig['render'] === FALSE) {
             throw new NotFoundHttpException('no sitemap.xml found.');
         }
 

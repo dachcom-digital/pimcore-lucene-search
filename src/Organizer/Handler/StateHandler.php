@@ -150,7 +150,8 @@ class StateHandler extends AbstractHandler
     public function getConfigCompletionState()
     {
         $frontEndUrls = $this->configuration->getConfig('seeds');
-        $validLinks = $this->configuration->getConfig('filter:valid_links');
+        $filterLinks = $this->configuration->getConfig('filter');
+        $validLinks = $filterLinks['valid_links'];
 
         if (empty($frontEndUrls) || empty($validLinks)) {
             return 'incomplete';
