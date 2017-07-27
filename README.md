@@ -53,7 +53,7 @@ The crawler Engine will start automatically every night by default. Please check
 If you want to start the crawler manually, use this command:
 
 ```
-$ php bin/console lucenesearch crawl -f -v
+$ php bin/console lucenesearch:crawl -f -v
 ```
 
 | command | short command | type | description |
@@ -72,7 +72,7 @@ You'll find some logs from the last crawl in your backend (at the bottom on the 
 [Click here](docs/30_Restrictions.md) to learn more about restricted crawling / indexing.
 
 ## Custom Meta Content
-[Click here](docs/40_Restrctions.md) to learn more about crawling / searching custom meta.
+[Click here](docs/40_Meta.md) to learn more about crawling / searching custom meta.
 
 ## Frontend Implementation
 [Click here](docs/90_Frontend_Implementation.md) to get a step by step walkthrough to implement lucene search into your website.

@@ -3,6 +3,7 @@
 namespace LuceneSearchBundle\Controller;
 
 use LuceneSearchBundle\Configuration\Configuration;
+use LuceneSearchBundle\Event\RestrictionContextEvent;
 use LuceneSearchBundle\Helper\LuceneHelper;
 use LuceneSearchBundle\Helper\StringHelper;
 
@@ -77,7 +78,7 @@ class FrontendController
     /**
      * @var bool
      */
-    protected $searchRestriction = FALSE;
+    protected $checkRestriction = FALSE;
 
     /**
      * @var bool
@@ -155,7 +156,7 @@ class FrontendController
                 $this->untouchedQuery = $this->query;
             }
 
-            $localeConfig = $this->configuration->getConfig('sitemap');
+            $localeConfig = $this->configuration->getConfig('locale');
             $restrictionConfig = $this->configuration->getConfig('restriction');
             $viewConfig = $this->configuration->getConfig('view');
 
@@ -189,7 +190,7 @@ class FrontendController
             }
 
             //Set Country
-            if ($localeConfig['ignore_country'] !== TRUE) {
+            if ($localeConfig['ignore_country'] === FALSE) {
                 $this->searchCountry = $requestQuery->get('country');
 
                 if ($this->searchCountry == 'global') {
@@ -202,7 +203,7 @@ class FrontendController
             }
 
             //Set Restrictions (Auth)
-            $this->searchRestriction = $restrictionConfig['enabled'] === TRUE;
+            $this->checkRestriction = $restrictionConfig['enabled'] === TRUE;
 
             //Set Fuzzy Search
             if ($this->configuration->getConfig('fuzzy_search_results') === TRUE) {
@@ -346,38 +347,31 @@ class FrontendController
      */
     protected function addRestrictionQuery($query)
     {
-        if (!$this->searchRestriction) {
+        if (!$this->checkRestriction) {
             return $query;
         }
 
+        $event = new RestrictionContextEvent();
+        \Pimcore::getEventDispatcher()->dispatch(
+            'lucene_search.frontend.restriction_context',
+            $event
+        );
+
+        $signs = [NULL];
         $restrictionTerms = [
             new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default')
         ];
 
-        $signs = [NULL];
-
-        $restrictionConfig = $this->configuration->getConfig('restriction');
-
-        $class = $restrictionConfig['class'];
-        $method = $restrictionConfig['method'];
-
-        $call = [$class, $method];
-
-        if (is_callable($call, FALSE)) {
-            $allowedGroups = call_user_func($call);
-
-            if (is_array($allowedGroups)) {
-                foreach ($allowedGroups as $group) {
-                    $restrictionTerms[] = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_' . $group);
-                    $signs[] = NULL;
-                }
+        $allowedGroups = $event->getAllowedRestrictionGroups();
+        if (is_array($allowedGroups)) {
+            foreach ($allowedGroups as $groupId) {
+                $restrictionTerms[] = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_' . $groupId);
+                $signs[] = NULL;
             }
-
-            $restrictionQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm($restrictionTerms, $signs);
-            $query->addSubquery($restrictionQuery, TRUE);
-        } else {
-            throw new \Exception('Method "' . $method . '" in "' . $class . '" not callable');
         }
+
+        $restrictionQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm($restrictionTerms, $signs);
+        $query->addSubquery($restrictionQuery, TRUE);
 
         return $query;
     }

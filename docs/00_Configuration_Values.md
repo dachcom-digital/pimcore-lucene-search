@@ -25,8 +25,6 @@ Here you'll find all the configuration possibilities, default values and also so
 | locale:ignore_language | bool | false | Check to receive search results from all languages, uncheck to limit search results to the current language only. The current language is retrieved from the registy, the language of any page in the search result index is extracted by the crawler (Content-Language Http header, html tag lang attribute or html meta tag content-language) |
 | locale:ignore_country | bool | true | Check to receive search results from all countries, uncheck to limit search results to country only. The current country is retrieved from the search result index. it is extracted by the crawler (html meta tag country) |
 | restriction:enabled | bool | false | Document Restriction: Check to ignore Document restrictions. Uncheck if you\'re using the Pimcore/MembersBundle (In Development right now) |
-| restriction:class | string | ~ | Set a crawler login, so protected pages can be crawled. logged in users can than find their protected pages. You also need to define a static class & method to get the current users valid groups. Set the Restriction Class here. |
-| restriction:method | string | ~ | Restriction Method |
 | auth:enabled | bool | false | Enable crawler authentication. |
 | auth:username | string | ~ | Username for Crawler |
 | auth:password | string | ~ | Password fro Crawler |

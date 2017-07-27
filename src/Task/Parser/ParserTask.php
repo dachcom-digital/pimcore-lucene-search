@@ -56,12 +56,19 @@ class ParserTask extends AbstractTask
     protected $searchExcludeEndIndicator;
 
     /**
+     * search for restriction tags and assets
+     * @var bool
+     */
+    protected $checkRestrictions = FALSE;
+
+    /**
      * @return bool
      */
     public function isValid()
     {
         $crawlerConfig = $this->configuration->getConfig('crawler');
         $boostConfig = $this->configuration->getConfig('boost');
+        $restrictionConfig = $this->configuration->getConfig('restriction');
 
         $this->documentBoost = $boostConfig['documents'];
         $this->assetBoost = $boostConfig['assets'];
@@ -71,6 +78,7 @@ class ParserTask extends AbstractTask
         $this->searchExcludeStartIndicator = $crawlerConfig['content_exclude_start_indicator'];
         $this->searchExcludeEndIndicator = $crawlerConfig['content_exclude_end_indicator'];
 
+        $this->checkRestrictions = $restrictionConfig['enabled'];
         $this->assetTmpDir = Configuration::CRAWLER_TMP_ASSET_DIR_PATH;
 
         return TRUE;
@@ -86,6 +94,8 @@ class ParserTask extends AbstractTask
         $this->logger->setPrefix('task.parser');
 
         $this->checkAndPrepareIndex();
+
+        \Pimcore\Db::reset();
 
         foreach ($crawlData as $resource) {
             if ($resource instanceof Resource) {
@@ -163,7 +173,7 @@ class ParserTask extends AbstractTask
         $hasNoFollow = $crawler->filterXpath('//meta[@content="nofollow"]')->count() > 0;
 
         if ($hasNoFollow === TRUE) {
-            $this->log('skip indexing [ ' . $uri . ' ] because it has a nofollow tag');
+            $this->log('skip indexing [ ' . $uri . ' ] because it has a no-follow tag');
             return FALSE;
         }
 
@@ -172,19 +182,18 @@ class ParserTask extends AbstractTask
         $hasCountryMeta = $crawler->filterXpath('//meta[@name="country"]')->count() > 0;
         $hasTitle = $crawler->filterXpath('//title')->count() > 0;
         $hasDescription = $crawler->filterXpath('//meta[@name="description"]')->count() > 0;
-        $hasRestriction = $crawler->filterXpath('//meta[@name="m:groups"]')->count() > 0;
+        $hasRestriction = $this->checkRestrictions === TRUE && $crawler->filterXpath('//meta[@name="m:groups"]')->count() > 0;
         $hasCategories = $crawler->filterXpath('//meta[@name="lucene-search:categories"]')->count() > 0;
         $hasCustomMeta = $crawler->filterXpath('//meta[@name="lucene-search:meta"]')->count() > 0;
         $hasCustomBoostMeta = $crawler->filterXpath('//meta[@name="lucene-search:boost"]')->count() > 0;
 
-        $title = '';
-        $description = '';
-        $customMeta = '';
-        $customBoost = 1;
-
+        $title = NULL;
+        $description = NULL;
+        $customMeta = NULL;
         $restrictions = FALSE;
-        $categories = FALSE;
-        $country = FALSE;
+        $categories = NULL;
+        $country = NULL;
+        $customBoost = 1;
 
         if ($hasTitle === TRUE) {
             $title = $crawler->filterXpath('//title')->text();
@@ -227,15 +236,29 @@ class ParserTask extends AbstractTask
             $documentHasExcludeDelimiter = strpos($html, $this->searchExcludeStartIndicator) !== FALSE;
         }
 
-        if ($documentHasDelimiter && !empty($this->searchStartIndicator) && !empty($this->searchEndIndicator)) {
-            preg_match_all('%' . $this->searchStartIndicator . '(.*?)' . $this->searchEndIndicator . '%si', $html, $htmlSnippets);
+        if ($documentHasDelimiter
+            && !empty($this->searchStartIndicator)
+            && !empty($this->searchEndIndicator))
+        {
+            preg_match_all(
+                '%' . $this->searchStartIndicator . '(.*?)' . $this->searchEndIndicator . '%si',
+                $html,
+                $htmlSnippets
+            );
 
             $html = '';
 
             if (is_array($htmlSnippets[1])) {
                 foreach ($htmlSnippets[1] as $snippet) {
-                    if ($documentHasExcludeDelimiter && !empty($this->searchExcludeStartIndicator) && !empty($this->searchExcludeEndIndicator)) {
-                        $snippet = preg_replace('#(' . preg_quote($this->searchExcludeStartIndicator) . ')(.*?)(' . preg_quote($this->searchExcludeEndIndicator) . ')#si', ' ', $snippet);
+                    if ($documentHasExcludeDelimiter
+                        && !empty($this->searchExcludeStartIndicator)
+                        && !empty($this->searchExcludeEndIndicator))
+                    {
+                        $snippet = preg_replace(
+                            '#(' . preg_quote($this->searchExcludeStartIndicator) . ')(.*?)(' . preg_quote($this->searchExcludeEndIndicator) . ')#si',
+                            ' ',
+                            $snippet
+                        );
                     }
 
                     $html .= ' ' . $snippet;
@@ -243,7 +266,21 @@ class ParserTask extends AbstractTask
             }
         }
 
-        $this->addHtmlToIndex($html, $title, $description, $uri, $language, $country, $restrictions, $categories, $customMeta, $encoding, $host, $customBoost);
+        $params = [
+            'title'        => $title,
+            'description'  => $description,
+            'uri'          => $uri,
+            'language'     => $language,
+            'country'      => $country,
+            'restrictions' => $restrictions,
+            'categories'   => $categories,
+            'custom_meta'  => $customMeta,
+            'encoding'     => $encoding,
+            'host'         => $host,
+            'custom_boost' => $customBoost
+        ];
+
+        $this->addHtmlToIndex($html, $params);
 
         $this->log('added html to indexer stack: ' . $uri);
 
@@ -252,27 +289,39 @@ class ParserTask extends AbstractTask
 
     /**
      * @param Resource $resource
-     * @param $host
+     * @param          $host
      *
      * @return bool
      */
     private function parsePdf($resource, $host)
     {
         $this->log('[parser] added pdf to indexer stack: ' . $resource->getUri()->toString());
-        return $this->addPdfToIndex($resource, $host);
+
+        $params = [
+            'host'         => $host,
+            'custom_boost' => FALSE
+        ];
+
+        return $this->addPdfToIndex($resource, $params);
     }
 
     /**
      * adds a PDF page to lucene index and mysql table for search result summaries
      *
      * @param Resource $resource
-     * @param string   $host
-     * @param integer  $customBoost
+     * @param array    $params
      *
      * @return bool
      */
-    protected function addPdfToIndex($resource, $host, $customBoost = NULL)
+    protected function addPdfToIndex($resource, $params)
     {
+        $defaults = [
+            'host'         => NULL,
+            'custom_boost' => FALSE
+        ];
+
+        $params = array_merge($defaults, $params);
+
         try {
             $pdfToTextBin = Ghostscript::getPdftotextCli();
         } catch (\Exception $e) {
@@ -311,9 +360,9 @@ class ParserTask extends AbstractTask
             $fileContent = file_get_contents($tmpFile);
 
             try {
-                $doc = new \Zend_Search_Lucene_Document();
 
-                $doc->boost = $customBoost ? $customBoost : $this->assetBoost;
+                $doc = new \Zend_Search_Lucene_Document();
+                $doc->boost = $params['custom_boost'] ? $params['custom_boost'] : $this->assetBoost;
 
                 $text = preg_replace("/\r|\n/", ' ', $fileContent);
                 $text = preg_replace('/[^\p{Latin}\d ]/u', '', $text);
@@ -326,7 +375,7 @@ class ParserTask extends AbstractTask
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('country', $assetMeta['country']));
 
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $uri));
-                $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $host));
+                $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $params['host']));
 
                 if (is_array($assetMeta['restrictions'])) {
                     foreach ($assetMeta['restrictions'] as $restrictionGroup) {
@@ -336,7 +385,6 @@ class ParserTask extends AbstractTask
                     $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_default', TRUE));
                 }
 
-                //no add document to lucene index!
                 $this->addDocumentToIndex($doc);
             } catch (\Exception $e) {
                 $this->log($e->getMessage());
@@ -352,28 +400,34 @@ class ParserTask extends AbstractTask
     /**
      * adds a HTML page to lucene index and mysql table for search result summaries
      *
-     * @param  string  $html
-     * @param  string  $title
-     * @param  string  $description
-     * @param  string  $url
-     * @param  string  $language
-     * @param  string  $country
-     * @param  string  $restrictions
-     * @param  string  $categories
-     * @param  string  $customMeta
-     * @param  string  $encoding
-     * @param  string  $host
-     * @param  integer $customBoost
+     * @param  string $html
+     * @param  array $params
      *
      * @return void
      */
-    protected function addHtmlToIndex($html, $title, $description, $url, $language, $country, $restrictions, $categories, $customMeta, $encoding, $host, $customBoost = NULL)
+    protected function addHtmlToIndex($html, $params)
     {
+        $defaults = [
+            'title'        => NULL,
+            'description'  => NULL,
+            'uri'          => NULL,
+            'language'     => NULL,
+            'country'      => NULL,
+            'categories'   => NULL,
+            'custom_meta'  => NULL,
+            'encoding'     => NULL,
+            'host'         => NULL,
+            'restrictions' => FALSE,
+            'custom_boost' => FALSE
+        ];
+
+        $params = array_merge($defaults, $params);
+
         try {
             $content = $this->getPlainTextFromHtml($html);
 
             $doc = new \Zend_Search_Lucene_Document();
-            $doc->boost = $customBoost ? $customBoost : $this->documentBoost;
+            $doc->boost = $params['custom_boost'] ? $params['custom_boost'] : $this->documentBoost;
 
             //add h1 to index
             $headlines = [];
@@ -386,7 +440,7 @@ class ParserTask extends AbstractTask
                 }
 
                 $h1 = strip_tags($h1);
-                $field = \Zend_Search_Lucene_Field::Text('h1', $h1, $encoding);
+                $field = \Zend_Search_Lucene_Field::Text('h1', $h1, $params['encoding']);
                 $field->boost = 10;
                 $doc->addField($field);
             }
@@ -400,55 +454,50 @@ class ParserTask extends AbstractTask
                 }
             }
 
-            //clean meta
-            $customMeta = strip_tags($customMeta);
+            $doc->addField(\Zend_Search_Lucene_Field::Keyword('charset', $params['encoding']));
+            $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $params['language']));
+            $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $params['uri']));
+            $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $params['uri']));
 
-            $doc->addField(\Zend_Search_Lucene_Field::Keyword('charset', $encoding));
-            $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $language));
-            $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $url));
-            $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $host));
+            $doc->addField(\Zend_Search_Lucene_Field::Text('title', $params['title'], $params['encoding']));
+            $doc->addField(\Zend_Search_Lucene_Field::Text('description', $params['description'], $params['encoding']));
+            $doc->addField(\Zend_Search_Lucene_Field::Text('customMeta', strip_tags($params['custom_meta']), $params['encoding']));
 
-            $doc->addField(\Zend_Search_Lucene_Field::Text('title', $title, $encoding));
-            $doc->addField(\Zend_Search_Lucene_Field::Text('description', $description, $encoding));
-            $doc->addField(\Zend_Search_Lucene_Field::Text('customMeta', $customMeta, $encoding));
-
-            $doc->addField(\Zend_Search_Lucene_Field::Text('content', $content, $encoding));
+            $doc->addField(\Zend_Search_Lucene_Field::Text('content', $content, $params['encoding']));
             $doc->addField(\Zend_Search_Lucene_Field::Text('imageTags', join(',', $tags)));
 
-            if ($country !== FALSE) {
-                $doc->addField(\Zend_Search_Lucene_Field::Keyword('country', $country));
+            if ($params['country'] !== NULL) {
+                $doc->addField(\Zend_Search_Lucene_Field::Keyword('country', $params['country']));
             }
 
-            if ($restrictions !== FALSE) {
-                $restrictionGroups = explode(',', $restrictions);
+            if ($params['restrictions'] !== FALSE) {
+                $restrictionGroups = explode(',', $params['restrictions']);
                 foreach ($restrictionGroups as $restrictionGroup) {
                     $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_' . $restrictionGroup, TRUE));
                 }
             }
 
-            if ($categories !== FALSE) {
+            if ($params['categories'] !== FALSE) {
 
                 $validCategories = $this->configuration->getCategories();
 
-                if(!empty($validCategories)) {
+                if (!empty($validCategories)) {
                     $validIds = [];
-                    $categoryIds = array_map('intval', explode(',', $categories));
+                    $categoryIds = array_map('intval', explode(',', $params['categories']));
                     foreach ($categoryIds as $categoryId) {
                         $key = array_search($categoryId, array_column($validCategories, 'id'));
-                        if($key !== FALSE) {
+                        if ($key !== FALSE) {
                             $validIds[] = $categoryId;
                             $doc->addField(\Zend_Search_Lucene_Field::Keyword('category_' . $categoryId, TRUE));
-
                         }
                     }
 
-                    if(!empty($validIds)) {
+                    if (!empty($validIds)) {
                         $doc->addField(\Zend_Search_Lucene_Field::Text('categories', implode(',', $validIds)));
                     }
                 }
             }
 
-            //no add document to lucene index!
             $this->addDocumentToIndex($doc);
         } catch (\Exception $e) {
             $this->log($e->getMessage());
@@ -469,6 +518,7 @@ class ParserTask extends AbstractTask
 
     /**
      * @param Resource $resource
+     *
      * @return array
      */
     protected function getAssetMeta($resource)
@@ -487,19 +537,24 @@ class ParserTask extends AbstractTask
         }
 
         $restrictions = FALSE;
-
         $pathFragments = parse_url($link);
         $assetPath = $pathFragments['path'];
 
-        $event = new AssetResourceRestrictionEvent($resource);
-        \Pimcore::getEventDispatcher()->dispatch(
-            'lucene_search.task.parser.asset_restriction',
-            $event
-        );
+        if($this->checkRestrictions === TRUE) {
 
-        if ($event->getAsset() instanceof Asset) {
-            $asset = $event->getAsset();
-            $restrictions = $event->getRestrictions();
+            $event = new AssetResourceRestrictionEvent($resource);
+            \Pimcore::getEventDispatcher()->dispatch(
+                'lucene_search.task.parser.asset_restriction',
+                $event
+            );
+
+            if ($event->getAsset() instanceof Asset) {
+                $asset = $event->getAsset();
+                $restrictions = $event->getRestrictions();
+            } else {
+                $asset = Asset::getByPath($assetPath);
+            }
+
         } else {
             $asset = Asset::getByPath($assetPath);
         }

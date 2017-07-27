@@ -39,8 +39,6 @@ lucene_search:
 
     restriction:
         enabled: false
-        class: ~
-        method: ~
 
     auth:
         enabled: false
