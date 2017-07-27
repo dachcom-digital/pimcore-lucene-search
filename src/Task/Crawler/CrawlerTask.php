@@ -117,12 +117,8 @@ class CrawlerTask extends AbstractTask
     /**
      * @var null
      */
-    protected $authUserName = NULL;
+    protected $authToken = NULL;
 
-    /**
-     * @var null
-     */
-    Protected $authPassword = NULL;
 
     public function isValid()
     {
@@ -150,24 +146,22 @@ class CrawlerTask extends AbstractTask
         $this->seed = $this->options['iterator'];
 
         if ($authConfig['enabled'] === TRUE) {
-            $this->setAuth($authConfig['username'], $authConfig['password']);
+            $this->setAuth($authConfig['api_token']);
         }
 
         return TRUE;
     }
 
     /**
-     * @param null $username
-     * @param null $password
+     * @param null $authToken
      *
      * @return $this
      */
-    public function setAuth($username = NULL, $password = NULL)
+    public function setAuth($authToken)
     {
-        $this->authUserName = $username;
-        $this->authPassword = $password;
+        $this->authToken = $authToken;
 
-        if (!empty($this->authUserName) && !empty($this->authPassword)) {
+        if (!empty($this->authToken)) {
             $this->useAuth = TRUE;
         }
 
@@ -279,12 +273,9 @@ class CrawlerTask extends AbstractTask
 
         //add Auth!
         if ($this->useAuth) {
-
-            $un = $this->authUserName;
-            $pw = $this->authPassword;
-
-            $handler->push(Middleware::mapRequest(function (RequestInterface $request) use ($un, $pw) {
-                return $request->withHeader('Authorization', 'Basic ' . base64_encode("$un:$pw"));
+            $token = $this->authToken;
+            $handler->push(Middleware::mapRequest(function (RequestInterface $request) use ($token) {
+                return $request->withHeader('x-auth-token', $token);
             }), 'lucene-search-auth');
         }
 

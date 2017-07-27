@@ -42,8 +42,7 @@ lucene_search:
 
     auth:
         enabled: false
-        username: ~
-        password: ~
+        api_token: ~
 
     boost:
         documents: 1
