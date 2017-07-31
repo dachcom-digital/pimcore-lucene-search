@@ -1,8 +1,9 @@
 # Restrictions
-If you want a seamless integration of protected document crawling, install our [member](https://github.com/dachcom-digital/pimcore-members) plugin.
+If you want a seamless integration of protected document crawling, install our [Members](https://github.com/dachcom-digital/pimcore-members) bundle.
+
 
 ### Documents
-Each document needs a meta tag in the head section. the crawler extract and stores the usergroup id(s) from that meta property. To allow the crawler to follow all the restricted documents, you need to configure the crawler authentication settings. 
+Each document needs a meta tag in the head section. the crawler extract and stores the usergroup id(s) from that meta property.. 
 
 > If you're using the Members Bundle this meta property gets assigned automatically.
 

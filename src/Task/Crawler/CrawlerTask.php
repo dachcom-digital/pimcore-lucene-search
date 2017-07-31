@@ -2,6 +2,7 @@
 
 namespace LuceneSearchBundle\Task\Crawler;
 
+use LuceneSearchBundle\Event\CrawlerRequestHeaderEvent;
 use LuceneSearchBundle\Task\AbstractTask;
 use LuceneSearchBundle\Task\Crawler\Listener;
 use LuceneSearchBundle\Task\Crawler\Filter\Discovery;
@@ -110,23 +111,14 @@ class CrawlerTask extends AbstractTask
     protected $maxLinkDepth = 0;
 
     /**
-     * @var bool
+     * @return bool
      */
-    protected $useAuth = FALSE;
-
-    /**
-     * @var null
-     */
-    protected $authToken = NULL;
-
-
     public function isValid()
     {
         $this->allowSubDomains = FALSE;
 
         $filterLinks = $this->configuration->getConfig('filter');
         $crawlerConfig = $this->configuration->getConfig('crawler');
-        $authConfig = $this->configuration->getConfig('auth');
 
         $maxLinkDepth = $crawlerConfig['max_link_depth'];
         $this->maxLinkDepth = !is_numeric($maxLinkDepth) ? 1 : $maxLinkDepth;
@@ -145,29 +137,12 @@ class CrawlerTask extends AbstractTask
 
         $this->seed = $this->options['iterator'];
 
-        if ($authConfig['enabled'] === TRUE) {
-            $this->setAuth($authConfig['api_token']);
-        }
-
         return TRUE;
     }
 
     /**
-     * @param null $authToken
-     *
-     * @return $this
+     * @return array
      */
-    public function setAuth($authToken)
-    {
-        $this->authToken = $authToken;
-
-        if (!empty($this->authToken)) {
-            $this->useAuth = TRUE;
-        }
-
-        return $this;
-    }
-
     private function getInvalidLinks()
     {
         $filterLinks = $this->configuration->getConfig('filter');
@@ -269,21 +244,7 @@ class CrawlerTask extends AbstractTask
         );
 
         $guzzleClient = $spider->getDownloader()->getRequestHandler()->getClient();
-        $handler = $guzzleClient->getConfig('handler');
-
-        //add Auth!
-        if ($this->useAuth) {
-            $token = $this->authToken;
-            $handler->push(Middleware::mapRequest(function (RequestInterface $request) use ($token) {
-                return $request->withHeader('x-auth-token', $token);
-            }), 'lucene-search-auth');
-        }
-
-        $pluginVersion = $this->configuration->getSystemConfig('version');
-
-        $handler->push(Middleware::mapRequest(function (RequestInterface $request) use ($pluginVersion) {
-            return $request->withHeader('Lucene-Search', $pluginVersion);
-        }), 'lucene-search-header');
+        $this->addHeadersToRequest($guzzleClient->getConfig('handler'));
 
         // Execute the crawl
         try {
@@ -310,5 +271,35 @@ class CrawlerTask extends AbstractTask
         $this->log('politeness wait time: ' . $totalDelay . ' seconds', 'debug');
 
         return $spider->getDownloader()->getPersistenceHandler();
+    }
+
+    /**
+     * @param $handler
+     */
+    private function addHeadersToRequest($handler)
+    {
+        $defaultHeaderElements = [
+            [
+                'name' => 'Lucene-Search',
+                'value' => $this->configuration->getSystemConfig('version'),
+                'identifier' => 'lucene-search-bundle'
+            ]
+        ];
+
+        $event = new CrawlerRequestHeaderEvent();
+        \Pimcore::getEventDispatcher()->dispatch(
+            'lucene_search.task.crawler.request_header',
+            $event
+        );
+
+        $headerElements = array_merge($defaultHeaderElements, $event->getHeaders());
+
+        foreach($headerElements as $headerElement) {
+
+            $handler->push(Middleware::mapRequest(function (RequestInterface $request) use ($headerElement) {
+                return $request->withHeader($headerElement['name'], $headerElement['value']);
+            }), $headerElement['identifier']);
+
+        }
     }
 }

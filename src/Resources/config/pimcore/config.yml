@@ -40,10 +40,6 @@ lucene_search:
     restriction:
         enabled: false
 
-    auth:
-        enabled: false
-        api_token: ~
-
     boost:
         documents: 1
         assets: 1

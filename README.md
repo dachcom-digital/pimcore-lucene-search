@@ -42,7 +42,6 @@ We also added a [detailed documentation](docs/00_Configuration_Values.md) about 
 * Maintenance driven indexing
 * Auto Complete
 * Restricted Documents & Usergroups ([member](https://github.com/dachcom-digital/pimcore-members) plugin recommended but not required)
-* Authenticated Crawling
 
 ### Usage
 
@@ -67,6 +66,9 @@ You'll find some logs from the last crawl in your backend (at the bottom on the 
 
 ## Categories
 [Click here](docs/20_Categories.md) to learn more about category based crawling / searching.
+
+## Custom Header
+[Click here](docs/29_Custom_Request_Header.md) to learn how to add custom headers to the crawler request (like a auth token).
 
 ## Restrictions
 [Click here](docs/30_Restrictions.md) to learn more about restricted crawling / indexing.
