@@ -20,7 +20,7 @@ class ListController extends FrontendController
         $this->highlighterHelper = $highlighterHelper;
     }
 
-    public function getResultAction($templateDir = '@LuceneSearch/List')
+    public function getResultAction()
     {
         $requestQuery = $this->requestStack->getMasterRequest()->query;
 
@@ -156,7 +156,7 @@ class ListController extends FrontendController
             $viewName = 'error';
         }
 
-        $content = $this->templating->render($templateDir . DIRECTORY_SEPARATOR . $viewName . '.html.twig', $viewParams);
+        $content = $this->templating->render('@LuceneSearch/List/' . $viewName . '.html.twig', $viewParams);
 
         $response = new Response($content);
 
