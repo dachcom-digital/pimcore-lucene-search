@@ -12,17 +12,8 @@ This guide will help you to implement a search page into your website in seconds
 ```
 
 This will load the result template from `@LuceneSearch/Resources/views/List/result.html.twig`.
-If you want to use your own custom template to display the search results, pass an additional parameter:
-
-```twig
-{{ render(controller('lucene_search.controller.frontend.list:getResultAction', {
-    templateDir: 'Search'
-})) }}
-```
-
-**Attention: If you choose to make use of custom templates, make sure you provide the following files**
-- [result.html.twig](src/LuceneSearchBundle/Resources/views/List/result.html.twig)
-- [error.html.twig](src/LuceneSearchBundle/Resources/views/List/error.html.twig)
+If you want to use your own custom templates to display the search results, place them inside
+`app/Resources/LuceneSearchBundle/views/List/*.html.twig` (see symfony [documentation](https://symfony.com/doc/current/templating/overriding.html) for further details).
 
 ### Ajax AutoComplete
 Use this snippet to allow ajax driven auto-complete search. you may want to use this [plugin](https://github.com/devbridge/jQuery-Autocomplete) to do the job.
