@@ -5,7 +5,7 @@
 ![lucenesearch crawler](https://cloud.githubusercontent.com/assets/700119/25579028/7da66f40-2e74-11e7-8da5-988d61feb2e2.jpg)
 
 ### Requirements
-* Pimcore 5
+* Pimcore 5. Only with Build 96 or greater.
 
 ### Installation  
 1. Add code below to your `composer.json`    

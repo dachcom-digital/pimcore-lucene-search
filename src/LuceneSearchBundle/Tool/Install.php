@@ -6,16 +6,10 @@ use Pimcore\Extension\Bundle\Installer\AbstractInstaller;
 
 use Symfony\Component\Filesystem\Filesystem;
 use Pimcore\Model\Property;
-use Psr\Log\LoggerInterface;
 use LuceneSearchBundle\Configuration\Configuration;
 
 class Install extends AbstractInstaller
 {
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
     /**
      * @var string
      */
@@ -26,9 +20,14 @@ class Install extends AbstractInstaller
      */
     private $fileSystem;
 
-    public function __construct(LoggerInterface $logger)
+    /**
+     * Install constructor.
+     *
+     */
+    public function __construct()
     {
-        $this->logger = $logger;
+        parent::__construct();
+
         $this->installSourcesPath = __DIR__ . '/../Resources/install';
         $this->fileSystem = new Filesystem();
     }
