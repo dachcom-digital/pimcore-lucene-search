@@ -5,7 +5,7 @@
 ![lucenesearch crawler](https://cloud.githubusercontent.com/assets/700119/25579028/7da66f40-2e74-11e7-8da5-988d61feb2e2.jpg)
 
 ### Requirements
-* Pimcore 5. Only with Build 105 or greater.
+* Pimcore 5. Only with Build 108 or greater.
 
 #### Pimcore 4 
 Get the Pimcore4 Version [here](https://github.com/dachcom-digital/pimcore-lucene-search/tree/pimcore4).

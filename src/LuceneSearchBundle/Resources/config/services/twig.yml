@@ -1,0 +1,22 @@
+services:
+
+    # twig extensions
+    lucene_search.twig.extension.pagination:
+        class: LuceneSearchBundle\Twig\Extension\PaginationExtension
+        public: false
+        tags:
+            - { name: twig.extension }
+    lucene_search.twig.extension.crawler_state:
+        class: LuceneSearchBundle\Twig\Extension\CrawlerExtension
+        public: false
+        arguments:
+            - '@lucene_search.tool.crawler_state'
+        tags:
+            - { name: twig.extension }
+    lucene_search.twig.extension.categories:
+        class: LuceneSearchBundle\Twig\Extension\CategoriesExtension
+        public: false
+        arguments:
+            - '@lucene_search.configuration'
+        tags:
+            - { name: twig.extension }

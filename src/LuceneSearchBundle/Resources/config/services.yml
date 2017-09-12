@@ -1,3 +1,6 @@
+imports:
+    - { resource: services/*.yml }
+
 services:
 
     # tool installer
@@ -29,9 +32,12 @@ services:
             - '@lucene_search.configuration'
             - '@translator'
 
+    # organizer state
     lucene_search.organizer.state_handler:
         parent: lucene_search.organizer.abstract_handler
         class: LuceneSearchBundle\Organizer\Handler\StateHandler
+
+    # organizer store
     lucene_search.organizer.store_handler:
         parent: lucene_search.organizer.abstract_handler
         class: LuceneSearchBundle\Organizer\Handler\StoreHandler
@@ -77,62 +83,12 @@ services:
             tags:
                 - { name: lucene_search.task, priority: 0 }
 
-    # event listener
-    lucene_search.event_listener.maintenance:
-        class: LuceneSearchBundle\EventListener\CrawlListener
-        arguments:
-            - '@lucene_search.organizer.handler_dispatcher'
-            - '@lucene_search.task_manager'
-
-        tags:
-            - { name: kernel.event_listener, event: pimcore.system.maintenance, method: run }
-
-    # controller
-    lucene_search.controller.frontend:
-        class: LuceneSearchBundle\Controller\FrontendController
-        arguments:
-            - '@request_stack'
-            - '@templating'
-            - '@lucene_search.configuration'
-            - '@lucene_search.helper.lucene'
-            - '@lucene_search.helper.string'
-    lucene_search.controller.frontend.auto_complete:
-        class: LuceneSearchBundle\Controller\AutoCompleteController
-        parent: lucene_search.controller.frontend
-    lucene_search.controller.frontend.sitemap:
-        class: LuceneSearchBundle\Controller\SiteMapController
-        parent: lucene_search.controller.frontend
-    lucene_search.controller.frontend.list:
-        class: LuceneSearchBundle\Controller\ListController
-        parent: lucene_search.controller.frontend
-        calls:
-             - [setHighlighterHelper, ['@lucene_search.helper.highlighter']]
-
     # helper
     lucene_search.helper.lucene:
         class: LuceneSearchBundle\Helper\LuceneHelper
+
     lucene_search.helper.string:
         class: LuceneSearchBundle\Helper\StringHelper
+
     lucene_search.helper.highlighter:
         class: LuceneSearchBundle\Helper\HighlighterHelper
-
-    # twig extensions
-    lucene_search.twig.extension.pagination:
-        class: LuceneSearchBundle\Twig\Extension\PaginationExtension
-        public: false
-        tags:
-            - { name: twig.extension }
-    lucene_search.twig.extension.crawler_state:
-        class: LuceneSearchBundle\Twig\Extension\CrawlerExtension
-        public: false
-        arguments:
-            - '@lucene_search.tool.crawler_state'
-        tags:
-            - { name: twig.extension }
-    lucene_search.twig.extension.categories:
-        class: LuceneSearchBundle\Twig\Extension\CategoriesExtension
-        public: false
-        arguments:
-            - '@lucene_search.configuration'
-        tags:
-            - { name: twig.extension }

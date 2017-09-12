@@ -1,0 +1,11 @@
+services:
+
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    # event listener
+    LuceneSearchBundle\EventListener\CrawlListener:
+        tags:
+            - { name: kernel.event_listener, event: pimcore.system.maintenance, method: run }

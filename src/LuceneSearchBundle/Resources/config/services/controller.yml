@@ -1,0 +1,24 @@
+services:
+
+   lucene_search.controller.frontend:
+       class: LuceneSearchBundle\Controller\FrontendController
+       arguments:
+           - '@request_stack'
+           - '@templating'
+           - '@lucene_search.configuration'
+           - '@lucene_search.helper.lucene'
+           - '@lucene_search.helper.string'
+
+   lucene_search.controller.frontend.auto_complete:
+       class: LuceneSearchBundle\Controller\AutoCompleteController
+       parent: lucene_search.controller.frontend
+
+   lucene_search.controller.frontend.sitemap:
+       class: LuceneSearchBundle\Controller\SiteMapController
+       parent: lucene_search.controller.frontend
+
+   lucene_search.controller.frontend.list:
+       class: LuceneSearchBundle\Controller\ListController
+       parent: lucene_search.controller.frontend
+       calls:
+            - [setHighlighterHelper, ['@lucene_search.helper.highlighter']]
