@@ -1,0 +1,50 @@
+services:
+
+    # task manager
+    LuceneSearchBundle\Task\TaskManager:
+        autowire: true
+        public: true
+        calls:
+            - ['setTaskIterators', ['@=service("LuceneSearchBundle\\Configuration\\Configuration").getConfig("seeds")']]
+
+    # abstract task
+    LuceneSearchBundle\Task\AbstractTask:
+        abstract: true
+        autowire: true
+        public: false
+
+    # tasks
+    LuceneSearchBundle\Task\System\StartUpTask:
+        parent: LuceneSearchBundle\Task\AbstractTask
+        autowire: true
+        public: false
+        tags:
+            - { name: lucene_search.task, priority: 80 }
+
+    LuceneSearchBundle\Task\Crawler\CrawlerTask:
+        parent: LuceneSearchBundle\Task\AbstractTask
+        autowire: true
+        public: false
+        tags:
+            - { name: lucene_search.task, priority: 60 }
+
+    LuceneSearchBundle\Task\Parser\ParserTask:
+        parent: LuceneSearchBundle\Task\AbstractTask
+        autowire: true
+        public: false
+        tags:
+            - { name: lucene_search.task, priority: 40 }
+
+    LuceneSearchBundle\Task\Sitemap\SitemapTask:
+        parent: LuceneSearchBundle\Task\AbstractTask
+        autowire: true
+        public: false
+        tags:
+            - { name: lucene_search.task, priority: 20 }
+
+    LuceneSearchBundle\Task\System\ShutDownTask:
+        parent: LuceneSearchBundle\Task\AbstractTask
+        autowire: true
+        public: false
+        tags:
+            - { name: lucene_search.task, priority: 0 }

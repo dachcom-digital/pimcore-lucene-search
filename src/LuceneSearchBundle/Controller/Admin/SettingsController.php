@@ -28,9 +28,9 @@ class SettingsController extends AdminController
         $canStart = TRUE;
 
         /** @var Configuration $configManager */
-        $configManager = $this->container->get('lucene_search.configuration');
+        $configManager = $this->container->get(Configuration::class);
         /** @var StateHandler $stateHandler */
-        $stateHandler = $this->container->get('lucene_search.organizer.state_handler');
+        $stateHandler = $this->container->get(StateHandler::class);
         $currentState = $stateHandler->getCrawlerState();
 
         $configComplete = $stateHandler->getConfigCompletionState() === 'complete';
@@ -66,7 +66,7 @@ class SettingsController extends AdminController
      */
     public function startCrawlerAction()
     {
-        $stateHandler = $this->container->get('lucene_search.organizer.state_handler');
+        $stateHandler = $this->container->get(StateHandler::class);
         $stateHandler->forceCrawlerStartOnNextMaintenance(TRUE);
 
         return $this->json(['success' => TRUE]);
@@ -77,7 +77,7 @@ class SettingsController extends AdminController
      */
     public function stopCrawlerAction()
     {
-        $stateHandler = $this->container->get('lucene_search.organizer.state_handler');
+        $stateHandler = $this->container->get(StateHandler::class);
         $stateHandler->stopCrawler(TRUE);
 
         return $this->json(['success' => TRUE]);

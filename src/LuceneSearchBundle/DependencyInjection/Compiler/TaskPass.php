@@ -2,6 +2,7 @@
 
 namespace LuceneSearchBundle\DependencyInjection\Compiler;
 
+use LuceneSearchBundle\Task\TaskManager;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Compiler\PriorityTaggedServiceTrait;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -16,12 +17,11 @@ class TaskPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
-        if (!$container->has('lucene_search.task_manager')) {
+        if (!$container->has(TaskManager::class)) {
             return;
         }
 
-        $definition = $container->findDefinition('lucene_search.task_manager');
-
+        $definition = $container->findDefinition(TaskManager::class);
         $tasks = $this->findAndSortTaggedServices('lucene_search.task', $container);
 
         if (empty($tasks)) {

@@ -6,7 +6,7 @@ It's possible to activate a category based indexing / searching.
 ```yaml
 lucene_search:
     enabled: true
-    categories: dachcom.lucene_search.services.categories
+    categories: AppBundle\LuceneSearch\Services\Categories
 ```
 
 You need a custom service for that which implements the `LuceneSearchBundle\Configuration\Categories\CategoriesInterface.php` interface.

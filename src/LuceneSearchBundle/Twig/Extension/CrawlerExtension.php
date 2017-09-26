@@ -21,7 +21,7 @@ class CrawlerExtension extends \Twig_Extension
     public function getFunctions()
     {
         return [
-            new \Twig_SimpleFunction('lucene_search_crawler_active', [$this, 'checkCrawlerState'])
+            new \Twig_Function('lucene_search_crawler_active', [$this, 'checkCrawlerState'])
         ];
     }
 

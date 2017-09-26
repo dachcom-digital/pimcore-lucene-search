@@ -10,12 +10,12 @@ class PaginationExtension extends \Twig_Extension
     public function getFunctions()
     {
         return [
-            new \Twig_SimpleFunction('lucene_search_pagination', [$this, 'getPagination'], [
+            new \Twig_Function('lucene_search_pagination', [$this, 'getPagination'], [
                 'needs_environment' => TRUE,
                 'needs_context'     => TRUE,
                 'is_safe'           => ['html']
             ]),
-            new \Twig_SimpleFunction('lucene_search_pagination_url', [$this, 'getPaginationUrl'], [
+            new \Twig_Function('lucene_search_pagination_url', [$this, 'getPaginationUrl'], [
                 'needs_context' => TRUE,
                 'is_safe'       => ['html']
             ]),

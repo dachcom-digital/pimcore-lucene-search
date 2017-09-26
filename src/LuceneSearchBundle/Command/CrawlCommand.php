@@ -3,6 +3,7 @@
 namespace LuceneSearchBundle\Command;
 
 use LuceneSearchBundle\Logger\ConsoleLogger;
+use LuceneSearchBundle\Task\TaskManager;
 use Pimcore\Console\AbstractCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -32,7 +33,7 @@ class CrawlCommand extends AbstractCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         /** @var \LuceneSearchBundle\Task\TaskManager $taskManager */
-        $taskManager = $this->getContainer()->get('lucene_search.task_manager');
+        $taskManager = $this->getContainer()->get(TaskManager::class);
 
         $consoleLogger = new ConsoleLogger();
         $consoleLogger->setConsoleOutput($output);

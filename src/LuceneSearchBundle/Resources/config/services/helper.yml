@@ -1,0 +1,8 @@
+services:
+
+    # helper
+    LuceneSearchBundle\Helper\LuceneHelper: ~
+
+    LuceneSearchBundle\Helper\StringHelper: ~
+
+    LuceneSearchBundle\Helper\HighlighterHelper: ~

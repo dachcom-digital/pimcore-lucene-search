@@ -12,6 +12,20 @@ Add some header information to the crawler request.
 
 ## Example: Auth
 
+```yaml
+parameters:
+    lucene_search_user_name: 'Crawler'
+    lucene_search_password: 'crawler@universe.org'
+
+
+AppBundle\EventListener\CrawlerHeader:
+    arguments:
+        $userName: '%lucene_search_user_name%'
+        $password: '%lucene_search_password%'
+    tags:
+        - { name: kernel.event_subscriber }
+```
+
 ```php
 <?php
 

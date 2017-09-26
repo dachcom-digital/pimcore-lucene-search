@@ -1,0 +1,23 @@
+services:
+
+    # organizer dispatcher
+    LuceneSearchBundle\Organizer\Dispatcher\HandlerDispatcher:
+        autowire: true
+        autowire: true
+        public: false
+
+    # organizer handler
+    LuceneSearchBundle\Organizer\Handler\AbstractHandler:
+        abstract: true
+        autowire: true
+        public: false
+
+    # organizer state
+    LuceneSearchBundle\Organizer\Handler\StateHandler:
+        parent: LuceneSearchBundle\Organizer\Handler\AbstractHandler
+        autowire: true
+
+    # organizer store
+    LuceneSearchBundle\Organizer\Handler\StoreHandler:
+        parent: LuceneSearchBundle\Organizer\Handler\AbstractHandler
+        autowire: true

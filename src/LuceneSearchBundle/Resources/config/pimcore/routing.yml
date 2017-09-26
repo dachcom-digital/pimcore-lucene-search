@@ -15,4 +15,4 @@ lucene_search.controller.admin.crawler.stop:
 # frontend
 lucene_search.controller.auto_complete.search:
     path: /lucence-search/auto-complete
-    defaults: { _controller: lucene_search.controller.frontend.auto_complete:searchAction }
+    defaults: { _controller: LuceneSearchBundle\Controller\AutoCompleteController:searchAction }

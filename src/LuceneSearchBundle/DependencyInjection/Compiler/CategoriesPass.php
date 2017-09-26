@@ -3,6 +3,7 @@
 namespace LuceneSearchBundle\DependencyInjection\Compiler;
 
 use LuceneSearchBundle\Configuration\Categories\CategoriesInterface;
+use LuceneSearchBundle\Configuration\Configuration;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Compiler\PriorityTaggedServiceTrait;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -28,7 +29,7 @@ class CategoriesPass implements CompilerPassInterface
             }
 
             $categories = $categoriesService->getCategories();
-            $container->getDefinition('lucene_search.configuration')->addMethodCall('setCategories', [$categories]);
+            $container->getDefinition(Configuration::class)->addMethodCall('setCategories', [$categories]);
         }
     }
 }

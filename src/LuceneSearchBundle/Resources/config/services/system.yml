@@ -1,0 +1,14 @@
+services:
+
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    # tool installer
+    LuceneSearchBundle\Tool\Install: ~
+
+    # configuration
+    LuceneSearchBundle\Configuration\Configuration: ~
+
+    # tool crawler state
+    LuceneSearchBundle\Tool\CrawlerState: ~

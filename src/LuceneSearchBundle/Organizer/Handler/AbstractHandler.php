@@ -33,7 +33,6 @@ abstract class AbstractHandler
     {
         $this->translator = $translator;
         $this->configuration = $configuration;
-
         $this->fileSystem = new FileSystem();
     }
 

@@ -1,22 +1,19 @@
 services:
 
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
     # twig extensions
-    lucene_search.twig.extension.pagination:
-        class: LuceneSearchBundle\Twig\Extension\PaginationExtension
-        public: false
+    LuceneSearchBundle\Twig\Extension\PaginationExtension:
         tags:
             - { name: twig.extension }
-    lucene_search.twig.extension.crawler_state:
-        class: LuceneSearchBundle\Twig\Extension\CrawlerExtension
-        public: false
-        arguments:
-            - '@lucene_search.tool.crawler_state'
+
+    LuceneSearchBundle\Twig\Extension\CrawlerExtension:
         tags:
             - { name: twig.extension }
-    lucene_search.twig.extension.categories:
-        class: LuceneSearchBundle\Twig\Extension\CategoriesExtension
-        public: false
-        arguments:
-            - '@lucene_search.configuration'
+
+    LuceneSearchBundle\Twig\Extension\CategoriesExtension:
         tags:
             - { name: twig.extension }

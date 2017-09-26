@@ -27,7 +27,7 @@ class CategoriesExtension extends \Twig_Extension
     public function getFunctions()
     {
         return [
-            new \Twig_SimpleFunction('lucene_search_get_categories', [$this, 'getCategoriesList'])
+            new \Twig_Function('lucene_search_get_categories', [$this, 'getCategoriesList'])
         ];
     }
 
