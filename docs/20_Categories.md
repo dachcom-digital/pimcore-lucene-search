@@ -15,7 +15,7 @@ So you're class may look like this:
 ```php
 <?php
 
-namespace AppBundle\Services\LuceneSearchBundle;
+namespace AppBundle\LuceneSearch\Services;
 
 use LuceneSearchBundle\Configuration\Categories\CategoriesInterface;
 
