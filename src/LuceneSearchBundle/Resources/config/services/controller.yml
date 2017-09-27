@@ -15,4 +15,4 @@ services:
         parent: LuceneSearchBundle\Controller\FrontendController
         autowire: true
         calls:
-            - [setHighlighterHelper, [LuceneSearchBundle\Helper\HighlighterHelper]]
+            - [setHighlighterHelper, ['@LuceneSearchBundle\Helper\HighlighterHelper']]
