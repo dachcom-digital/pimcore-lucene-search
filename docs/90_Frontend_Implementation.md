@@ -8,7 +8,7 @@ This guide will help you to implement a search page into your website in seconds
 - Add this code to the view:
 
 ```twig
-{{ render(controller('lucene_search.controller.frontend.list:getResultAction')) }}
+{{ render(controller('LuceneSearchBundle\Controller\ListController:getResultAction')) }}
 ```
 
 This will load the result template from `@LuceneSearch/Resources/views/List/result.html.twig`.
