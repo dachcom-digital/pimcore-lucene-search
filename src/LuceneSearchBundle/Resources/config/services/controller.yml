@@ -1,4 +1,4 @@
-gservices:
+services:
 
    LuceneSearchBundle\Controller\FrontendController:
         autowire: true
