@@ -16,8 +16,10 @@ services:
     LuceneSearchBundle\Organizer\Handler\StateHandler:
         parent: LuceneSearchBundle\Organizer\Handler\AbstractHandler
         autowire: true
+        public: true
 
     # organizer store
     LuceneSearchBundle\Organizer\Handler\StoreHandler:
         parent: LuceneSearchBundle\Organizer\Handler\AbstractHandler
         autowire: true
+        public: true

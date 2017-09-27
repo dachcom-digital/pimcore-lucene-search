@@ -1,7 +1,7 @@
-services:
+gservices:
 
    LuceneSearchBundle\Controller\FrontendController:
-       autowire: true
+        autowire: true
 
    LuceneSearchBundle\Controller\AutoCompleteController:
         parent: LuceneSearchBundle\Controller\FrontendController
