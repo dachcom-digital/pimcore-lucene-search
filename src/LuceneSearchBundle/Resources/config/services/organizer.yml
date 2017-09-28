@@ -3,7 +3,6 @@ services:
     # organizer dispatcher
     LuceneSearchBundle\Organizer\Dispatcher\HandlerDispatcher:
         autowire: true
-        autowire: true
         public: false
 
     # organizer handler
