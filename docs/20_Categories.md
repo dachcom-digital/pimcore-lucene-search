@@ -9,8 +9,8 @@ lucene_search:
     categories: AppBundle\LuceneSearch\Services\Categories
 ```
 
-You need a custom service for that which implements the `LuceneSearchBundle\Configuration\Categories\CategoriesInterface.php` interface.
-So you're class may look like this:
+You need a custom service for that which implements the `LuceneSearchBundle\Configuration\Categories\CategoriesInterface` interface.
+So you're class may looks like this:
 
 ```php
 <?php

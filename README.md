@@ -1,11 +1,8 @@
 # Pimcore 5 Lucene Search
-
-> This Lucene Search Repo is for Pimcore5 only.
-
 ![lucenesearch crawler](https://cloud.githubusercontent.com/assets/700119/25579028/7da66f40-2e74-11e7-8da5-988d61feb2e2.jpg)
 
 ### Requirements
-* Pimcore 5. Only with Build 108 or greater.
+* Pimcore 5.
 
 #### Pimcore 4 
 Get the Pimcore4 Version [here](https://github.com/dachcom-digital/pimcore-lucene-search/tree/pimcore4).
@@ -67,20 +64,13 @@ $ php bin/console lucenesearch:crawl -f -v
 You'll find some logs from the last crawl in your backend (at the bottom on the LuceneSearch settings page). Of course you'll also find some logs in your `var/logs` folder.
 **Note:** please enable the debug mode in pimcore settings to get all types of logs.
 
-## Categories
-[Click here](docs/20_Categories.md) to learn more about category based crawling / searching.
+## Further Information
 
-## Custom Header
-[Click here](docs/29_Custom_Request_Header.md) to learn how to add custom headers to the crawler request (like a auth token).
-
-## Restrictions
-[Click here](docs/30_Restrictions.md) to learn more about restricted crawling / indexing.
-
-## Custom Meta Content
-[Click here](docs/40_Meta.md) to learn more about crawling / searching custom meta.
-
-## Frontend Implementation
-[Click here](docs/90_Frontend_Implementation.md) to get a step by step walkthrough to implement lucene search into your website.
+- [Categories](docs/20_Categories.md): Learn more about category based crawling / searching.
+- [Custom Header](docs/29_Custom_Request_Header.md): Learn how to add custom headers to the crawler request (like a auth token).
+- [Restrictions](docs/30_Restrictions.md): Learn more about restricted crawling / indexing.
+- [Custom Meta Content](docs/40_Meta.md): Learn more about crawling / searching custom meta.
+- [Frontend Implementation](docs/90_Frontend_Implementation.md) Get a step by step walkthrough to implement lucene search into your website.
 
 ## Copyright and license
 Copyright: [DACHCOM.DIGITAL](http://dachcom-digital.ch)  

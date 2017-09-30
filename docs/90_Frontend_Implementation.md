@@ -1,14 +1,42 @@
 # Lucene Search FrontEnd
-
 This guide will help you to implement a search page into your website in seconds.
+
+### Optional: Create a Layout/Controller
+> Note: This is only required if you're starting a project from scratch.
+
+- Create a layout in `app\Resources\views\layout.html.twig`
+- Add some markup to your layout:
+
+```twig
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+    <head>
+       {# your head data #}
+    </head>
+    <body>
+        <main>
+            {% block content %}
+               {# your main content data #}
+            {% endblock %}
+        </main>
+    </body>
+</html>
+```
+- Create a controller, name it `DefaultController`
+- Create a method, name it `searchAction(Request $request);`
 
 ### Setup Search Page
 - Create a document, call it "search"
-- Create a view template (eg. `AppBundle\Resource\views\Search\sarch.html.twig`)
-- Add this code to the view:
+- Create a view template (eg. `app\Resource\views\Default\search.html.twig`)
+- Add some twig markup to the view:
 
 ```twig
-{{ render(controller('LuceneSearchBundle\\Controller\\ListController:getResultAction')) }}
+{% extends 'layout.html.twig' %}
+
+{# note: the "content" block must be available in your master layout, see optional config above. #}
+{% block content %}
+    {{ render(controller('LuceneSearchBundle:List:getResult')) }}
+{% endblock %}
 ```
 
 This will load the result template from `@LuceneSearch/Resources/views/List/result.html.twig`.
@@ -18,7 +46,7 @@ If you want to use your own custom templates to display the search results, plac
 ### Ajax AutoComplete
 Use this snippet to allow ajax driven auto-complete search. you may want to use this [plugin](https://github.com/devbridge/jQuery-Autocomplete) to do the job.
 
-1. Add some JS files:
+1. Add some JS files (in your layout for example):
 
 ```html
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
@@ -40,10 +68,8 @@ $(function() {
         minChars: 3,
         triggerSelectOnValidInput: false,
         lookup: function(term, done) {
-
             //update on every lookup because user may have changed the dropdown selection.
             categories = $categoryEl.val(); //optional
-
             $.getJSON(
                 '/lucence-search/auto-complete',
                 {
@@ -53,33 +79,24 @@ $(function() {
                     categories: categories
                 },
                 function(data) {
-
                     var result = { suggestions : [] };
-
                     if(data.length > 0) {
                         $.each(data, function(index, suggession) {
                             result.suggestions.push( {value : suggession });
                         });
                     }
-
                     done(result);
-
                 });
-
         },
         onSelect: function(result) {
-
             $el.val(result.value);
             $el.parents('form').submit();
-
         }
-
     });
-
 });
 ```
 
-3. Place this html snippet in your header for example:
+3. Place this html snippet on top of your layout for example:
 
 ```html
 <form id="search" method="get" action="/en/search">
@@ -87,13 +104,13 @@ $(function() {
     <div class="row">
 
         <div class="col-xs-12 col-sm-6">
-            <label for="search-field">{{ 'Search'|trans }}</label>
+            <label for="search-field">{{ 'search'|trans }}</label>
             <input type="text" name="q" id="search-field" class="form-control input-lg search-field" data-country="AT" data-language="en" placeholder="{{ 'search'|trans }}">
         </div>
 
         <!-- optional, let user choose some categories (multiple) -->
         <div class="col-xs-12 col-sm-6">
-            <label for="search-categories">{{ 'Categories'|trans }}</label>
+            <label for="search-categories">{{ 'categories'|trans }}</label>
             <select name="categories[]" id="search-categories" class="categories form-control" multiple>
                 {% for category in lucene_search_get_categories() %}
                     <option value="{{ category.id }}">{{ category.label}}</option>
@@ -110,4 +127,4 @@ $(function() {
 
 4. Done. Now try to search something without hitting return.
 
-> Don't forget to start your crawler before testing the autocompleter.
+> Don't forget to start your crawler before testing the auto-completer.
