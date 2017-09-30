@@ -27,6 +27,7 @@ This guide will help you to implement a search page into your website in seconds
 
 ### Setup Search Page
 - Create a document, call it "search"
+- Optional: In document settings, set controller to `DefaulController` and Method to `searchAction`.
 - Create a view template (eg. `app\Resource\views\Default\search.html.twig`)
 - Add some twig markup to the view:
 
