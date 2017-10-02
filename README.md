@@ -13,7 +13,7 @@ Get the Pimcore4 Version [here](https://github.com/dachcom-digital/pimcore-lucen
 
 ```json
 "require" : {
-    "dachcom-digital/lucene-search" : "dev-master",
+    "dachcom-digital/lucene-search" : "~2.0.0"
 }
 ```
 
