@@ -37,17 +37,7 @@ class SitemapBuilder
 
             if (is_array($hosts)) {
                 foreach ($hosts as $hostName) {
-                    $query = new \Zend_Search_Lucene_Search_Query_Boolean();
-
-                    $hostTerm = new \Zend_Search_Lucene_Index_Term($hostName, 'host');
-                    $hostQuery = new \Zend_Search_Lucene_Search_Query_Term($hostTerm);
-                    $query->addSubquery($hostQuery, TRUE);
-
-                    $hostTerm = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default');
-                    $hostQuery = new \Zend_Search_Lucene_Search_Query_Term($hostTerm);
-                    $query->addSubquery($hostQuery, TRUE);
-
-                    $hits = $this->index->find($query);
+                    $numDocs = $this->index->count();
 
                     $name = str_replace('.', '-', $hostName);
                     $filePath = $this->sitemapDir . '/sitemap-' . $name . '.xml';
@@ -57,9 +47,14 @@ class SitemapBuilder
                     fwrite($fh, '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
                     fwrite($fh, "\r\n");
 
-                    for ($i = 0; $i < (count($hits)); $i++) {
+                    for ($i = 0; $i < $numDocs; $i++) {
+                        $document = $this->index->getDocument($i);
 
-                        $url = $hits[$i]->getDocument()->getField('url');
+                        $url = $document->getField('url');
+                        if (strpos($url->value, '://' . $hostName) === FALSE) {
+                            continue;
+                        }
+
                         $uri = str_replace(['?pimcore_outputfilters_disabled=1', '&pimcore_outputfilters_disabled=1'], '', $url->value);
 
                         fwrite($fh, '<url>' . "\r\n");
