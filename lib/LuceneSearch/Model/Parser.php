@@ -1122,8 +1122,12 @@ class Parser
             //always create new tmp index.
             try {
                 \Zend_Search_Lucene_Analysis_Analyzer::setDefault(new \Zend_Search_Lucene_Analysis_Analyzer_Common_Utf8Num_CaseInsensitive());
-                \Zend_Search_Lucene::create($indexDir);
-                $this->index = \Zend_Search_Lucene::open($indexDir);
+                try {
+                    $index = \Zend_Search_Lucene::open($indexDir);
+                } catch (\Zend_Search_Lucene_Exception $e) {
+                    $index = \Zend_Search_Lucene::create($indexDir);
+                }
+                $this->index = $index;
             } catch (\Exception $e) {
                 $this->log('[lucene] ' . $e->getMessage(), 'debug', FALSE);
             }
