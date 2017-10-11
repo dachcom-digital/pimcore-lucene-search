@@ -49,6 +49,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
             $application = $e->getTarget();
             $application->add(new \LuceneSearch\Console\Command\FrontendCrawlCommand());
+            $application->add(new \LuceneSearch\Console\Command\SitemapGeneratorCommand());
         });
     }
 
