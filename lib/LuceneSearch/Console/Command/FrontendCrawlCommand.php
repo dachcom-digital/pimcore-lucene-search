@@ -48,7 +48,7 @@ class FrontendCrawlCommand extends AbstractCommand
             $logEngine->setConsoleOutput($output);
 
             Tool\Executer::runCrawler($logEngine, $input->getOption('force'));
-            Tool\Executer::generateSitemap();
+            Tool\Executer::generateSiteMap();
 
             $this->output->writeln('LuceneSearch: Finished crawl');
         }

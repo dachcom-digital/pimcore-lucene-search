@@ -28,7 +28,7 @@ class SitemapBuilder
     /**
      *
      */
-    public function generateSitemap()
+    public function generateSiteMap()
     {
         $this->prepareSiteMapFolder();
 

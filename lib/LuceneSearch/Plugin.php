@@ -299,7 +299,7 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
 
             $logEngine = new Engine();
             Tool\Executer::runCrawler($logEngine);
-            Tool\Executer::generateSitemap();
+            Tool\Executer::generateSiteMap();
         } else {
             \Pimcore\Logger::debug('LuceneSearch_Plugin: Did not start frontend crawler, because config incomplete');
         }

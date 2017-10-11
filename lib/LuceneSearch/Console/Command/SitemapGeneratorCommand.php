@@ -26,7 +26,7 @@ class SitemapGeneratorCommand extends AbstractCommand
                 InputArgument::OPTIONAL,
                 'Generate Sitemap with LuceneSearch.'
             )->addOption('force', 'f',
-            InputOption::VALUE_NONE,
+                InputOption::VALUE_NONE,
                 'Force Crawl Start');
     }
 
@@ -41,11 +41,8 @@ class SitemapGeneratorCommand extends AbstractCommand
         $currentRevision = NULL;
 
         if ($input->getArgument('generate') == 'generate') {
-
             $this->output->writeln('<comment>LuceneSearch: Sitemap Generator</comment>');
-
-            Tool\Executer::generateSitemap();
-
+            Tool\Executer::generateSiteMap();
             $this->output->writeln('LuceneSearch: Sitemap finished');
         }
 

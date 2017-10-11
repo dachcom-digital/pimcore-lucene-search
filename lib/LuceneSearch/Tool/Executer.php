@@ -150,14 +150,14 @@ class Executer
     /**
      * @return bool
      */
-    public static function generateSitemap()
+    public static function generateSiteMap()
     {
         if (Configuration::get('frontend.sitemap.render') === FALSE) {
             return FALSE;
         }
 
         $builder = new SitemapBuilder();
-        $builder->generateSitemap();
+        $builder->generateSiteMap();
 
         return TRUE;
     }
