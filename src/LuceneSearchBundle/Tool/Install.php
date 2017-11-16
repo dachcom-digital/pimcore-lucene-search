@@ -2,11 +2,13 @@
 
 namespace LuceneSearchBundle\Tool;
 
+use LuceneSearchBundle\LuceneSearchBundle;
 use Pimcore\Extension\Bundle\Installer\AbstractInstaller;
 
 use Symfony\Component\Filesystem\Filesystem;
 use Pimcore\Model\Property;
 use LuceneSearchBundle\Configuration\Configuration;
+use Symfony\Component\Yaml\Yaml;
 
 class Install extends AbstractInstaller
 {
@@ -37,11 +39,17 @@ class Install extends AbstractInstaller
      */
     public function install()
     {
-        $this->copyConfigFiles();
+        $this->installOrUpdateConfigFile();
         $this->createDirectories();
         $this->installProperties();
+    }
 
-        return TRUE;
+    /**
+     * {@inheritdoc}
+     */
+    public function update()
+    {
+        $this->installOrUpdateConfigFile();
     }
 
     /**
@@ -50,10 +58,7 @@ class Install extends AbstractInstaller
     public function uninstall()
     {
         if ($this->fileSystem->exists(Configuration::SYSTEM_CONFIG_FILE_PATH)) {
-            $this->fileSystem->rename(
-                Configuration::SYSTEM_CONFIG_FILE_PATH,
-                PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/config_backup.yml'
-            );
+            $this->fileSystem->remove(Configuration::SYSTEM_CONFIG_FILE_PATH);
         }
     }
 
@@ -94,20 +99,29 @@ class Install extends AbstractInstaller
      */
     public function canBeUpdated()
     {
-        return FALSE;
+        $needUpdate = FALSE;
+        if ($this->fileSystem->exists(Configuration::SYSTEM_CONFIG_FILE_PATH)) {
+            $config = Yaml::parse(file_get_contents(Configuration::SYSTEM_CONFIG_FILE_PATH));
+            if($config['version'] !== LuceneSearchBundle::BUNDLE_VERSION) {
+                $needUpdate = TRUE;
+            }
+        }
+
+        return $needUpdate;
     }
 
     /**
-     * copy sample config file - if not exists.
+     * install or update config file
      */
-    private function copyConfigFiles()
+    private function installOrUpdateConfigFile()
     {
-        if (!$this->fileSystem->exists(Configuration::SYSTEM_CONFIG_FILE_PATH)) {
-            $this->fileSystem->copy(
-                $this->installSourcesPath . '/config.yml',
-                Configuration::SYSTEM_CONFIG_FILE_PATH
-            );
+        if(!$this->fileSystem->exists(Configuration::SYSTEM_CONFIG_DIR_PATH)) {
+            $this->fileSystem->mkdir(Configuration::SYSTEM_CONFIG_DIR_PATH);
         }
+
+        $config = ['version' => LuceneSearchBundle::BUNDLE_VERSION];
+        $yml = Yaml::dump($config);
+        file_put_contents(Configuration::SYSTEM_CONFIG_FILE_PATH, $yml);
 
         if (!$this->fileSystem->exists(Configuration::STATE_FILE_PATH)) {
             $content = serialize(Configuration::STATE_DEFAULT_VALUES);

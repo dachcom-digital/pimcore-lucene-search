@@ -15,6 +15,8 @@ class Configuration
         'finished'   => NULL
     ];
 
+    const SYSTEM_CONFIG_DIR_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle';
+
     const SYSTEM_CONFIG_FILE_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/config.yml';
 
     const STATE_FILE_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/state.cnf';
