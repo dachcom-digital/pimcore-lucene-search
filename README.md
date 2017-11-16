@@ -25,6 +25,28 @@ lucene_search:
     enabled: true
 ```
 
+A complete setup could look like this:
+
+```yaml
+lucene_search:
+    enabled: true
+    sitemap:
+        render: false
+    fuzzy_search_results: false
+    search_suggestion: true
+    seeds:
+        - 'http://your-domain.dev'
+    filter:
+        valid_links:
+            - '@^http://your-domain.dev.*@i'
+    view:
+        max_per_page: 10
+    crawler:
+        content_max_size: 4
+        content_start_indicator: '<!-- main-content -->'
+        content_end_indicator: '<!-- /main-content -->'
+```
+
 You need to add the config parameter to your config.yml to override the default values. 
 Execute this command to get some information about all the config elements of LuceneSearch:
 
