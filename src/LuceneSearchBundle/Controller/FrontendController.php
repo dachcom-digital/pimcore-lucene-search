@@ -6,11 +6,10 @@ use LuceneSearchBundle\Configuration\Configuration;
 use LuceneSearchBundle\Event\RestrictionContextEvent;
 use LuceneSearchBundle\Helper\LuceneHelper;
 use LuceneSearchBundle\Helper\StringHelper;
-
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
+use Pimcore\Controller\FrontendController as PimcoreFrontEndController;
 
-class FrontendController
+class FrontendController extends PimcoreFrontEndController
 {
     /**
      * @var RequestStack
@@ -21,11 +20,6 @@ class FrontendController
      * @var Configuration
      */
     protected $configuration;
-
-    /**
-     * @var EngineInterface
-     */
-    protected $templating;
 
     /**
      * @var LuceneHelper
@@ -114,7 +108,6 @@ class FrontendController
      * FrontendController constructor.
      *
      * @param RequestStack    $requestStack
-     * @param EngineInterface $templating
      * @param Configuration   $configuration
      * @param LuceneHelper    $luceneHelper
      * @param StringHelper    $stringHelper
@@ -123,13 +116,11 @@ class FrontendController
      */
     public function __construct(
         RequestStack $requestStack,
-        EngineInterface $templating,
         Configuration $configuration,
         LuceneHelper $luceneHelper,
         StringHelper $stringHelper
     ) {
         $this->requestStack = $requestStack;
-        $this->templating = $templating;
         $this->configuration = $configuration;
         $this->luceneHelper = $luceneHelper;
         $this->stringHelper = $stringHelper;

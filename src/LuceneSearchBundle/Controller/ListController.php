@@ -3,7 +3,6 @@
 namespace LuceneSearchBundle\Controller;
 
 use LuceneSearchBundle\Helper\HighlighterHelper;
-use Symfony\Component\HttpFoundation\Response;
 
 class ListController extends FrontendController
 {
@@ -156,11 +155,7 @@ class ListController extends FrontendController
             $viewName = 'error';
         }
 
-        $content = $this->templating->render('@LuceneSearch/List/' . $viewName . '.html.twig', $viewParams);
-
-        $response = new Response($content);
-
-        return $response;
+        return $this->renderTemplate('@LuceneSearch/List/' . $viewName . '.html.twig', $viewParams);
     }
 
     /**
