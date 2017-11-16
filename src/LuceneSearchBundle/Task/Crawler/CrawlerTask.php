@@ -3,6 +3,7 @@
 namespace LuceneSearchBundle\Task\Crawler;
 
 use LuceneSearchBundle\Event\CrawlerRequestHeaderEvent;
+use LuceneSearchBundle\Event\Events;
 use LuceneSearchBundle\Task\AbstractTask;
 use LuceneSearchBundle\Task\Crawler\Listener;
 use LuceneSearchBundle\Task\Crawler\Filter\Discovery;
@@ -237,10 +238,13 @@ class CrawlerTask extends AbstractTask
         $spider->getDispatcher()->addSubscriber($logHandler);
 
         $spider->getDispatcher()->addListener(
+            Events::LUCENE_SEARCH_CRAWLER_INTERRUPTED,
+            [$abortListener, 'stopCrawler']
+        );
 
+        $spider->getDispatcher()->addListener(
             SpiderEvents::SPIDER_CRAWL_USER_STOPPED,
             [$abortListener, 'stopCrawler']
-
         );
 
         $guzzleClient = $spider->getDownloader()->getRequestHandler()->getClient();

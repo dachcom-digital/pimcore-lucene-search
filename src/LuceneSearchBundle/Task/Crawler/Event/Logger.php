@@ -3,7 +3,9 @@
 namespace LuceneSearchBundle\Task\Crawler\Event;
 
 use LuceneSearchBundle\Logger\AbstractLogger;
+use LuceneSearchBundle\Event\Events;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use VDB\Spider\Event\SpiderEvents;
 
@@ -19,7 +21,7 @@ class Logger implements EventSubscriberInterface
     /**
      * Logger constructor.
      *
-     * @param bool $debug
+     * @param bool           $debug
      * @param AbstractLogger $logger
      */
     public function __construct($debug = FALSE, $logger)
@@ -40,7 +42,8 @@ class Logger implements EventSubscriberInterface
             SpiderEvents::SPIDER_CRAWL_RESOURCE_PERSISTED => 'logPersisted',
             SpiderEvents::SPIDER_CRAWL_ERROR_REQUEST      => 'logFailed',
             SpiderEvents::SPIDER_CRAWL_POST_REQUEST       => 'logCrawled',
-            SpiderEvents::SPIDER_CRAWL_USER_STOPPED       => 'logStoppedByUser'
+            SpiderEvents::SPIDER_CRAWL_USER_STOPPED       => 'logStoppedBySignal',
+            Events::LUCENE_SEARCH_CRAWLER_INTERRUPTED     => 'logStopped'
         ];
     }
 
@@ -80,9 +83,18 @@ class Logger implements EventSubscriberInterface
     }
 
     /**
-     * @param GenericEvent$event
+     * @param Event $event
      */
-    public function logStoppedByUser(GenericEvent $event)
+    public function logStoppedBySignal(Event $event)
+    {
+        $logEvent = new GenericEvent($this, ['errorMessage' => 'crawling canceled (lost signal)']);
+        $this->logEvent('stopped', $logEvent, 'debugHighlight', $logEvent->getArgument('errorMessage'));
+    }
+
+    /**
+     * @param GenericEvent $event
+     */
+    public function logStopped(GenericEvent $event)
     {
         $this->logEvent('stopped', $event, 'debugHighlight', $event->getArgument('errorMessage'));
     }
@@ -103,7 +115,15 @@ class Logger implements EventSubscriberInterface
      */
     protected function logEvent($name, GenericEvent $event, $debugLevel = 'debug', $additionalMessage = '')
     {
-        $triggerLog = in_array($name, ['uri.crawled', 'uri.match.invalid.filtered', 'uri.match.forbidden.filtered', 'filtered', 'failed', 'stopped']);
+        $triggerLog = in_array($name, [
+            'uri.crawled',
+            'uri.match.invalid.filtered',
+            'uri.match.forbidden.filtered',
+            'filtered',
+            'failed',
+            'stopped'
+        ]);
+
         $logToBackend = in_array($name, ['filtered', 'failed']);
         $logToSystem = $this->debug === TRUE;
 
@@ -113,11 +133,11 @@ class Logger implements EventSubscriberInterface
 
             $message = $prefix;
 
-            if(!empty($additionalMessage)) {
+            if (!empty($additionalMessage)) {
                 $message .= $additionalMessage . ' ';
             }
 
-            $message .= $event->getArgument('uri')->toString();
+            $message .= $event->hasArgument('uri') ? $event->getArgument('uri')->toString() : '[uri not available]';
 
             $this->logger->log($message, $debugLevel, $logToBackend, $logToSystem);
         }
