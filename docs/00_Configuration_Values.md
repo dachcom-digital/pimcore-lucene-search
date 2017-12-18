@@ -10,6 +10,8 @@ Here you'll find all the configuration possibilities, default values and also so
 | own_host_only | bool | false | Own Host only: Check to limit search results to results from the current (sub-)domain only. |
 | seeds | array | [] | Start-Urls (Seeds): Specify start URLs for the crawler. Please enter with protocol! e.g. http://www.pimcore.org and enter a starting URL on your main domain first and any subdomains next, because the domain of the first URL will be used as the main domain for sitemap generation. |
 | categories | service | ~ | If search results should be displayed by categories, please enter all valid categories here. The crawler sorts a page into a category if it contains a html meta tag with the name "lucene-search:categories". |
+| filter:allow_query_in_url | bool | false | When checked, LuceneSearch will crawl urls with query fragments. |
+| filter:allow_hash_in_url | array | false | When checked, LuceneSearch will crawl urls with hash fragments. |
 | filter:valid_links | array | [] | Regex for valid Uris: Specify PREG regexes with start and end delimiter to define allowed links. e.g. `@^http://www\.pimcore\.org*@i` |
 | filter:user_invalid_links | array | [] | Regex for forbidden Uris: Specify PREG regexes for links which should be ignored by the crawler. The crawler does not even follow these links e.g. `@^http://www\.pimcore\.org\/community*@i` |
 | allowed_mime_types | array | ['text/html', 'application/pdf'] | Supported: text/html application/pdf |

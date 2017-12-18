@@ -34,6 +34,16 @@ class CrawlerTask extends AbstractTask
     protected $validLinks;
 
     /**
+     * @var bool
+     */
+    protected $allowQueryInUrl = FALSE;
+
+    /**
+     * @var bool
+     */
+    protected $allowHashInUrl = FALSE;
+
+    /**
      * @var array
      */
     protected $invalidLinks;
@@ -124,6 +134,8 @@ class CrawlerTask extends AbstractTask
         $maxLinkDepth = $crawlerConfig['max_link_depth'];
         $this->maxLinkDepth = !is_numeric($maxLinkDepth) ? 1 : $maxLinkDepth;
 
+        $this->allowHashInUrl = $filterLinks['allow_hash_in_url'];
+        $this->allowQueryInUrl = $filterLinks['allow_query_in_url'];
         $this->validLinks = $filterLinks['valid_links'];
         $this->invalidLinks = $this->getInvalidLinks();
         $this->contentMaxSize = $crawlerConfig['content_max_size'];
@@ -205,8 +217,13 @@ class CrawlerTask extends AbstractTask
         $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\AllowedSchemeFilter($this->allowedSchemes));
         $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\AllowedHostsFilter([$this->seed], $this->allowSubDomains));
 
-        $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriWithHashFragmentFilter());
-        $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriWithQueryStringFilter());
+        if($this->allowHashInUrl === FALSE) {
+            $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriWithHashFragmentFilter());
+        }
+
+        if($this->allowQueryInUrl === FALSE) {
+            $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriWithQueryStringFilter());
+        }
 
         $spider->getDiscovererSet()->addFilter(new Discovery\UriFilter($this->invalidLinks, $spider->getDispatcher()));
         $spider->getDiscovererSet()->addFilter(new Discovery\NegativeUriFilter($this->validLinks, $spider->getDispatcher()));
