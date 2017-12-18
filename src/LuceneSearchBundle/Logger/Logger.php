@@ -27,12 +27,8 @@ class Logger extends AbstractLogger
 
         if ($logToBackend === TRUE) {
             $file = Configuration::CRAWLER_LOG_FILE_PATH;
-            $current = '';
-            if (file_exists($file)) {
-                $current = file_get_contents($file);
-            }
-            $current .= date('d.m.Y H:i') . '|' . $this->getRealLevel($level) . '|' . $message . "\n";
-            file_put_contents($file, $current);
+            $log = date('d.m.Y H:i') . '|' . $this->getRealLevel($level) . '|' . $message . "\n";
+            file_put_contents($file, $log, FILE_APPEND);
         }
     }
 
