@@ -10,7 +10,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class LuceneSearchBundle extends AbstractPimcoreBundle
 {
-    const BUNDLE_VERSION = '2.0.1';
+    const BUNDLE_VERSION = '2.0.2';
 
     /**
      * @inheritDoc
