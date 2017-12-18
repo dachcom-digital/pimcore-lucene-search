@@ -7,6 +7,7 @@ use LuceneSearchBundle\Configuration\Configuration;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Compiler\PriorityTaggedServiceTrait;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Reference;
 
 class CategoriesPass implements CompilerPassInterface
 {
@@ -24,12 +25,11 @@ class CategoriesPass implements CompilerPassInterface
         if ($container->hasDefinition($categoryServiceName)) {
 
             $categoriesService = $container->get($categoryServiceName);
-            if(!$categoriesService instanceof CategoriesInterface) {
+            if (!$categoriesService instanceof CategoriesInterface) {
                 throw new \Exception(get_class($categoriesService) . ' needs to implement the CategoriesInterface.');
             }
 
-            $categories = $categoriesService->getCategories();
-            $container->getDefinition(Configuration::class)->addMethodCall('setCategories', [$categories]);
+            $container->getDefinition(Configuration::class)->addMethodCall('setCategoryService', [new Reference($categoryServiceName)]);
         }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace LuceneSearchBundle\Configuration;
 
+use LuceneSearchBundle\Configuration\Categories\CategoriesInterface;
 use Pimcore\Extension\Bundle\PimcoreBundleManager;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -60,9 +61,9 @@ class Configuration
     private $systemConfig;
 
     /**
-     * @var array
+     * @var CategoriesInterface
      */
-    private $categories;
+    private $categoryService;
 
     /**
      * Configuration constructor.
@@ -144,11 +145,11 @@ class Configuration
     }
 
     /**
-     * @param array $categories
+     * @param CategoriesInterface $categoryService
      */
-    public function setCategories(array $categories)
+    public function setCategoryService(CategoriesInterface $categoryService)
     {
-        $this->categories = $categories;
+        $this->categoryService = $categoryService;
     }
 
     /**
@@ -156,6 +157,6 @@ class Configuration
      */
     public function getCategories()
     {
-        return $this->categories;
+        return $this->categoryService->getCategories();
     }
 }
