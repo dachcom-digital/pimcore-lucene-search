@@ -157,6 +157,10 @@ class Configuration
      */
     public function getCategories()
     {
+        if (!$this->categoryService instanceof CategoriesInterface) {
+            return [];
+        }
+
         return $this->categoryService->getCategories();
     }
 }
