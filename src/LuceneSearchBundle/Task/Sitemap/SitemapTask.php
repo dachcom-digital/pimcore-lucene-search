@@ -68,9 +68,11 @@ class SitemapTask extends AbstractTask
             $hostQuery = new \Zend_Search_Lucene_Search_Query_Term($hostTerm);
             $query->addSubquery($hostQuery, TRUE);
 
-            $hostTerm = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default');
-            $hostQuery = new \Zend_Search_Lucene_Search_Query_Term($hostTerm);
-            $query->addSubquery($hostQuery, TRUE);
+            if ($this->configuration->getConfig('restriction')['enabled']) {
+                $restrictionTerm = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default');
+                $restrictionQuery = new \Zend_Search_Lucene_Search_Query_Term($restrictionTerm);
+                $query->addSubquery($restrictionQuery, TRUE);
+            }
 
             $hits = $this->index->find($query);
 
