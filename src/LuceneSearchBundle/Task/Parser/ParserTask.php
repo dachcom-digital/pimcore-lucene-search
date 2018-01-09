@@ -457,7 +457,7 @@ class ParserTask extends AbstractTask
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('charset', $params['encoding']));
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $params['language']));
             $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $params['uri']));
-            $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $params['uri']));
+            $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $params['host']));
 
             $doc->addField(\Zend_Search_Lucene_Field::Text('title', $params['title'], $params['encoding']));
             $doc->addField(\Zend_Search_Lucene_Field::Text('description', $params['description'], $params['encoding']));
