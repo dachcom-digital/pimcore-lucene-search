@@ -7,10 +7,6 @@ services:
         parent: LuceneSearchBundle\Controller\FrontendController
         autowire: true
 
-   LuceneSearchBundle\Controller\SiteMapController:
-        parent: LuceneSearchBundle\Controller\FrontendController
-        autowire: true
-
    LuceneSearchBundle\Controller\ListController:
         parent: LuceneSearchBundle\Controller\FrontendController
         autowire: true

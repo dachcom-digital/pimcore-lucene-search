@@ -30,8 +30,6 @@ A complete setup could look like this:
 ```yaml
 lucene_search:
     enabled: true
-    sitemap:
-        render: false
     fuzzy_search_results: false
     search_suggestion: true
     seeds:

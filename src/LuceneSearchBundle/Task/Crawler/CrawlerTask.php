@@ -36,12 +36,12 @@ class CrawlerTask extends AbstractTask
     /**
      * @var bool
      */
-    protected $allowQueryInUrl = FALSE;
+    protected $allowQueryInUrl = false;
 
     /**
      * @var bool
      */
-    protected $allowHashInUrl = FALSE;
+    protected $allowHashInUrl = false;
 
     /**
      * @var array
@@ -51,6 +51,7 @@ class CrawlerTask extends AbstractTask
     /**
      * Set max crawl content size (MB)
      * 0 means no limit
+     *
      * @var integer
      */
     protected $contentMaxSize = 0;
@@ -83,38 +84,14 @@ class CrawlerTask extends AbstractTask
     protected $validMimeTypes = [];
 
     /**
-     * indicates where the content relevant for search starts
-     * @var string
-     */
-    protected $searchStartIndicator;
-
-    /**
-     * indicates where the content relevant for search ends
-     * @var string
-     */
-    protected $searchEndIndicator;
-
-    /**
-     * indicates where the content irrelevant for search starts
-     * @var string
-     */
-    protected $searchExcludeStartIndicator;
-
-    /**
-     * indicates where the content irrelevant for search ends
-     * @var string
-     */
-    protected $searchExcludeEndIndicator;
-
-    /**
      * @var boolean
      */
-    protected $readyToCrawl = FALSE;
+    protected $readyToCrawl = false;
 
     /**
      * @var bool
      */
-    protected $allowSubDomains = FALSE;
+    protected $allowSubDomains = false;
 
     /**
      * @var int
@@ -126,7 +103,7 @@ class CrawlerTask extends AbstractTask
      */
     public function isValid()
     {
-        $this->allowSubDomains = FALSE;
+        $this->allowSubDomains = false;
 
         $filterLinks = $this->configuration->getConfig('filter');
         $crawlerConfig = $this->configuration->getConfig('crawler');
@@ -139,10 +116,6 @@ class CrawlerTask extends AbstractTask
         $this->validLinks = $filterLinks['valid_links'];
         $this->invalidLinks = $this->getInvalidLinks();
         $this->contentMaxSize = $crawlerConfig['content_max_size'];
-        $this->searchStartIndicator = $crawlerConfig['content_start_indicator'];
-        $this->searchEndIndicator = $crawlerConfig['content_end_indicator'];
-        $this->searchExcludeStartIndicator = $crawlerConfig['content_exclude_start_indicator'];
-        $this->searchExcludeEndIndicator = $crawlerConfig['content_exclude_end_indicator'];
 
         $this->validMimeTypes = $this->configuration->getConfig('allowed_mime_types');
         $this->allowedSchemes = $this->configuration->getConfig('allowed_schemes');
@@ -150,7 +123,7 @@ class CrawlerTask extends AbstractTask
 
         $this->seed = $this->options['iterator'];
 
-        return TRUE;
+        return true;
     }
 
     /**
@@ -165,9 +138,9 @@ class CrawlerTask extends AbstractTask
 
         if (!empty($userInvalidLinks) && !empty($coreInvalidLinks)) {
             $invalidLinkRegex = array_merge($userInvalidLinks, [$coreInvalidLinks]);
-        } else if (!empty($userInvalidLinks)) {
+        } elseif (!empty($userInvalidLinks)) {
             $invalidLinkRegex = $userInvalidLinks;
-        } else if (!empty($coreInvalidLinks)) {
+        } elseif (!empty($coreInvalidLinks)) {
             $invalidLinkRegex = [$coreInvalidLinks];
         } else {
             $invalidLinkRegex = [];
@@ -186,14 +159,14 @@ class CrawlerTask extends AbstractTask
     {
         $this->logger->setPrefix('task.crawler');
 
-        $start = microtime(TRUE);
+        $start = microtime(true);
 
         try {
             $spider = new Spider($this->seed);
         } catch (\Exception $e) {
 
             $this->log('error: ' . $e->getMessage(), 'error');
-            return FALSE;
+            return false;
         }
 
         if ($this->downloadLimit > 0) {
@@ -217,18 +190,18 @@ class CrawlerTask extends AbstractTask
         $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\AllowedSchemeFilter($this->allowedSchemes));
         $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\AllowedHostsFilter([$this->seed], $this->allowSubDomains));
 
-        if($this->allowHashInUrl === FALSE) {
+        if ($this->allowHashInUrl === false) {
             $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriWithHashFragmentFilter());
         }
 
-        if($this->allowQueryInUrl === FALSE) {
+        if ($this->allowQueryInUrl === false) {
             $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriWithQueryStringFilter());
         }
 
         $spider->getDiscovererSet()->addFilter(new Discovery\UriFilter($this->invalidLinks, $spider->getDispatcher()));
         $spider->getDiscovererSet()->addFilter(new Discovery\NegativeUriFilter($this->validLinks, $spider->getDispatcher()));
 
-        if($this->contentMaxSize !== 0) {
+        if ($this->contentMaxSize !== 0) {
             $spider->getDownloader()->addPostFetchFilter(new PostFetch\MaxContentSizeFilter($this->contentMaxSize));
         }
 
@@ -279,10 +252,10 @@ class CrawlerTask extends AbstractTask
         $this->log('failed links: ' . $statsHandler->getFailed(), 'debug');
         $this->log('persisted links: ' . $statsHandler->getPersisted(), 'debug');
 
-        $peakMem = round(memory_get_peak_usage(TRUE) / 1024 / 1024, 2);
+        $peakMem = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
         $totalDelay = round($politenessPolicyEventListener->totalDelay / 1000 / 1000, 2);
 
-        $totalTime = microtime(TRUE) - $start;
+        $totalTime = microtime(true) - $start;
         $totalTime = number_format((float)$totalTime, 3, '.', '');
         $minutes = str_pad(floor($totalTime / 60), 2, '0', STR_PAD_LEFT);
         $seconds = str_pad($totalTime % 60, 2, '0', STR_PAD_LEFT);
@@ -301,8 +274,8 @@ class CrawlerTask extends AbstractTask
     {
         $defaultHeaderElements = [
             [
-                'name' => 'Lucene-Search',
-                'value' => $this->configuration->getSystemConfig('version'),
+                'name'       => 'Lucene-Search',
+                'value'      => $this->configuration->getSystemConfig('version'),
                 'identifier' => 'lucene-search-bundle'
             ]
         ];
@@ -315,12 +288,10 @@ class CrawlerTask extends AbstractTask
 
         $headerElements = array_merge($defaultHeaderElements, $event->getHeaders());
 
-        foreach($headerElements as $headerElement) {
-
+        foreach ($headerElements as $headerElement) {
             $handler->push(Middleware::mapRequest(function (RequestInterface $request) use ($headerElement) {
                 return $request->withHeader($headerElement['name'], $headerElement['value']);
             }), $headerElement['identifier']);
-
         }
     }
 }

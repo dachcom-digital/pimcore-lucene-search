@@ -9,8 +9,10 @@ class AutoCompleteController extends FrontendController
 {
     /**
      * @param Request $request
-     *
      * @return JsonResponse
+     * @throws \Exception
+     * @throws \Zend_Search_Lucene_Exception
+     * @throws \Zend_Search_Lucene_Search_QueryParserException
      */
     public function searchAction(Request $request)
     {
@@ -27,11 +29,11 @@ class AutoCompleteController extends FrontendController
             $t = $term->text;
 
             //check if term can be found for current language
-            $hits = NULL;
+            $hits = null;
 
             $query = new \Zend_Search_Lucene_Search_Query_Boolean();
             $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($t, 'utf-8');
-            $query->addSubquery($userQuery, TRUE);
+            $query->addSubquery($userQuery, true);
 
             $this->addLanguageQuery($query);
             $this->addCategoryQuery($query);

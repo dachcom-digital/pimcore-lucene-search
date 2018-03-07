@@ -35,13 +35,6 @@ services:
         tags:
             - { name: lucene_search.task, priority: 40 }
 
-    LuceneSearchBundle\Task\Sitemap\SitemapTask:
-        parent: LuceneSearchBundle\Task\AbstractTask
-        autowire: true
-        public: false
-        tags:
-            - { name: lucene_search.task, priority: 20 }
-
     LuceneSearchBundle\Task\System\ShutDownTask:
         parent: LuceneSearchBundle\Task\AbstractTask
         autowire: true

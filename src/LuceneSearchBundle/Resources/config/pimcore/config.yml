@@ -30,9 +30,6 @@ lucene_search:
         content_exclude_start_indicator: ~
         content_exclude_end_indicator: ~
 
-    sitemap:
-        render: false
-
     locale:
         ignore_language: false
         ignore_country: true

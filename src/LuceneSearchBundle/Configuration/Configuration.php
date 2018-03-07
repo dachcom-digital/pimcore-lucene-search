@@ -28,8 +28,6 @@ class Configuration
 
     const CRAWLER_URI_FILTER_FILE_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/uri-filter.tmp';
 
-    const SITEMAP_DIR_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/site-map';
-
     const CRAWLER_PERSISTENCE_STORE_DIR_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/persistence-store';
 
     const CRAWLER_TMP_ASSET_DIR_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle/tmp-assets';
