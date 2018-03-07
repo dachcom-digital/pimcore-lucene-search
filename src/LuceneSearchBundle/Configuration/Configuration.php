@@ -117,6 +117,11 @@ class Configuration
      */
     public function getStateConfig($slot = NULL)
     {
+        if (!$this->fileSystem->exists(Configuration::STATE_FILE_PATH)) {
+            $content = serialize(Configuration::STATE_DEFAULT_VALUES);
+            $this->fileSystem->appendToFile(Configuration::STATE_FILE_PATH, $content);
+        }
+
         $data = file_get_contents(self::STATE_FILE_PATH);
         $arrayData = unserialize($data);
 
