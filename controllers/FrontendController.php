@@ -415,7 +415,7 @@ class LuceneSearch_FrontendController extends Action
      *
      * @return array
      */
-    private function getValidHits($queryHits)
+    protected function getValidHits($queryHits)
     {
         $validHits = [];
 
@@ -436,7 +436,7 @@ class LuceneSearch_FrontendController extends Action
         return $validHits;
     }
 
-    private function addCountryQuery($query)
+    protected function addCountryQuery($query)
     {
         if (!empty($this->searchCountry)) {
 
@@ -452,7 +452,7 @@ class LuceneSearch_FrontendController extends Action
         return $query;
     }
 
-    private function addCategoryQuery($query)
+    protected function addCategoryQuery($query)
     {
         if (!empty($this->searchCategories) && is_array($this->categories)) {
             $categoryTerms = [];
@@ -470,7 +470,7 @@ class LuceneSearch_FrontendController extends Action
         return $query;
     }
 
-    private function addLanguageQuery($query)
+    protected function addLanguageQuery($query)
     {
         if (!empty($this->searchLanguage)) {
             $languageQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm();
@@ -492,7 +492,7 @@ class LuceneSearch_FrontendController extends Action
         return $query;
     }
 
-    private function addRestrictionQuery($query)
+    protected function addRestrictionQuery($query)
     {
         if ($this->searchRestriction) {
             $restrictionTerms = [
@@ -526,7 +526,7 @@ class LuceneSearch_FrontendController extends Action
         return $query;
     }
 
-    private function getFuzzySuggestions($searchResults = [])
+    protected function getFuzzySuggestions($searchResults = [])
     {
         $suggestions = [];
 
@@ -578,7 +578,7 @@ class LuceneSearch_FrontendController extends Action
      *
      * @return array
      */
-    private function mapCategories($documentCategories = '')
+    protected function mapCategories($documentCategories = '')
     {
         $categoryStore = [];
         $validCategories = $this->categories;
@@ -602,7 +602,7 @@ class LuceneSearch_FrontendController extends Action
      *
      * @return string
      */
-    private function cleanRequestString($requestString)
+    protected function cleanRequestString($requestString)
     {
         $queryFromRequest = strip_tags(urldecode($requestString));
         $queryFromRequest = str_replace(['<', '>', '"', "'", '&'], "", $queryFromRequest);
