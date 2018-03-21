@@ -2,6 +2,7 @@
 
 namespace LuceneSearchBundle\Task\Crawler;
 
+use LuceneSearchBundle\Configuration\Configuration;
 use LuceneSearchBundle\Event\CrawlerRequestHeaderEvent;
 use LuceneSearchBundle\Event\Events;
 use LuceneSearchBundle\Task\AbstractTask;
@@ -207,8 +208,7 @@ class CrawlerTask extends AbstractTask
 
         $spider->getDownloader()->addPostFetchFilter(new PostFetch\MimeTypeFilter($this->validMimeTypes));
 
-        $persistencePath = PIMCORE_SYSTEM_TEMP_DIRECTORY . '/ls-crawler-tmp';
-        $spider->getDownloader()->setPersistenceHandler(new PersistenceHandler\FileSerializedResourcePersistenceHandler($persistencePath));
+        $spider->getDownloader()->setPersistenceHandler(new PersistenceHandler\FileSerializedResourcePersistenceHandler(Configuration::CRAWLER_PERSISTENCE_STORE_DIR_PATH));
 
         $politenessPolicyEventListener = new PolitenessPolicyListener(20);
         $spider->getDownloader()->getDispatcher()->addListener(
