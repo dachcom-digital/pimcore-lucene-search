@@ -163,7 +163,7 @@ class ListController extends FrontendController
      *
      * @return array
      */
-    private function getFuzzySuggestions()
+    protected function getFuzzySuggestions()
     {
         $suggestions = [];
 
@@ -216,7 +216,7 @@ class ListController extends FrontendController
      *
      * @return array
      */
-    private function mapCategories($documentCategories = '')
+    protected function mapCategories($documentCategories = '')
     {
         $categoryStore = [];
         $validCategories = $this->configuration->getCategories();

@@ -3,6 +3,8 @@
 namespace LuceneSearchBundle\Task\Parser;
 
 use LuceneSearchBundle\Event\AssetResourceRestrictionEvent;
+use LuceneSearchBundle\Event\HtmlParserEvent;
+use LuceneSearchBundle\Event\PdfParserEvent;
 use LuceneSearchBundle\Task\AbstractTask;
 use LuceneSearchBundle\Configuration\Configuration;
 use Pimcore\Document\Adapter\Ghostscript;
@@ -385,6 +387,12 @@ class ParserTask extends AbstractTask
                     $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_default', TRUE));
                 }
 
+                $parserEvent = new PdfParserEvent($doc, $fileContent, $assetMeta, $params);
+                \Pimcore::getEventDispatcher()->dispatch(
+                    'lucene_search.task.parser.pdf_parser',
+                    $parserEvent
+                );
+
                 $this->addDocumentToIndex($doc);
             } catch (\Exception $e) {
                 $this->log($e->getMessage());
@@ -497,6 +505,12 @@ class ParserTask extends AbstractTask
                     }
                 }
             }
+
+            $parserEvent = new HtmlParserEvent($doc, $html, $params);
+            \Pimcore::getEventDispatcher()->dispatch(
+                'lucene_search.task.parser.html_parser',
+                $parserEvent
+            );
 
             $this->addDocumentToIndex($doc);
         } catch (\Exception $e) {
