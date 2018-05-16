@@ -170,10 +170,10 @@ class ParserTask extends AbstractTask
         }
 
         //page has no follow: do not track!
-        $hasNoFollow = $crawler->filterXpath('//meta[@content="nofollow"]')->count() > 0;
+        $hasNoIndex = $crawler->filterXpath('//meta[contains(@content, "noindex")]')->count() > 0;
 
-        if ($hasNoFollow === TRUE) {
-            $this->log('skip indexing [ ' . $uri . ' ] because it has a no-follow tag');
+        if ($hasNoIndex === TRUE) {
+            $this->log('skip indexing [ ' . $uri . ' ] because it has a noindex tag');
             return FALSE;
         }
 
