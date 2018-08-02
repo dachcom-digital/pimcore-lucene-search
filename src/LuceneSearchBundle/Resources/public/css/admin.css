@@ -1,9 +1,11 @@
 .lucenesearch_icon_settings {
-    background:url(/pimcore/static6/img/flat-color-icons/services.svg) center center no-repeat !important;
+    background: url(/bundles/lucenesearch/img/services.svg) center center no-repeat !important;
 }
+
 .lucenesearch_icon {
     background-image: url(/bundles/lucenesearch/img/lucene.png) !important;
 }
+
 .lucenesearch_icon_plugins {
     background: url(/bundles/lucenesearch/img/img/plugin.png) no-repeat scroll left center transparent !important;
 }
