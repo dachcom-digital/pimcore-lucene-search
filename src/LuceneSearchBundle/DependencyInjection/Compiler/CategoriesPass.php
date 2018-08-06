@@ -29,7 +29,8 @@ class CategoriesPass implements CompilerPassInterface
                 throw new \Exception(get_class($categoriesService) . ' needs to implement the CategoriesInterface.');
             }
 
-            $container->getDefinition(Configuration::class)->addMethodCall('setCategoryService', [new Reference($categoryServiceName)]);
+            $container->getDefinition(Configuration::class)->addMethodCall('setCategoryService',
+                [new Reference($categoryServiceName)]);
         }
     }
 }

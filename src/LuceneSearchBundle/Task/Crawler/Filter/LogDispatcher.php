@@ -5,7 +5,8 @@ namespace LuceneSearchBundle\Task\Crawler\Filter;
 use VDB\Spider\Event\SpiderEvents;
 use Symfony\Component\EventDispatcher\GenericEvent;
 
-trait LogDispatcher {
+trait LogDispatcher
+{
 
     /**
      * @var array
@@ -35,12 +36,13 @@ trait LogDispatcher {
      * @param $uri
      * @param $filterType
      */
-    function notifyDispatcher($uri, $filterType) {
+    function notifyDispatcher($uri, $filterType)
+    {
 
         $stringUri = $uri->toString();
         $saveUri = md5($stringUri);
 
-        if ($this->persistor->get($saveUri) === FALSE) {
+        if ($this->persistor->get($saveUri) === false) {
             $this->filtered[] = $saveUri;
             $this->persistor->set($saveUri, time());
             $event = new GenericEvent($this, ['uri' => $uri, 'filterType' => $filterType]);

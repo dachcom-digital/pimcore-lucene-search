@@ -4,7 +4,8 @@ namespace LuceneSearchBundle\Event;
 
 use Symfony\Component\EventDispatcher\Event;
 
-class HtmlParserEvent extends Event {
+class HtmlParserEvent extends Event
+{
 
     /**
      * @var \Zend_Search_Lucene_Document
@@ -31,7 +32,8 @@ class HtmlParserEvent extends Event {
     /**
      * @return \Zend_Search_Lucene_Document
      */
-    public function getDocument() {
+    public function getDocument()
+    {
         return $this->document;
     }
 

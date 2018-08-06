@@ -78,8 +78,8 @@ class TaskManager
 
                 $taskClass->setIsFirstCycle($iteratorIndex == 0);
                 $taskClass->setIsFirstTask($taskIndex == 0);
-                $taskClass->setIsLastCycle($iteratorIndex === count( $this->taskIterators) -1);
-                $taskClass->setIsLastTask($taskIndex === count( $this->tasks) -1);
+                $taskClass->setIsLastCycle($iteratorIndex === count($this->taskIterators) - 1);
+                $taskClass->setIsLastTask($taskIndex === count($this->tasks) - 1);
                 $taskClass->setOptions($options);
 
                 if ($taskClass->isValid()) {
@@ -92,6 +92,6 @@ class TaskManager
             }
         }
 
-        return TRUE;
+        return true;
     }
 }

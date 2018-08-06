@@ -36,7 +36,7 @@ class CategoriesExtension extends \Twig_Extension
      *
      * @return array
      */
-    public function getCategoriesList($options = NULL)
+    public function getCategoriesList($options = null)
     {
         $categories = $this->configuration->getCategories();
         return $categories;

@@ -25,7 +25,7 @@ class CrawlListener
      * Worker constructor.
      *
      * @param HandlerDispatcher $handlerDispatcher
-     * @param TaskManager $taskManager
+     * @param TaskManager       $taskManager
      */
     public function __construct(HandlerDispatcher $handlerDispatcher, TaskManager $taskManager)
     {
@@ -40,7 +40,7 @@ class CrawlListener
      */
     public function run(MaintenanceEvent $ev)
     {
-        if ($this->handlerDispatcher->getStateHandler()->isCrawlerEnabled() === FALSE) {
+        if ($this->handlerDispatcher->getStateHandler()->isCrawlerEnabled() === false) {
             return;
         }
 
@@ -60,14 +60,14 @@ class CrawlListener
          * + OR if its force
          * => RUN
          */
-        if ($running === FALSE &&
+        if ($running === false &&
             (((is_bool($lastStarted) || $lastStarted <= $aDayAgo) && $currentHour > 1 && $currentHour < 3) || $forceStart)
         ) {
             \Pimcore\Logger::debug('LuceneSearch: crawling started from maintenance listener.');
 
             $logger = new Logger();
             $this->taskManager->setLogger($logger);
-            $this->taskManager->processTaskChain(['force' => FALSE]);
+            $this->taskManager->processTaskChain(['force' => false]);
 
             /**
              * + If Crawler is Running
@@ -75,9 +75,9 @@ class CrawlListener
              * + If last start is older than one day
              * => We have some errors: EXIT CRAWLING!
              */
-        } else if ($running === TRUE && $lastFinished < $lastStarted && $lastStarted <= $aDayAgo) {
+        } elseif ($running === true && $lastFinished < $lastStarted && $lastStarted <= $aDayAgo) {
             \Pimcore\Logger::error('LuceneSearch: There seems to be a problem with the search crawler! Trying to stop it.');
-            $this->handlerDispatcher->getStateHandler()->stopCrawler(TRUE);
+            $this->handlerDispatcher->getStateHandler()->stopCrawler(true);
         }
     }
 }

@@ -15,7 +15,7 @@ class StateHandler extends AbstractHandler
      */
     public function isCrawlerEnabled()
     {
-        return $this->configuration->getConfig('enabled') === TRUE;
+        return $this->configuration->getConfig('enabled') === true;
     }
 
     /**
@@ -57,8 +57,8 @@ class StateHandler extends AbstractHandler
     {
         $messages = [];
 
-        if ($this->isCrawlerEnabled() === FALSE) {
-            return FALSE;
+        if ($this->isCrawlerEnabled() === false) {
+            return false;
         }
 
         if ($this->configuration->getStateConfig('running')) {
@@ -98,19 +98,19 @@ class StateHandler extends AbstractHandler
      *
      * @return bool
      */
-    public function startCrawler($forceStart = FALSE)
+    public function startCrawler($forceStart = false)
     {
         $this->fileSystem->touch(Configuration::CRAWLER_PROCESS_FILE_PATH);
 
         $this->configuration->setStateConfig('started', time());
         $this->configuration->setStateConfig('forceStart', $forceStart);
-        $this->configuration->setStateConfig('forceStop', FALSE);
-        $this->configuration->setStateConfig('running', TRUE);
-        $this->configuration->setStateConfig('finished', NULL);
+        $this->configuration->setStateConfig('forceStop', false);
+        $this->configuration->setStateConfig('running', true);
+        $this->configuration->setStateConfig('finished', null);
 
         \Pimcore\Logger::debug('LuceneSearch: Starting crawl');
 
-        return TRUE;
+        return true;
     }
 
     /**
@@ -118,11 +118,11 @@ class StateHandler extends AbstractHandler
      */
     public function forceCrawlerStartOnNextMaintenance()
     {
-        $this->configuration->setStateConfig('forceStart', TRUE);
+        $this->configuration->setStateConfig('forceStart', true);
 
         \Pimcore\Logger::debug('LuceneSearch: forced to starting crawl');
 
-        return TRUE;
+        return true;
     }
 
     /**
@@ -130,18 +130,18 @@ class StateHandler extends AbstractHandler
      *
      * @return bool
      */
-    public function stopCrawler($forcedStop = FALSE)
+    public function stopCrawler($forcedStop = false)
     {
         $this->fileSystem->remove(Configuration::CRAWLER_PROCESS_FILE_PATH);
 
         $this->configuration->setStateConfig('finished', time());
-        $this->configuration->setStateConfig('forceStart', FALSE);
-        $this->configuration->setStateConfig('running', FALSE);
+        $this->configuration->setStateConfig('forceStart', false);
+        $this->configuration->setStateConfig('running', false);
         $this->configuration->setStateConfig('forceStop', $forcedStop);
 
         \Pimcore\Logger::debug('LuceneSearch: Stopping crawl');
 
-        return TRUE;
+        return true;
     }
 
     /**

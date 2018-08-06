@@ -11,12 +11,12 @@ class PaginationExtension extends \Twig_Extension
     {
         return [
             new \Twig_Function('lucene_search_pagination', [$this, 'getPagination'], [
-                'needs_environment' => TRUE,
-                'needs_context'     => TRUE,
+                'needs_environment' => true,
+                'needs_context'     => true,
                 'is_safe'           => ['html']
             ]),
             new \Twig_Function('lucene_search_pagination_url', [$this, 'getPaginationUrl'], [
-                'needs_context' => TRUE,
+                'needs_context' => true,
                 'is_safe'       => ['html']
             ]),
         ];
@@ -28,8 +28,11 @@ class PaginationExtension extends \Twig_Extension
      * @param null              $options
      *
      * @return string
+     * @throws \Twig_Error_Loader
+     * @throws \Twig_Error_Runtime
+     * @throws \Twig_Error_Syntax
      */
-    public function getPagination(\Twig_Environment $environment, $context = [], $options = NULL)
+    public function getPagination(\Twig_Environment $environment, $context = [], $options = null)
     {
         $defaults = [
             'paginationUrl'      => '',
@@ -101,12 +104,12 @@ class PaginationExtension extends \Twig_Extension
      *
      * @return string
      */
-    public function getPaginationUrl($context = [], $query = NULL)
+    public function getPaginationUrl($context = [], $query = null)
     {
         $params = [
-            'language' => !empty($context['searchLanguage']) ? $context['searchLanguage'] : NULL,
-            'country'  => !empty($context['searchCountry']) ? $context['searchCountry'] : NULL,
-            'category' => !empty($context['searchCategory']) ? $context['searchCategory'] : NULL,
+            'language' => !empty($context['searchLanguage']) ? $context['searchLanguage'] : null,
+            'country'  => !empty($context['searchCountry']) ? $context['searchCountry'] : null,
+            'category' => !empty($context['searchCategory']) ? $context['searchCategory'] : null,
             'q'        => !empty($query) ? $query : $context['searchQuery']
         ];
 

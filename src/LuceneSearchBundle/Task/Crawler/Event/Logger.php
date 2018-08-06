@@ -11,12 +11,12 @@ use VDB\Spider\Event\SpiderEvents;
 
 class Logger implements EventSubscriberInterface
 {
-    private $debug = FALSE;
+    private $debug = false;
 
     /**
      * @var AbstractLogger
      */
-    private $logger = FALSE;
+    private $logger = false;
 
     /**
      * Logger constructor.
@@ -24,7 +24,7 @@ class Logger implements EventSubscriberInterface
      * @param bool           $debug
      * @param AbstractLogger $logger
      */
-    public function __construct($debug = FALSE, $logger)
+    public function __construct($debug = false, $logger)
     {
         $this->debug = $debug;
         $this->logger = $logger;
@@ -125,7 +125,7 @@ class Logger implements EventSubscriberInterface
         ]);
 
         $logToBackend = in_array($name, ['filtered', 'failed']);
-        $logToSystem = $this->debug === TRUE;
+        $logToSystem = $this->debug === true;
 
         if ($triggerLog) {
 

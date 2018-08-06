@@ -28,7 +28,7 @@ class AssetResourceRestrictionEvent extends Event
      *
      * @param Resource $resource
      */
-    public function __construct(Resource $resource = NULL)
+    public function __construct(Resource $resource = null)
     {
         $this->resource = $resource;
     }
@@ -56,7 +56,6 @@ class AssetResourceRestrictionEvent extends Event
     {
         return $this->restrictions;
     }
-
 
     /**
      * @param $asset Asset

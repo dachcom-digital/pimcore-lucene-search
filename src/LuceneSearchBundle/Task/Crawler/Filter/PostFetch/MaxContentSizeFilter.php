@@ -1,4 +1,5 @@
 <?php
+
 namespace LuceneSearchBundle\Task\Crawler\Filter\PostFetch;
 
 use VDB\Spider\Filter\PostFetchFilterInterface;
@@ -18,7 +19,7 @@ class MaxContentSizeFilter implements PostFetchFilterInterface
      */
     public function __construct($maxFileSize = 0)
     {
-        $this->maxFileSize = (float) $maxFileSize;
+        $this->maxFileSize = (float)$maxFileSize;
     }
 
     /**
@@ -32,9 +33,9 @@ class MaxContentSizeFilter implements PostFetchFilterInterface
         $sizeMb = $size / 1024 / 1024;
 
         if ($this->maxFileSize == 0 || $sizeMb <= $this->maxFileSize) {
-            return FALSE;
+            return false;
         }
 
-        return TRUE;
+        return true;
     }
 }

@@ -91,7 +91,7 @@ class StoreHandler extends AbstractHandler
             $this->fileSystem->mkdir($to);
         }
 
-        $this->fileSystem->mirror($from, $to, null, ['override' => TRUE, 'delete' => TRUE]);
+        $this->fileSystem->mirror($from, $to, null, ['override' => true, 'delete' => true]);
 
     }
 
@@ -103,7 +103,7 @@ class StoreHandler extends AbstractHandler
             if (is_dir($file) and !in_array($file, ['..', '.'])) {
                 $this->removeFolder($file, $pattern);
                 rmdir($file);
-            } else if (is_file($file) and ($file != __FILE__)) {
+            } elseif (is_file($file) and ($file != __FILE__)) {
                 unlink($file);
             }
         }

@@ -20,15 +20,15 @@ class LuceneSearchExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        $loader = new YamlFileLoader($container, new FileLocator([__DIR__.'/../Resources/config']));
+        $loader = new YamlFileLoader($container, new FileLocator([__DIR__ . '/../Resources/config']));
         $loader->load('services.yml');
 
         $configManagerDefinition = $container->getDefinition(BundleConfiguration::class);
-        $configManagerDefinition->addMethodCall('setConfig', [ $config ]);
+        $configManagerDefinition->addMethodCall('setConfig', [$config]);
 
-        if(file_exists(BundleConfiguration::SYSTEM_CONFIG_FILE_PATH)) {
+        if (file_exists(BundleConfiguration::SYSTEM_CONFIG_FILE_PATH)) {
             $bundleConfig = Yaml::parse(file_get_contents(BundleConfiguration::SYSTEM_CONFIG_FILE_PATH));
-            $configManagerDefinition->addMethodCall('setSystemConfig', [ $bundleConfig ]);
+            $configManagerDefinition->addMethodCall('setSystemConfig', [$bundleConfig]);
         }
 
         $container->setParameter('lucene_search.categories', $config['categories']);

@@ -1,4 +1,5 @@
 <?php
+
 namespace LuceneSearchBundle\Event;
 
 final class Events

@@ -44,7 +44,7 @@ class ListController extends FrontendController
                 }
 
                 $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($this->query, 'utf-8');
-                $query->addSubquery($userQuery, TRUE);
+                $query->addSubquery($userQuery, true);
 
                 $this->addLanguageQuery($query);
                 $this->addCountryQuery($query);
@@ -83,7 +83,8 @@ class ListController extends FrontendController
                         }
 
                         if ($doc->getField('description')) {
-                            $searchResult['description'] = $this->highlighterHelper->getSummaryForUrl($doc->getField('description')->value, $this->untouchedQuery);
+                            $searchResult['description'] = $this->highlighterHelper->getSummaryForUrl($doc->getField('description')->value,
+                                $this->untouchedQuery);
                         }
 
                         if ($doc->getField('imageTags')) {
@@ -96,7 +97,7 @@ class ListController extends FrontendController
 
                     try {
                         $categories = $hit->getDocument()->getField('categories')->value;
-                        if(!empty($categories)) {
+                        if (!empty($categories)) {
                             $searchResult['categories'] = $this->mapCategories($categories);
                         }
                     } catch (\Zend_Search_Lucene_Exception $e) {
@@ -107,7 +108,7 @@ class ListController extends FrontendController
                 }
             }
 
-            $suggestions = FALSE;
+            $suggestions = false;
             if ($this->searchSuggestion && count($searchResults) === 0) {
                 $suggestions = $this->getFuzzySuggestions();
             }
@@ -148,7 +149,7 @@ class ListController extends FrontendController
         } catch (\Exception $e) {
 
             $viewParams = [
-                'error'        => TRUE,
+                'error'        => true,
                 'errorMessage' => $e->getMessage() . ' (' . $e->getFile() . ' Line: ' . $e->getLine() . ')',
             ];
 
@@ -183,11 +184,11 @@ class ListController extends FrontendController
             foreach ($terms as $term) {
                 $t = $term->text;
 
-                $hits = NULL;
+                $hits = null;
 
                 $query = new \Zend_Search_Lucene_Search_Query_Boolean();
                 $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($t, 'utf-8');
-                $query->addSubquery($userQuery, TRUE);
+                $query->addSubquery($userQuery, true);
 
                 $this->addLanguageQuery($query);
                 $this->addCategoryQuery($query);
@@ -221,16 +222,15 @@ class ListController extends FrontendController
         $categoryStore = [];
         $validCategories = $this->configuration->getCategories();
 
-        if(empty($validCategories)) {
+        if (empty($validCategories)) {
             return $categoryStore;
         }
 
         $categories = explode(',', $documentCategories);
 
-        foreach($categories as $categoryId)
-        {
+        foreach ($categories as $categoryId) {
             $key = array_search($categoryId, array_column($validCategories, 'id'));
-            if($key !== FALSE) {
+            if ($key !== false) {
                 $categoryStore[] = ['id' => $categoryId, 'label' => $validCategories[$key]['label']];
             }
         }

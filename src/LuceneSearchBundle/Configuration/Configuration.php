@@ -9,11 +9,11 @@ use Symfony\Component\Filesystem\Filesystem;
 class Configuration
 {
     const STATE_DEFAULT_VALUES = [
-        'forceStart' => FALSE,
-        'forceStop'  => FALSE,
-        'running'    => FALSE,
-        'started'    => NULL,
-        'finished'   => NULL
+        'forceStart' => false,
+        'forceStop'  => false,
+        'running'    => false,
+        'started'    => null,
+        'finished'   => null
     ];
 
     const SYSTEM_CONFIG_DIR_PATH = PIMCORE_PRIVATE_VAR . '/bundles/LuceneSearchBundle';
@@ -105,7 +105,7 @@ class Configuration
      *
      * @return mixed
      */
-    public function getSystemConfig($slot = NULL)
+    public function getSystemConfig($slot = null)
     {
         return $this->systemConfig[$slot];
     }
@@ -115,7 +115,7 @@ class Configuration
      *
      * @return mixed
      */
-    public function getStateConfig($slot = NULL)
+    public function getStateConfig($slot = null)
     {
         if (!$this->fileSystem->exists(Configuration::STATE_FILE_PATH)) {
             $content = serialize(Configuration::STATE_DEFAULT_VALUES);
@@ -125,7 +125,7 @@ class Configuration
         $data = file_get_contents(self::STATE_FILE_PATH);
         $arrayData = unserialize($data);
 
-        return $slot == NULL ? $arrayData : $arrayData[$slot];
+        return $slot == null ? $arrayData : $arrayData[$slot];
     }
 
     /**

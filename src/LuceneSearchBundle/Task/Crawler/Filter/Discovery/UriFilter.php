@@ -37,11 +37,11 @@ class UriFilter implements PreFetchFilterInterface
         foreach ($this->regexBag as $regex) {
             if (preg_match($regex, $uri->toString())) {
                 $this->notifyDispatcher($uri, 'uri.match.forbidden');
-                return TRUE;
+                return true;
             }
         }
 
-        return FALSE;
+        return false;
     }
 
 }

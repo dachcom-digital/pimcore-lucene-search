@@ -32,14 +32,16 @@ class HandlerDispatcher
     /**
      * @return StateHandler
      */
-    public function getStateHandler() {
+    public function getStateHandler()
+    {
         return $this->stateHandler;
     }
 
     /**
      * @return StoreHandler
      */
-    public function getStoreHandler() {
+    public function getStoreHandler()
+    {
         return $this->storeHandler;
     }
 

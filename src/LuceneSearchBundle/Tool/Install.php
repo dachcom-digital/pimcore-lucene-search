@@ -91,7 +91,7 @@ class Install extends AbstractInstaller
      */
     public function needsReloadAfterInstall()
     {
-        return FALSE;
+        return false;
     }
 
     /**
@@ -99,11 +99,11 @@ class Install extends AbstractInstaller
      */
     public function canBeUpdated()
     {
-        $needUpdate = FALSE;
+        $needUpdate = false;
         if ($this->fileSystem->exists(Configuration::SYSTEM_CONFIG_FILE_PATH)) {
             $config = Yaml::parse(file_get_contents(Configuration::SYSTEM_CONFIG_FILE_PATH));
-            if($config['version'] !== LuceneSearchBundle::BUNDLE_VERSION) {
-                $needUpdate = TRUE;
+            if ($config['version'] !== LuceneSearchBundle::BUNDLE_VERSION) {
+                $needUpdate = true;
             }
         }
 
@@ -115,7 +115,7 @@ class Install extends AbstractInstaller
      */
     private function installOrUpdateConfigFile()
     {
-        if(!$this->fileSystem->exists(Configuration::SYSTEM_CONFIG_DIR_PATH)) {
+        if (!$this->fileSystem->exists(Configuration::SYSTEM_CONFIG_DIR_PATH)) {
             $this->fileSystem->mkdir(Configuration::SYSTEM_CONFIG_DIR_PATH);
         }
 
@@ -151,30 +151,30 @@ class Install extends AbstractInstaller
             $this->fileSystem->mkdir(Configuration::INDEX_DIR_PATH_GENESIS, 0755);
         }
 
-        return TRUE;
+        return true;
     }
 
     public function installProperties()
     {
         $propertiesToInstall = [
             'assigned_language' => [
-                'name' => 'Assigned Language',
+                'name'        => 'Assigned Language',
                 'description' => 'Set a specific language which lucene search should respect while crawling.'
             ],
-            'assigned_country' => [
-                'name' => 'Assigned Country',
+            'assigned_country'  => [
+                'name'        => 'Assigned Country',
                 'description' => 'Set a specific country which lucene search should respect while crawling.'
             ]
         ];
 
-        foreach($propertiesToInstall as $propertyKey => $propertyData) {
+        foreach ($propertiesToInstall as $propertyKey => $propertyData) {
 
             $defProperty = Property\Predefined::getByKey($propertyKey);
 
             if (!$defProperty instanceof Property\Predefined) {
 
                 $data = 'all,';
-                if($propertyKey === 'assigned_language') {
+                if ($propertyKey === 'assigned_language') {
                     $languages = \Pimcore\Tool::getValidLanguages();
                     foreach ($languages as $language) {
                         $data .= $language . ',';
@@ -191,7 +191,7 @@ class Install extends AbstractInstaller
                 $property->setCtype('asset');
                 $property->setData('all');
                 $property->setConfig($data);
-                $property->setInheritable(FALSE);
+                $property->setInheritable(false);
                 $property->save();
             }
         }

@@ -24,7 +24,7 @@ class FileSerializedResourcePersistenceHandler extends FilePersistenceHandler im
             $path .= $this->defaultFilename;
         } else {
             $pathFragments = explode('/', $path);
-            if (strpos(end($pathFragments), '.') === FALSE) {
+            if (strpos(end($pathFragments), '.') === false) {
                 $path .= '/' . $this->defaultFilename;
             }
         }
@@ -39,7 +39,7 @@ class FileSerializedResourcePersistenceHandler extends FilePersistenceHandler im
     {
         $path = rtrim($this->getResultPath() . $this->getFileSystemPath($resource), '/');
         if (!is_dir($path)) {
-            mkdir($path, 0777, TRUE);
+            mkdir($path, 0777, true);
         }
 
         $file = new \SplFileObject($path . DIRECTORY_SEPARATOR . $this->getFileSystemFilename($resource), 'w');

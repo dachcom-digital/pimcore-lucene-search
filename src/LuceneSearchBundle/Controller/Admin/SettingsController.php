@@ -20,12 +20,9 @@ class SettingsController extends AdminController
         return $this->json(['logData' => $data]);
     }
 
-    /**
-     *
-     */
     public function getStateAction()
     {
-        $canStart = TRUE;
+        $canStart = true;
 
         /** @var Configuration $configManager */
         $configManager = $this->container->get(Configuration::class);
@@ -35,20 +32,20 @@ class SettingsController extends AdminController
 
         $configComplete = $stateHandler->getConfigCompletionState() === 'complete';
 
-        if ($configComplete === FALSE ||
+        if ($configComplete === false ||
             $currentState === StateHandler::CRAWLER_STATE_ACTIVE ||
-            $stateHandler->isCrawlerInForceStart() === TRUE
+            $stateHandler->isCrawlerInForceStart() === true
         ) {
-            $canStart = FALSE;
+            $canStart = false;
         }
 
-        $canStop = TRUE;
+        $canStop = true;
 
-        if ($configComplete === FALSE ||
+        if ($configComplete === false ||
             $currentState !== StateHandler::CRAWLER_STATE_ACTIVE ||
-            $stateHandler->isCrawlerInForceStop() === TRUE
+            $stateHandler->isCrawlerInForceStop() === true
         ) {
-            $canStop = FALSE;
+            $canStop = false;
         }
 
         return $this->json(
@@ -61,26 +58,20 @@ class SettingsController extends AdminController
         );
     }
 
-    /**
-     *
-     */
     public function startCrawlerAction()
     {
-        $stateHandler = $this->container->get(StateHandler::class);
-        $stateHandler->forceCrawlerStartOnNextMaintenance(TRUE);
+        $stateHandler = $this->get(StateHandler::class);
+        $stateHandler->forceCrawlerStartOnNextMaintenance(true);
 
-        return $this->json(['success' => TRUE]);
+        return $this->json(['success' => true]);
     }
 
-    /**
-     *
-     */
     public function stopCrawlerAction()
     {
-        $stateHandler = $this->container->get(StateHandler::class);
-        $stateHandler->stopCrawler(TRUE);
+        $stateHandler = $this->get(StateHandler::class);
+        $stateHandler->stopCrawler(true);
 
-        return $this->json(['success' => TRUE]);
+        return $this->json(['success' => true]);
     }
 
 }

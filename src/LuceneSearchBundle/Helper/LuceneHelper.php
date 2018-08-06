@@ -16,7 +16,7 @@ class LuceneHelper
      */
     public function fuzzyFindTerms($queryStr, $index, $prefixLength = 0, $similarity = 0.5)
     {
-        if ($index != NULL) {
+        if ($index != null) {
             \Zend_Search_Lucene_Search_Query_Fuzzy::setDefaultPrefixLength($prefixLength);
             $term = new \Zend_Search_Lucene_Index_Term($queryStr);
             $fuzzyQuery = new \Zend_Search_Lucene_Search_Query_Fuzzy($term, $similarity);
@@ -36,7 +36,7 @@ class LuceneHelper
      */
     public function wildcardFindTerms($queryStr, $index)
     {
-        if ($index != NULL) {
+        if ($index != null) {
             $pattern = new \Zend_Search_Lucene_Index_Term($queryStr . '*');
             $userQuery = new \Zend_Search_Lucene_Search_Query_Wildcard($pattern);
             \Zend_Search_Lucene_Search_Query_Wildcard::setMinPrefixLength(2);

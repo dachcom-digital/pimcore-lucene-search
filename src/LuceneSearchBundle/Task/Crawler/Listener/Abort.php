@@ -12,7 +12,7 @@ class Abort
     /**
      * @var null
      */
-    var $spider = NULL;
+    var $spider = null;
 
     /**
      * Abort constructor.
@@ -31,7 +31,10 @@ class Abort
     {
         if (!file_exists(Configuration::CRAWLER_PROCESS_FILE_PATH)) {
             $this->spider->getDispatcher()->dispatch(Events::LUCENE_SEARCH_CRAWLER_INTERRUPTED,
-                new GenericEvent($this, ['uri' => $event->getArgument('uri'), 'errorMessage' => 'crawling aborted by user (tmp file while crawling has suddenly gone.)']));
+                new GenericEvent($this, [
+                    'uri'          => $event->getArgument('uri'),
+                    'errorMessage' => 'crawling aborted by user (tmp file while crawling has suddenly gone.)'
+                ]));
         }
     }
 

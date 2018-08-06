@@ -9,7 +9,7 @@ class FilterPersistor
     /**
      * @var string
      */
-    private $db = NULL;
+    private $db = null;
 
     /**
      * @var array
@@ -21,7 +21,7 @@ class FilterPersistor
      */
     public $options = [
         'ext'               => '.tmp',
-        'cache'             => TRUE,
+        'cache'             => true,
         'swap_memory_limit' => 1048576
     ];
 
@@ -70,7 +70,7 @@ class FilterPersistor
 
             // Create database
             if (!file_exists($this->data['file'])) {
-                if (($fp = $this->openFile($this->data['file'], 'wb')) !== FALSE) {
+                if (($fp = $this->openFile($this->data['file'], 'wb')) !== false) {
                     @fclose($fp);
                     @chmod($this->data['file'], 0777);
                     clearstatcache();
@@ -110,17 +110,17 @@ class FilterPersistor
      */
     private function getKey($key)
     {
-        $data = FALSE;
+        $data = false;
 
-        if ($this->options['cache'] === TRUE && array_key_exists($key, $this->data['cache'])) {
+        if ($this->options['cache'] === true && array_key_exists($key, $this->data['cache'])) {
             return $this->data['cache'][$key];
         }
 
-        if (($fp = $this->openFile($this->data['file'], 'rb')) !== FALSE) {
+        if (($fp = $this->openFile($this->data['file'], 'rb')) !== false) {
 
             @flock($fp, LOCK_SH);
 
-            while (($line = fgets($fp)) !== FALSE) {
+            while (($line = fgets($fp)) !== false) {
 
                 $line = rtrim($line);
                 $pieces = explode('=', $line);
@@ -136,9 +136,9 @@ class FilterPersistor
 
                     $data = unserialize($data);
 
-                    $data = $this->preserveLines($data, TRUE);
+                    $data = $this->preserveLines($data, true);
 
-                    if ($this->options['cache'] === TRUE) {
+                    if ($this->options['cache'] === true) {
                         $this->data['cache'][$key] = $data;
                     }
 
@@ -164,51 +164,51 @@ class FilterPersistor
      */
     private function replaceKey($key, $data)
     {
-        $swap = TRUE;
+        $swap = true;
         $contents = '';
-        $origData = NULL;
+        $origData = null;
 
         if ($this->options['swap_memory_limit'] > 0) {
             clearstatcache();
             if (filesize($this->data['file']) <= $this->options['swap_memory_limit']) {
-                $swap = FALSE;
+                $swap = false;
             }
         }
 
-        if ($data !== FALSE) {
+        if ($data !== false) {
 
-            if ($this->options['cache'] === TRUE) {
+            if ($this->options['cache'] === true) {
                 $origData = $data;
             }
 
-            $data = $this->preserveLines($data, FALSE);
+            $data = $this->preserveLines($data, false);
             $data = serialize($data);
         }
 
         if ($swap) {
-            if (($tp = $this->openFile($this->data['file_tmp'], 'ab')) !== FALSE) {
+            if (($tp = $this->openFile($this->data['file_tmp'], 'ab')) !== false) {
                 @flock($tp, LOCK_EX);
             } else {
                 throw new \Exception('Could not create temporary database for ' . $this->db);
             }
         }
 
-        if (($fp = $this->openFile($this->data['file'], 'rb')) !== FALSE) {
+        if (($fp = $this->openFile($this->data['file'], 'rb')) !== false) {
 
             @flock($fp, LOCK_SH);
 
-            while (($line = fgets($fp)) !== FALSE) {
+            while (($line = fgets($fp)) !== false) {
 
                 $pieces = explode('=', $line);
                 if ($pieces[0] == $key) {
 
-                    if ($data === FALSE) {
+                    if ($data === false) {
                         continue;
                     }
 
                     $line = $key . '=' . $data . "\n";
 
-                    if ($this->options['cache'] === TRUE) {
+                    if ($this->options['cache'] === true) {
                         $this->data['cache'][$key] = $origData;
                     }
                 }
@@ -216,7 +216,7 @@ class FilterPersistor
                 if ($swap) {
 
                     $fwrite = @fwrite($tp, $line);
-                    if ($fwrite === FALSE) {
+                    if ($fwrite === false) {
                         throw new \Exception('Could not write to temporary database ' . $this->db);
                     }
 
@@ -244,7 +244,7 @@ class FilterPersistor
                 @chmod($this->data['file'], 0777);
             } else {
 
-                if (($fp = $this->openFile($this->data['file'], 'wb')) !== FALSE) {
+                if (($fp = $this->openFile($this->data['file'], 'wb')) !== false) {
 
                     @flock($fp, LOCK_EX);
                     $fwrite = @fwrite($fp, $contents);
@@ -253,7 +253,7 @@ class FilterPersistor
 
                     unset($contents);
 
-                    if ($fwrite === FALSE) {
+                    if ($fwrite === false) {
                         throw new \Exception('Could not write to database ' . $this->db);
                     }
                 } else {
@@ -264,7 +264,7 @@ class FilterPersistor
             throw new \Exception('Could not open database ' . $this->db);
         }
 
-        return TRUE;
+        return true;
     }
 
     /**
@@ -276,20 +276,20 @@ class FilterPersistor
      */
     private function setKey($key, $data)
     {
-        if ($this->getKey($key) !== FALSE) {
+        if ($this->getKey($key) !== false) {
             return $this->replaceKey($key, $data);
         }
 
-        $origData = NULL;
+        $origData = null;
 
-        if ($this->options['cache'] === TRUE) {
+        if ($this->options['cache'] === true) {
             $origData = $data;
         }
 
-        $data = $this->preserveLines($data, FALSE);
+        $data = $this->preserveLines($data, false);
         $data = serialize($data);
 
-        if (($fp = $this->openFile($this->data['file'], 'ab')) !== FALSE) {
+        if (($fp = $this->openFile($this->data['file'], 'ab')) !== false) {
 
             @flock($fp, LOCK_EX);
 
@@ -299,18 +299,18 @@ class FilterPersistor
             @flock($fp, LOCK_UN);
             @fclose($fp);
 
-            if ($fwrite === FALSE) {
+            if ($fwrite === false) {
                 throw new \Exception('Could not write to database ' . $this->db);
             }
 
-            if ($this->options['cache'] === TRUE) {
+            if ($this->options['cache'] === true) {
                 $this->data['cache'][$key] = $origData;
             }
         } else {
             throw new \Exception('Could not open database ' . $this->db);
         }
 
-        return TRUE;
+        return true;
     }
 
     /**
@@ -322,19 +322,19 @@ class FilterPersistor
      */
     private function deleteKey($key)
     {
-        if ($this->getKey($key) !== FALSE) {
+        if ($this->getKey($key) !== false) {
 
-            if ($this->replaceKey($key, FALSE)) {
+            if ($this->replaceKey($key, false)) {
 
-                if ($this->options['cache'] === TRUE && array_key_exists($key, $this->data['cache'])) {
+                if ($this->options['cache'] === true && array_key_exists($key, $this->data['cache'])) {
                     unset($this->data['cache'][$key]);
                 }
 
-                return TRUE;
+                return true;
             }
         }
 
-        return FALSE;
+        return false;
     }
 
     /**
@@ -343,18 +343,18 @@ class FilterPersistor
      */
     private function flushDatabase()
     {
-        if (($fp = $this->openFile($this->data['file'], 'wb')) !== FALSE) {
+        if (($fp = $this->openFile($this->data['file'], 'wb')) !== false) {
 
             @fclose($fp);
 
-            if ($this->options['cache'] === TRUE) {
+            if ($this->options['cache'] === true) {
                 $this->data['cache'] = [];
             }
         } else {
             throw new \Exception('Could not open database ' . $this->db);
         }
 
-        return TRUE;
+        return true;
     }
 
     /**
@@ -406,7 +406,7 @@ class FilterPersistor
             throw new \Exception('Invalid characters in key');
         }
 
-        return TRUE;
+        return true;
     }
 
     /**
@@ -421,7 +421,7 @@ class FilterPersistor
             throw new \Exception('Invalid data type');
         }
 
-        return TRUE;
+        return true;
     }
 
     /**
@@ -439,7 +439,7 @@ class FilterPersistor
             return $this->getKey($key);
         }
 
-        return FALSE;
+        return false;
     }
 
     /**
@@ -458,7 +458,7 @@ class FilterPersistor
             return $this->setKey($key, $data);
         }
 
-        return FALSE;
+        return false;
     }
 
     /**
@@ -476,11 +476,12 @@ class FilterPersistor
             return $this->deleteKey($key);
         }
 
-        return FALSE;
+        return false;
     }
 
     /**
      * Flush the database
+     *
      * @return boolean successful flush
      */
     public function flush()

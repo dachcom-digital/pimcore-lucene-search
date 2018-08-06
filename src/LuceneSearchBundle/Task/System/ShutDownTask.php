@@ -8,18 +8,18 @@ class ShutDownTask extends AbstractTask
 {
     public function isValid()
     {
-        return TRUE;
+        return true;
     }
 
     public function process($crawlData)
     {
         $this->logger->setPrefix('task.shutdown');
 
-        if($this->isLastCycle() === FALSE) {
-            return FALSE;
+        if ($this->isLastCycle() === false) {
+            return false;
         }
 
-        $this->logger->log('Stopping Crawling...', 'debug', FALSE, FALSE);
+        $this->logger->log('Stopping Crawling...', 'debug', false, false);
 
         $this->handlerDispatcher->getStoreHandler()->resetPersistenceStore();
         $this->handlerDispatcher->getStoreHandler()->resetUriFilterPersistenceStore();
@@ -28,6 +28,6 @@ class ShutDownTask extends AbstractTask
 
         $this->handlerDispatcher->getStateHandler()->stopCrawler();
 
-        return TRUE;
+        return true;
     }
 }

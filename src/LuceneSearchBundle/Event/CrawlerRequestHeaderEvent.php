@@ -20,9 +20,9 @@ class CrawlerRequestHeaderEvent extends Event
     {
         if (!isset($header['name'])) {
             throw new \Exception('lucene search crawler header property "name" missing');
-        } else if (!isset($header['value'])) {
+        } elseif (!isset($header['value'])) {
             throw new \Exception('lucene search crawler header property "value" missing');
-        } else if (!isset($header['identifier'])) {
+        } elseif (!isset($header['identifier'])) {
             throw new \Exception('lucene search crawler header property "identifier" missing');
         }
 

@@ -24,7 +24,7 @@ class HighlighterHelper
 
         $summary = $this->getHighlightedSummary($content, $queryElements);
 
-        if ($summary === FALSE) {
+        if ($summary === false) {
             return substr($content, 0, self::SUMMARY_LENGTH);
         }
 
@@ -42,25 +42,25 @@ class HighlighterHelper
     protected function findPosInSummary($text, $queryStr)
     {
         $pos = stripos($text, ' ' . $queryStr . ' ');
-        if ($pos === FALSE) {
+        if ($pos === false) {
             $pos = stripos($text, '"' . $queryStr . '"');
         }
-        if ($pos === FALSE) {
+        if ($pos === false) {
             $pos = stripos($text, '"' . $queryStr . '"');
         }
-        if ($pos === FALSE) {
+        if ($pos === false) {
             $pos = stripos($text, ' ' . $queryStr . '-');
         }
-        if ($pos === FALSE) {
+        if ($pos === false) {
             $pos = stripos($text, '-' . $queryStr . ' ');
         }
-        if ($pos === FALSE) {
+        if ($pos === false) {
             $pos = stripos($text, $queryStr . ' ');
         }
-        if ($pos === FALSE) {
+        if ($pos === false) {
             $pos = stripos($text, ' ' . $queryStr);
         }
-        if ($pos === FALSE) {
+        if ($pos === false) {
             $pos = stripos($text, $queryStr);
         }
 
@@ -77,19 +77,19 @@ class HighlighterHelper
      */
     protected function getHighlightedSummary($text, $queryTokens)
     {
-        $pos = FALSE;
+        $pos = false;
         $tokenInUse = $queryTokens[0];
 
         foreach ($queryTokens as $queryStr) {
             $tokenInUse = $queryStr;
             $pos = $this->findPosInSummary($text, $queryStr);
 
-            if ($pos !== FALSE) {
+            if ($pos !== false) {
                 break;
             }
         }
 
-        if ($pos !== FALSE) {
+        if ($pos !== false) {
             $start = $pos - 100;
 
             if ($start < 0) {
@@ -110,14 +110,17 @@ class HighlighterHelper
             $trimmedSummary = implode(' ', $tokens);
 
             foreach ($queryTokens as $queryStr) {
-                $trimmedSummary = preg_replace('@([ \'")(-:.,;])(' . $queryStr . ')([ \'")(-:.,;])@si', " <span class=\"highlight\">\\1\\2\\3</span>", $trimmedSummary);
-                $trimmedSummary = preg_replace('@^(' . $queryStr . ')([ \'")(-:.,;])@si', " <span class=\"highlight\">\\1\\2</span>", $trimmedSummary);
-                $trimmedSummary = preg_replace('@([ \'")(-:.,;])(' . $queryStr . ')$@si', " <span class=\"highlight\">\\1\\2</span>", $trimmedSummary);
+                $trimmedSummary = preg_replace('@([ \'")(-:.,;])(' . $queryStr . ')([ \'")(-:.,;])@si',
+                    " <span class=\"highlight\">\\1\\2\\3</span>", $trimmedSummary);
+                $trimmedSummary = preg_replace('@^(' . $queryStr . ')([ \'")(-:.,;])@si',
+                    " <span class=\"highlight\">\\1\\2</span>", $trimmedSummary);
+                $trimmedSummary = preg_replace('@([ \'")(-:.,;])(' . $queryStr . ')$@si',
+                    " <span class=\"highlight\">\\1\\2</span>", $trimmedSummary);
             }
 
-            return empty($trimmedSummary) ? FALSE : $trimmedSummary;
+            return empty($trimmedSummary) ? false : $trimmedSummary;
         }
 
-        return FALSE;
+        return false;
     }
 }

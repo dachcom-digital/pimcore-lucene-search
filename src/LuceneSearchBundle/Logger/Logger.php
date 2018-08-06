@@ -9,7 +9,7 @@ class Logger extends AbstractLogger
     /**
      * @var bool
      */
-    var $backendLog = TRUE;
+    var $backendLog = true;
 
     /**
      * @param      $message
@@ -19,13 +19,13 @@ class Logger extends AbstractLogger
      *
      * @return void
      */
-    public function log($message, $level = 'debug', $logToBackend = TRUE, $logToSystem = TRUE)
+    public function log($message, $level = 'debug', $logToBackend = true, $logToSystem = true)
     {
-        if ($logToSystem === TRUE) {
+        if ($logToSystem === true) {
             \Pimcore\Logger::log($this->getSystemPrefix() . $this->getPrefix() . $message, $this->getRealLevel($level));
         }
 
-        if ($logToBackend === TRUE) {
+        if ($logToBackend === true) {
             $file = Configuration::CRAWLER_LOG_FILE_PATH;
             $log = date('d.m.Y H:i') . '|' . $this->getRealLevel($level) . '|' . $message . "\n";
             file_put_contents($file, $log, FILE_APPEND);

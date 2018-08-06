@@ -90,7 +90,7 @@ abstract class AbstractTask implements TaskInterface
      *
      * @return void
      */
-    public function log($message, $level = 'debug', $logToBackend = TRUE, $logToSystem = TRUE)
+    public function log($message, $level = 'debug', $logToBackend = true, $logToSystem = true)
     {
         $this->logger->log($message, $level, $logToBackend, $logToSystem);
     }
@@ -98,21 +98,24 @@ abstract class AbstractTask implements TaskInterface
     /**
      * @param bool $isLastCycle
      */
-    public function setIsLastCycle($isLastCycle = FALSE) {
+    public function setIsLastCycle($isLastCycle = false)
+    {
         $this->isLastCycle = $isLastCycle;
     }
 
     /**
      * @return bool
      */
-    public function isLastCycle() {
+    public function isLastCycle()
+    {
         return $this->isLastCycle;
     }
 
     /**
      * @param bool $isLastTask
      */
-    public function setIsLastTask($isLastTask = FALSE) {
+    public function setIsLastTask($isLastTask = false)
+    {
         $this->isLastTask = $isLastTask;
 
     }
@@ -120,29 +123,32 @@ abstract class AbstractTask implements TaskInterface
     /**
      * @return bool
      */
-    public function isLastTask() {
+    public function isLastTask()
+    {
         return $this->isLastTask;
     }
-
 
     /**
      * @param bool $isFirstCycle
      */
-    public function setIsFirstCycle($isFirstCycle = FALSE) {
+    public function setIsFirstCycle($isFirstCycle = false)
+    {
         $this->isFirstCycle = $isFirstCycle;
     }
 
     /**
      * @return bool
      */
-    public function isFirstCycle() {
+    public function isFirstCycle()
+    {
         return $this->isFirstCycle;
     }
 
     /**
      * @param bool $isFirstTask
      */
-    public function setIsFirstTask($isFirstTask = FALSE) {
+    public function setIsFirstTask($isFirstTask = false)
+    {
         $this->isFirstTask = $isFirstTask;
 
     }
@@ -150,7 +156,8 @@ abstract class AbstractTask implements TaskInterface
     /**
      * @return bool
      */
-    public function isFirstTask() {
+    public function isFirstTask()
+    {
         return $this->isLastTask;
     }
 

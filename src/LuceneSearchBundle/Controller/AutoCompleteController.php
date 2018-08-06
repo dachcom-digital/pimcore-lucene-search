@@ -9,6 +9,7 @@ class AutoCompleteController extends FrontendController
 {
     /**
      * @param Request $request
+     *
      * @return JsonResponse
      * @throws \Exception
      * @throws \Zend_Search_Lucene_Exception

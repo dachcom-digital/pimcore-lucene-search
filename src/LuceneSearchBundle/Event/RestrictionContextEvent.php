@@ -7,6 +7,7 @@ use Symfony\Component\EventDispatcher\Event;
 /**
  * Use this event to check current frontend restriction context.
  * Class RestrictionContextEvent
+ *
  * @package LuceneSearchBundle\Event
  */
 class RestrictionContextEvent extends Event

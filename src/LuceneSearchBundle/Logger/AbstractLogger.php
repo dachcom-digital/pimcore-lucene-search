@@ -14,9 +14,9 @@ abstract class AbstractLogger
      *
      * @return void
      */
-    public function log($message, $level = 'debug', $logToBackend = TRUE, $logToSystem = TRUE)
+    public function log($message, $level = 'debug', $logToBackend = true, $logToSystem = true)
     {
-       \Pimcore\Logger::log($message, $level);
+        \Pimcore\Logger::log($message, $level);
     }
 
     /**

@@ -10,7 +10,7 @@ class CrawlerState
      */
     public function isLuceneSearchCrawler()
     {
-        $isLuceneSearch = FALSE;
+        $isLuceneSearch = false;
         $headers = $this->getHeaders();
 
         if (empty($headers)) {
@@ -20,7 +20,7 @@ class CrawlerState
         foreach ($headers as $name => $value) {
             if ($name === 'Lucene-Search') {
                 $pluginVersion = $value;
-                $isLuceneSearch = TRUE;
+                $isLuceneSearch = true;
                 break;
             }
         }

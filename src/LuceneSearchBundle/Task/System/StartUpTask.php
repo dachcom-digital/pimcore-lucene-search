@@ -10,19 +10,19 @@ class StartUpTask extends AbstractTask
     public function isValid()
     {
         //we're in a running cycle, don't interrupt.
-        if($this->isFirstCycle() === FALSE) {
-            return TRUE;
+        if ($this->isFirstCycle() === false) {
+            return true;
         }
 
         if ($this->handlerDispatcher->getStateHandler()->getCrawlerState() == StateHandler::CRAWLER_STATE_ACTIVE) {
-            if (isset($this->options['force']) && $this->options['force'] === TRUE) {
-                $this->handlerDispatcher->getStateHandler()->stopCrawler(TRUE);
+            if (isset($this->options['force']) && $this->options['force'] === true) {
+                $this->handlerDispatcher->getStateHandler()->stopCrawler(true);
             } else {
-                return FALSE;
+                return false;
             }
         }
 
-        return TRUE;
+        return true;
     }
 
     /**
@@ -34,11 +34,11 @@ class StartUpTask extends AbstractTask
     {
         $this->logger->setPrefix('task.startup');
 
-        if($this->isFirstCycle() === FALSE) {
-            return FALSE;
+        if ($this->isFirstCycle() === false) {
+            return false;
         }
 
-        $this->logger->log('start crawling...', 'debug', FALSE, FALSE);
+        $this->logger->log('start crawling...', 'debug', false, false);
 
         $this->handlerDispatcher->getStoreHandler()->resetGenesisIndex();
         $this->handlerDispatcher->getStoreHandler()->resetPersistenceStore();
@@ -47,6 +47,6 @@ class StartUpTask extends AbstractTask
 
         $this->handlerDispatcher->getStateHandler()->startCrawler();
 
-        return TRUE;
+        return true;
     }
 }

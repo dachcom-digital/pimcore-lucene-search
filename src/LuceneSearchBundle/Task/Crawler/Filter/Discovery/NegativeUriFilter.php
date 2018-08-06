@@ -36,12 +36,12 @@ class NegativeUriFilter implements PreFetchFilterInterface
     {
         foreach ($this->regexBag as $regex) {
             if (preg_match($regex, $uri->toString())) {
-                return FALSE;
+                return false;
             }
         }
 
         $this->notifyDispatcher($uri, 'uri.match.invalid');
 
-        return TRUE;
+        return true;
     }
 }

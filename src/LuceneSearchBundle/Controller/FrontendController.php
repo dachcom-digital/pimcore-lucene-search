@@ -43,18 +43,21 @@ class FrontendController extends PimcoreFrontEndController
 
     /**
      * category, to restrict query, incoming argument
+     *
      * @var array
      */
     protected $queryCategories = [];
 
     /**
      * query, incoming argument
+     *
      * @var String
      */
     protected $query = '';
 
     /**
      * query, incoming argument, unmodified
+     *
      * @var String
      */
     protected $untouchedQuery = '';
@@ -62,32 +65,32 @@ class FrontendController extends PimcoreFrontEndController
     /**
      * @var string
      */
-    protected $searchLanguage = NULL;
+    protected $searchLanguage = null;
 
     /**
      * @var string
      */
-    protected $searchCountry = NULL;
+    protected $searchCountry = null;
 
     /**
      * @var bool
      */
-    protected $checkRestriction = FALSE;
+    protected $checkRestriction = false;
 
     /**
      * @var bool
      */
-    protected $ownHostOnly = FALSE;
+    protected $ownHostOnly = false;
 
     /**
      * @var bool
      */
-    protected $fuzzySearchResults = FALSE;
+    protected $fuzzySearchResults = false;
 
     /**
      * @var bool
      */
-    protected $searchSuggestion = FALSE;
+    protected $searchSuggestion = false;
 
     /**
      * @var int
@@ -107,10 +110,10 @@ class FrontendController extends PimcoreFrontEndController
     /**
      * FrontendController constructor.
      *
-     * @param RequestStack    $requestStack
-     * @param Configuration   $configuration
-     * @param LuceneHelper    $luceneHelper
-     * @param StringHelper    $stringHelper
+     * @param RequestStack  $requestStack
+     * @param Configuration $configuration
+     * @param LuceneHelper  $luceneHelper
+     * @param StringHelper  $stringHelper
      *
      * @throws \Exception
      */
@@ -128,7 +131,7 @@ class FrontendController extends PimcoreFrontEndController
         $requestQuery = $this->requestStack->getMasterRequest()->query;
 
         if (!$this->configuration->getConfig('enabled')) {
-            return FALSE;
+            return false;
         }
 
         try {
@@ -152,7 +155,7 @@ class FrontendController extends PimcoreFrontEndController
             $viewConfig = $this->configuration->getConfig('view');
 
             //set Language
-            if ($localeConfig['ignore_language'] === FALSE) {
+            if ($localeConfig['ignore_language'] === false) {
                 $requestLang = $requestQuery->get('language');
 
                 //no language provided, try to get from requestStack.
@@ -174,41 +177,41 @@ class FrontendController extends PimcoreFrontEndController
             $queryCategories = $requestQuery->get('categories');
 
             if (!empty($queryCategories)) {
-                if(!is_array($queryCategories)) {
+                if (!is_array($queryCategories)) {
                     $queryCategories = [$queryCategories];
                 }
                 $this->queryCategories = array_map('intval', $queryCategories);
             }
 
             //Set Country
-            if ($localeConfig['ignore_country'] === FALSE) {
+            if ($localeConfig['ignore_country'] === false) {
                 $this->searchCountry = $requestQuery->get('country');
 
                 if ($this->searchCountry == 'global') {
                     $this->searchCountry = 'international';
-                } else if (empty($this->searchCountry)) {
+                } elseif (empty($this->searchCountry)) {
                     $this->searchCountry = 'international';
                 }
             } else {
-                $this->searchCountry = NULL;
+                $this->searchCountry = null;
             }
 
             //Set Restrictions (Auth)
-            $this->checkRestriction = $restrictionConfig['enabled'] === TRUE;
+            $this->checkRestriction = $restrictionConfig['enabled'] === true;
 
             //Set Fuzzy Search
-            if ($this->configuration->getConfig('fuzzy_search_results') === TRUE) {
-                $this->fuzzySearchResults = TRUE;
+            if ($this->configuration->getConfig('fuzzy_search_results') === true) {
+                $this->fuzzySearchResults = true;
             }
 
             //Set Search Suggestions
-            if ($this->configuration->getConfig('search_suggestion') === TRUE) {
-                $this->searchSuggestion = TRUE;
+            if ($this->configuration->getConfig('search_suggestion') === true) {
+                $this->searchSuggestion = true;
             }
 
             //Set own Host Only
-            if ($this->configuration->getConfig('own_host_only') === TRUE) {
-                $this->ownHostOnly = TRUE;
+            if ($this->configuration->getConfig('own_host_only') === true) {
+                $this->ownHostOnly = true;
             }
 
             //Set Entries per Page
@@ -239,13 +242,13 @@ class FrontendController extends PimcoreFrontEndController
     {
         $validHits = [];
 
-        if ($this->ownHostOnly && $queryHits !== NULL) {
+        if ($this->ownHostOnly && $queryHits !== null) {
             //get rid of hits from other hosts
             $currentHost = \Pimcore\Tool::getHostname();
 
             foreach ($queryHits as $hit) {
                 $url = $hit->getDocument()->getField('url');
-                if (strpos($url->value, '://' . $currentHost) !== FALSE) {
+                if (strpos($url->value, '://' . $currentHost) !== false) {
                     $validHits[] = $hit;
                 }
             }
@@ -271,7 +274,7 @@ class FrontendController extends PimcoreFrontEndController
             $country = str_replace(['_', '-'], '', $this->searchCountry);
             $countryQuery->addTerm(new \Zend_Search_Lucene_Index_Term($country, 'country'));
 
-            $query->addSubquery($countryQuery, TRUE);
+            $query->addSubquery($countryQuery, true);
         }
 
         return $query;
@@ -291,14 +294,14 @@ class FrontendController extends PimcoreFrontEndController
 
             foreach ($this->queryCategories as $categoryId) {
                 $key = array_search($categoryId, array_column($this->categories, 'id'));
-                if($key !== FALSE) {
-                    $categoryTerms[] = new \Zend_Search_Lucene_Index_Term(TRUE, 'category_' . $categoryId);
-                    $signs[] = NULL;
+                if ($key !== false) {
+                    $categoryTerms[] = new \Zend_Search_Lucene_Index_Term(true, 'category_' . $categoryId);
+                    $signs[] = null;
                 }
             }
 
             $categoryQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm($categoryTerms, $signs);
-            $query->addSubquery($categoryQuery, TRUE);
+            $query->addSubquery($categoryQuery, true);
         }
 
         return $query;
@@ -324,7 +327,7 @@ class FrontendController extends PimcoreFrontEndController
             $lang = strtolower(str_replace('_', '-', $lang));
             $languageQuery->addTerm(new \Zend_Search_Lucene_Index_Term($lang, 'lang'));
 
-            $query->addSubquery($languageQuery, TRUE);
+            $query->addSubquery($languageQuery, true);
         }
 
         return $query;
@@ -348,21 +351,21 @@ class FrontendController extends PimcoreFrontEndController
             $event
         );
 
-        $signs = [NULL];
+        $signs = [null];
         $restrictionTerms = [
-            new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_default')
+            new \Zend_Search_Lucene_Index_Term(true, 'restrictionGroup_default')
         ];
 
         $allowedGroups = $event->getAllowedRestrictionGroups();
         if (is_array($allowedGroups)) {
             foreach ($allowedGroups as $groupId) {
-                $restrictionTerms[] = new \Zend_Search_Lucene_Index_Term(TRUE, 'restrictionGroup_' . $groupId);
-                $signs[] = NULL;
+                $restrictionTerms[] = new \Zend_Search_Lucene_Index_Term(true, 'restrictionGroup_' . $groupId);
+                $signs[] = null;
             }
         }
 
         $restrictionQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm($restrictionTerms, $signs);
-        $query->addSubquery($restrictionQuery, TRUE);
+        $query->addSubquery($restrictionQuery, true);
 
         return $query;
     }

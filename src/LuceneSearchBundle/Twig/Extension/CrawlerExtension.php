@@ -15,6 +15,7 @@ class CrawlerExtension extends \Twig_Extension
     {
         $this->crawlerState = $crawlerState;
     }
+
     /**
      * {@inheritdoc}
      */

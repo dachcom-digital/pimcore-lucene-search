@@ -9,6 +9,7 @@ use Symfony\Component\EventDispatcher\GenericEvent;
 /**
  * Override the default class. just count links.
  * Class Statistics
+ *
  * @package LuceneSearch\Crawler\Event
  */
 class Statistics implements EventSubscriberInterface

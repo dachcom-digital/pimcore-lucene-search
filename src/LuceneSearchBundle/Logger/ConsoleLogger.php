@@ -9,7 +9,7 @@ class ConsoleLogger extends Logger
     /**
      * @var bool
      */
-    var $consoleOutput = FALSE;
+    var $consoleOutput = false;
 
     /**
      * @var int
@@ -33,7 +33,7 @@ class ConsoleLogger extends Logger
      *
      * @return void
      */
-    public function log($message, $level = 'debug', $logToBackend = TRUE, $logToSystem = TRUE)
+    public function log($message, $level = 'debug', $logToBackend = true, $logToSystem = true)
     {
         parent::log($message, $level, $logToBackend, $logToSystem);
         $this->addToConsoleLog($message, $level);
@@ -50,11 +50,11 @@ class ConsoleLogger extends Logger
     protected function addToConsoleLog($message, $level = 'debug')
     {
         if (!$this->consoleOutput instanceof Output\OutputInterface) {
-            return FALSE;
+            return false;
         }
 
         if ($this->verbosity !== Output\OutputInterface::VERBOSITY_VERBOSE) {
-            return FALSE;
+            return false;
         }
 
         $message = $this->getPrefix() . $message;
@@ -62,15 +62,15 @@ class ConsoleLogger extends Logger
         $debugLevel = 'fg=white';
         if ($level === 'debug') {
             $debugLevel = 'fg=white';
-        } else if ($level === 'debugHighlight') {
+        } elseif ($level === 'debugHighlight') {
             $debugLevel = 'comment';
-        } else if ($level === 'info') {
+        } elseif ($level === 'info') {
             $debugLevel = 'comment';
-        } else if ($level === 'error') {
+        } elseif ($level === 'error') {
             $debugLevel = 'error';
         }
 
-        $string = sprintf('<%s>' . str_replace('%', '%%',$message). '</%s>', $debugLevel, $debugLevel);
+        $string = sprintf('<%s>' . str_replace('%', '%%', $message) . '</%s>', $debugLevel, $debugLevel);
         $this->consoleOutput->writeln($string, $this->verbosity);
     }
 }
