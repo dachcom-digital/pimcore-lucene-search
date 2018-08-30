@@ -6,11 +6,12 @@ use LuceneSearchBundle\DependencyInjection\Compiler\CategoriesPass;
 use LuceneSearchBundle\DependencyInjection\Compiler\TaskPass;
 use LuceneSearchBundle\Tool\Install;
 use Pimcore\Extension\Bundle\AbstractPimcoreBundle;
+use Pimcore\Extension\Bundle\Traits\PackageVersionTrait;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class LuceneSearchBundle extends AbstractPimcoreBundle
 {
-    const BUNDLE_VERSION = '2.1.0';
+    use PackageVersionTrait;
 
     /**
      * @inheritDoc
@@ -19,14 +20,6 @@ class LuceneSearchBundle extends AbstractPimcoreBundle
     {
         $container->addCompilerPass(new TaskPass());
         $container->addCompilerPass(new CategoriesPass());
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getVersion()
-    {
-        return self::BUNDLE_VERSION;
     }
 
     /**
@@ -54,4 +47,13 @@ class LuceneSearchBundle extends AbstractPimcoreBundle
             '/bundles/lucenesearch/css/admin.css'
         ];
     }
+
+    /**
+     * @inheritDoc
+     */
+    protected function getComposerPackageName(): string
+    {
+        return 'dachcom-digital/lucene-search';
+    }
+
 }
