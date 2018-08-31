@@ -4,6 +4,7 @@ namespace LuceneSearchBundle\Tool;
 
 use LuceneSearchBundle\Configuration\Configuration;
 use LuceneSearchBundle\LuceneSearchBundle;
+use PackageVersions\Versions;
 use Pimcore\Extension\Bundle\Installer\AbstractInstaller;
 use Pimcore\Model\Property;
 use Symfony\Component\Filesystem\Filesystem;
@@ -27,6 +28,11 @@ class Install extends AbstractInstaller
     private $fileSystem;
 
     /**
+     * @var string
+     */
+    private $currentVersion;
+
+    /**
      * Install constructor.
      *
      */
@@ -36,6 +42,7 @@ class Install extends AbstractInstaller
 
         $this->installSourcesPath = __DIR__ . '/../Resources/install';
         $this->fileSystem = new Filesystem();
+        $this->currentVersion = Versions::getVersion(LuceneSearchBundle::PACKAGE_NAME);
     }
 
     /**
@@ -57,7 +64,7 @@ class Install extends AbstractInstaller
             $this->fileSystem->mkdir(Configuration::SYSTEM_CONFIG_DIR_PATH);
         }
 
-        $config = ['version' => LuceneSearchBundle::getPackageVersion()];
+        $config = ['version' => $this->currentVersion];
         $yml = Yaml::dump($config);
         file_put_contents(Configuration::SYSTEM_CONFIG_FILE_PATH, $yml);
 
@@ -195,7 +202,7 @@ class Install extends AbstractInstaller
         $needUpdate = false;
         if ($this->fileSystem->exists(Configuration::SYSTEM_CONFIG_FILE_PATH)) {
             $config = Yaml::parse(file_get_contents(Configuration::SYSTEM_CONFIG_FILE_PATH));
-            if ($config['version'] !== LuceneSearchBundle::getPackageVersion()) {
+            if ($config['version'] !== $this->currentVersion) {
                 $needUpdate = true;
             }
         }

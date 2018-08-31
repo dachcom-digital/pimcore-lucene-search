@@ -12,6 +12,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 class LuceneSearchBundle extends AbstractPimcoreBundle
 {
     use PackageVersionTrait;
+    const PACKAGE_NAME = 'dachcom-digital/lucene-search';
 
     /**
      * @inheritDoc
@@ -21,10 +22,7 @@ class LuceneSearchBundle extends AbstractPimcoreBundle
         $container->addCompilerPass(new TaskPass());
         $container->addCompilerPass(new CategoriesPass());
     }
-    public static function getSVersion() {
-        $temp = new self();
-        return $temp->getVersion();
-    }
+
     /**
      * {@inheritdoc}
      */
@@ -51,15 +49,12 @@ class LuceneSearchBundle extends AbstractPimcoreBundle
         ];
     }
 
-    public static function getPackageVersion(){
-        return PackageVersionTrait::getVersion(self::class);
-    }
     /**
      * @inheritDoc
      */
     protected function getComposerPackageName(): string
     {
-        return 'dachcom-digital/lucene-search';
+        return self::PACKAGE_NAME;
     }
 
 }
