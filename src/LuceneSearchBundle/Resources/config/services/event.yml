@@ -9,3 +9,7 @@ services:
     LuceneSearchBundle\EventListener\CrawlListener:
         tags:
             - { name: kernel.event_listener, event: pimcore.system.maintenance, method: run }
+
+    LuceneSearchBundle\EventListener\DocumentMetaDataListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest }

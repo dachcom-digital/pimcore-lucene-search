@@ -194,6 +194,8 @@ class ParserTask extends AbstractTask
         $hasCategories = $crawler->filterXpath('//meta[@name="lucene-search:categories"]')->count() > 0;
         $hasCustomMeta = $crawler->filterXpath('//meta[@name="lucene-search:meta"]')->count() > 0;
         $hasCustomBoostMeta = $crawler->filterXpath('//meta[@name="lucene-search:boost"]')->count() > 0;
+        $hasDocumentMeta = $crawler->filterXpath('//meta[@name="lucene-search:documentId"]')->count() > 0;
+        $hasObjectMeta = $crawler->filterXpath('//meta[@name="lucene-search:objectId"]')->count() > 0;
 
         $title = null;
         $description = null;
@@ -202,6 +204,8 @@ class ParserTask extends AbstractTask
         $categories = null;
         $country = null;
         $customBoost = 1;
+        $documentId = null;
+        $objectId = null;
 
         if ($hasTitle === true) {
             $title = $crawler->filterXpath('//title')->text();
@@ -229,6 +233,14 @@ class ParserTask extends AbstractTask
 
         if ($hasCustomBoostMeta === true) {
             $customBoost = (int)$crawler->filterXpath('//meta[@name="lucene-search:boost"]')->attr('content');
+        }
+
+        if ($hasDocumentMeta === true) {
+            $documentId = (int)$crawler->filterXpath('//meta[@name="lucene-search:documentId"]')->attr('content');
+        }
+
+        if ($hasObjectMeta === true) {
+            $objectId = (int)$crawler->filterXpath('//meta[@name="lucene-search:objectId"]')->attr('content');
         }
 
         $documentHasDelimiter = false;
@@ -283,7 +295,9 @@ class ParserTask extends AbstractTask
             'custom_meta'  => $customMeta,
             'encoding'     => $encoding,
             'host'         => $host,
-            'custom_boost' => $customBoost
+            'custom_boost' => $customBoost,
+            'document_id'  => $documentId,
+            'object_id'    => $objectId
         ];
 
         $this->addHtmlToIndex($html, $params);
@@ -548,7 +562,8 @@ class ParserTask extends AbstractTask
             'language'     => 'all',
             'country'      => 'all',
             'key'          => false,
-            'restrictions' => false
+            'restrictions' => false,
+            'id'           => false
         ];
 
         if (empty($link) || !is_string($link)) {
@@ -597,6 +612,7 @@ class ParserTask extends AbstractTask
         }
 
         $assetMetaData['key'] = $asset->getKey();
+        $assetMetaData['id'] = $asset->getId();
 
         return $assetMetaData;
     }
