@@ -2,6 +2,7 @@
 
 namespace LuceneSearchBundle\Task\Crawler;
 
+use GuzzleHttp\Client;
 use LuceneSearchBundle\Configuration\Configuration;
 use LuceneSearchBundle\Event\CrawlerRequestHeaderEvent;
 use LuceneSearchBundle\Event\Events;
@@ -104,6 +105,11 @@ class CrawlerTask extends AbstractTask
     protected $maxLinkDepth = 0;
 
     /**
+     * @var array
+     */
+    protected $clientOptions = [];
+
+    /**
      * @return bool
      */
     public function isValid()
@@ -124,6 +130,8 @@ class CrawlerTask extends AbstractTask
         $this->validMimeTypes = $this->configuration->getConfig('allowed_mime_types');
         $this->allowedSchemes = $this->configuration->getConfig('allowed_schemes');
         $this->downloadLimit = $crawlerConfig['max_download_limit'];
+
+        $this->clientOptions = ['allow_redirects' => false];
 
         $this->seed = $this->options['iterator'];
 
@@ -166,7 +174,7 @@ class CrawlerTask extends AbstractTask
         $start = microtime(true);
 
         try {
-            $spider = new Spider($this->seed);
+            $spider = $this->initializeSpider();
         } catch (\Exception $e) {
             $this->log('error: ' . $e->getMessage(), 'error');
             return false;
@@ -298,5 +306,17 @@ class CrawlerTask extends AbstractTask
                 return $request->withHeader($headerElement['name'], $headerElement['value']);
             }), $headerElement['identifier']);
         }
+    }
+
+    /**
+     * @return Spider
+     */
+    private function initializeSpider()
+    {
+        $spider = new Spider($this->seed);
+        $guzzleClient = new Client($this->clientOptions);
+        $spider->getDownloader()->getRequestHandler()->setClient($guzzleClient);
+
+        return $spider;
     }
 }
