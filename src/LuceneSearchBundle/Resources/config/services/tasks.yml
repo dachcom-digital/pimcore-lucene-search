@@ -34,6 +34,8 @@ services:
         public: false
         tags:
             - { name: lucene_search.task, priority: 40 }
+        calls:
+            - ['setEventListener', ['@event_dispatcher']]
 
     LuceneSearchBundle\Task\System\ShutDownTask:
         parent: LuceneSearchBundle\Task\AbstractTask

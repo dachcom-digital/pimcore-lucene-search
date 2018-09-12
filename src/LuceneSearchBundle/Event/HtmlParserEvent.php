@@ -6,7 +6,6 @@ use Symfony\Component\EventDispatcher\Event;
 
 class HtmlParserEvent extends Event
 {
-
     /**
      * @var \Zend_Search_Lucene_Document
      */
@@ -22,11 +21,28 @@ class HtmlParserEvent extends Event
      */
     private $params;
 
+    /**
+     * HtmlParserEvent constructor.
+     *
+     * @param \Zend_Search_Lucene_Document $document
+     * @param                              $html
+     * @param                              $params
+     */
     public function __construct(\Zend_Search_Lucene_Document $document, $html, $params)
     {
         $this->document = $document;
         $this->html = $html;
         $this->params = $params;
+    }
+
+    /**
+     * @param \Zend_Search_Lucene_Document $document
+     *
+     * @return \Zend_Search_Lucene_Document
+     */
+    public function setDocument(\Zend_Search_Lucene_Document $document)
+    {
+        return $this->document = $document;
     }
 
     /**
@@ -52,5 +68,4 @@ class HtmlParserEvent extends Event
     {
         return $this->params;
     }
-
 }

@@ -2,6 +2,7 @@
 
 namespace LuceneSearchBundle\Task;
 
+use LuceneSearchBundle\Doctrine\DBAL\ConnectionKeepAlive;
 use LuceneSearchBundle\Logger\AbstractLogger;
 
 class TaskManager
@@ -9,17 +10,22 @@ class TaskManager
     /**
      * @var array
      */
-    private $tasks;
+    protected $tasks;
 
     /**
      * @var
      */
-    public $logger;
+    protected $logger;
 
     /**
      * @var
      */
-    public $taskIterators = [];
+    protected $taskIterators = [];
+
+    /**
+     * @var ConnectionKeepAlive
+     */
+    protected $keepAlive;
 
     /**
      * TaskManager constructor.
@@ -30,7 +36,8 @@ class TaskManager
     }
 
     /**
-     * @param AbstractTask $task
+     * @param $task
+     * @param $id
      */
     public function addTask($task, $id)
     {
@@ -56,7 +63,6 @@ class TaskManager
     /**
      * @param array $options
      *
-     * @return bool
      * @throws \Exception
      */
     public function processTaskChain($options = [])
@@ -66,6 +72,8 @@ class TaskManager
         if (empty($this->taskIterators)) {
             throw new \Exception('no valid task iterators defined!');
         }
+
+        $this->bootChain();
 
         foreach ($this->taskIterators as $iteratorIndex => $iterator) {
 
@@ -86,12 +94,27 @@ class TaskManager
                     $taskClass->setLogger($this->logger);
                     $processData = $taskClass->process($processData);
                 } else {
+                    $this->shutDownChain();
                     $this->logger->log('There was an error while processing task (' . $task['id'] . '). please check your logs.');
                     exit;
                 }
             }
         }
 
-        return true;
+        $this->shutDownChain();
+    }
+
+    private function bootChain()
+    {
+        \Pimcore::collectGarbage();
+
+        $this->keepAlive = new ConnectionKeepAlive();
+        $this->keepAlive->addConnection(\Pimcore\Db::getConnection());
+        $this->keepAlive->attach();
+    }
+
+    private function shutDownChain()
+    {
+        $this->keepAlive->detach();
     }
 }

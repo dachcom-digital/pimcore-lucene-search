@@ -9,6 +9,7 @@ use LuceneSearchBundle\Task\AbstractTask;
 use LuceneSearchBundle\Configuration\Configuration;
 use Pimcore\Document\Adapter\Ghostscript;
 use Pimcore\Model\Asset;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use VDB\Spider\Resource;
 
 class ParserTask extends AbstractTask
@@ -69,6 +70,19 @@ class ParserTask extends AbstractTask
     protected $checkRestrictions = false;
 
     /**
+     * @var EventDispatcherInterface
+     */
+    protected $eventDispatcher;
+
+    /**
+     * @param EventDispatcherInterface $eventDispatcher
+     */
+    public function setEventListener(EventDispatcherInterface $eventDispatcher)
+    {
+        $this->eventDispatcher = $eventDispatcher;
+    }
+
+    /**
      * @return bool
      */
     public function isValid()
@@ -101,8 +115,6 @@ class ParserTask extends AbstractTask
         $this->logger->setPrefix('task.parser');
 
         $this->checkAndPrepareIndex();
-
-        \Pimcore\Db::reset();
 
         foreach ($crawlData as $resource) {
             if ($resource instanceof Resource) {
@@ -406,10 +418,12 @@ class ParserTask extends AbstractTask
                 }
 
                 $parserEvent = new PdfParserEvent($doc, $fileContent, $assetMeta, $params);
-                \Pimcore::getEventDispatcher()->dispatch(
+                $this->eventDispatcher->dispatch(
                     'lucene_search.task.parser.pdf_parser',
                     $parserEvent
                 );
+
+                $doc = $parserEvent->getDocument();
 
                 $this->addDocumentToIndex($doc);
             } catch (\Exception $e) {
@@ -487,8 +501,7 @@ class ParserTask extends AbstractTask
 
             $doc->addField(\Zend_Search_Lucene_Field::Text('title', $params['title'], $params['encoding']));
             $doc->addField(\Zend_Search_Lucene_Field::Text('description', $params['description'], $params['encoding']));
-            $doc->addField(\Zend_Search_Lucene_Field::Text('customMeta', strip_tags($params['custom_meta']),
-                $params['encoding']));
+            $doc->addField(\Zend_Search_Lucene_Field::Text('customMeta', strip_tags($params['custom_meta']), $params['encoding']));
 
             $doc->addField(\Zend_Search_Lucene_Field::Text('content', $content, $params['encoding']));
             $doc->addField(\Zend_Search_Lucene_Field::Text('imageTags', join(',', $tags)));
@@ -526,10 +539,12 @@ class ParserTask extends AbstractTask
             }
 
             $parserEvent = new HtmlParserEvent($doc, $html, $params);
-            \Pimcore::getEventDispatcher()->dispatch(
+            $this->eventDispatcher->dispatch(
                 'lucene_search.task.parser.html_parser',
                 $parserEvent
             );
+
+            $doc = $parserEvent->getDocument();
 
             $this->addDocumentToIndex($doc);
         } catch (\Exception $e) {
@@ -577,7 +592,7 @@ class ParserTask extends AbstractTask
         if ($this->checkRestrictions === true) {
 
             $event = new AssetResourceRestrictionEvent($resource);
-            \Pimcore::getEventDispatcher()->dispatch(
+            $this->eventDispatcher->dispatch(
                 'lucene_search.task.parser.asset_restriction',
                 $event
             );
