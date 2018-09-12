@@ -12,7 +12,6 @@ use LuceneSearchBundle\Task\Crawler\Filter\PostFetch;
 use LuceneSearchBundle\Task\Crawler\Event\Logger;
 use LuceneSearchBundle\Task\Crawler\Event\Statistics;
 use LuceneSearchBundle\Task\Crawler\PersistenceHandler;
-
 use Psr\Http\Message\RequestInterface;
 use VDB\Spider\Spider;
 use VDB\Spider\QueueManager;
@@ -97,7 +96,7 @@ class CrawlerTask extends AbstractTask
     /**
      * @var bool
      */
-    protected $allowSubDomains = false;
+    protected $ownHostOnly = true;
 
     /**
      * @var int
@@ -109,8 +108,6 @@ class CrawlerTask extends AbstractTask
      */
     public function isValid()
     {
-        $this->allowSubDomains = false;
-
         $filterLinks = $this->configuration->getConfig('filter');
         $crawlerConfig = $this->configuration->getConfig('crawler');
 
@@ -123,6 +120,7 @@ class CrawlerTask extends AbstractTask
         $this->invalidLinks = $this->getInvalidLinks();
         $this->contentMaxSize = $crawlerConfig['content_max_size'];
 
+        $this->ownHostOnly = $this->configuration->getConfig('own_host_only');
         $this->validMimeTypes = $this->configuration->getConfig('allowed_mime_types');
         $this->allowedSchemes = $this->configuration->getConfig('allowed_schemes');
         $this->downloadLimit = $crawlerConfig['max_download_limit'];
@@ -193,7 +191,10 @@ class CrawlerTask extends AbstractTask
         $spider->getDiscovererSet()->set(new XPathExpressionDiscoverer("//link[@hreflang]|//a[not(@rel='nofollow')]"));
 
         $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\AllowedSchemeFilter($this->allowedSchemes));
-        $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\AllowedHostsFilter([$this->seed], $this->allowSubDomains));
+
+        if ($this->ownHostOnly === true) {
+            $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\AllowedHostsFilter([$this->seed], true));
+        }
 
         if ($this->allowHashInUrl === false) {
             $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\UriWithHashFragmentFilter());

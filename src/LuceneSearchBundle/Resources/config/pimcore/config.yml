@@ -5,7 +5,7 @@ lucene_search:
     fuzzy_search_results: false
     search_suggestion: true
 
-    own_host_only: false
+    own_host_only: true
 
     seeds: []
     categories: ~

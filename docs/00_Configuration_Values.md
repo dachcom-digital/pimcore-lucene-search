@@ -7,7 +7,7 @@ Here you'll find all the configuration possibilities, default values and also so
 | enabled | bool | false | Enable and configure the search frontend if you want to include a full text search on your website. |
 | fuzzy_search_results | bool | false | Fuzzy search results: When enabled, a fuzzy search is performed. The search will automatically include related terms. |
 | search_suggestion | bool | true | Search suggestions: When enabled, a fuzzy search for similar search terms is performed. If no results could be found for the search term entered by the user, similar search terms are presented as suggestions. |
-| own_host_only | bool | false | Own Host only: Check to limit search results to results from the current (sub-)domain only. |
+| own_host_only | bool | true | Own Host only: Check to limit search results to results from the current seed (sub-)domain only. |
 | seeds | array | [] | Start-Urls (Seeds): Specify start URLs for the crawler. Please enter with protocol! e.g. http://www.pimcore.org and enter a starting URL on your main domain first and any subdomains next, because the domain of the first URL will be used as the main domain for sitemap generation. |
 | categories | service | ~ | If search results should be displayed by categories, please enter all valid categories here. The crawler sorts a page into a category if it contains a html meta tag with the name "lucene-search:categories". |
 | filter:allow_query_in_url | bool | false | When checked, LuceneSearch will crawl urls with query fragments. |
