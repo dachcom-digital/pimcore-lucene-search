@@ -1,5 +1,7 @@
 <?php
 
+declare (ticks=1);
+
 namespace LuceneSearchBundle\Task;
 
 use LuceneSearchBundle\Configuration\Configuration;
@@ -8,6 +10,13 @@ use LuceneSearchBundle\Organizer\Dispatcher\HandlerDispatcher;
 
 abstract class AbstractTask implements TaskInterface
 {
+    /**
+     * Used for logging identification
+     *
+     * @var string
+     */
+    protected $prefix = 'task.abstract';
+
     /**
      * @var Configuration
      */
@@ -19,12 +28,12 @@ abstract class AbstractTask implements TaskInterface
     protected $handlerDispatcher;
 
     /**
-     * AbstractLogger
+     * @var AbstractLogger
      */
     protected $logger;
 
     /**
-     * array
+     * @var array
      */
     protected $options;
 
@@ -93,6 +102,32 @@ abstract class AbstractTask implements TaskInterface
     public function log($message, $level = 'debug', $logToBackend = true, $logToSystem = true)
     {
         $this->logger->log($message, $level, $logToBackend, $logToSystem);
+    }
+
+    /**
+     * Add Signal Listener to allow task cancellation and clean up
+     */
+    public function addSignalListener()
+    {
+        if (php_sapi_name() === 'cli') {
+            if (function_exists('pcntl_signal')) {
+                pcntl_signal(SIGTERM, [$this, 'handleCliSignal']);
+                pcntl_signal(SIGINT, [$this, 'handleCliSignal']);
+                pcntl_signal(SIGHUP, [$this, 'handleCliSignal']);
+                pcntl_signal(SIGQUIT, [$this, 'handleCliSignal']);
+            }
+        }
+    }
+
+    /**
+     * Simple kill process if no callback has been defined.
+     *
+     * @param null $signo
+     */
+    public function handleCliSignal($signo = null)
+    {
+        $this->log(sprintf('[task.%s] has been interrupted by signal (%s).', $this->prefix, $signo), 'debugHighlight');
+        exit;
     }
 
     /**

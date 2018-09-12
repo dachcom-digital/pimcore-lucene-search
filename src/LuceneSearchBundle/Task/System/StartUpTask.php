@@ -7,6 +7,14 @@ use LuceneSearchBundle\Task\AbstractTask;
 
 class StartUpTask extends AbstractTask
 {
+    /**
+     * @var string
+     */
+    protected $prefix = 'task.startup';
+
+    /**
+     * @return bool
+     */
     public function isValid()
     {
         //we're in a running cycle, don't interrupt.
@@ -32,7 +40,7 @@ class StartUpTask extends AbstractTask
      */
     public function process($crawlData)
     {
-        $this->logger->setPrefix('task.startup');
+        $this->logger->setPrefix($this->prefix);
 
         if ($this->isFirstCycle() === false) {
             return false;

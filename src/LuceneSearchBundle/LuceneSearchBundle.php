@@ -12,6 +12,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 class LuceneSearchBundle extends AbstractPimcoreBundle
 {
     use PackageVersionTrait;
+
     const PACKAGE_NAME = 'dachcom-digital/lucene-search';
 
     /**
@@ -32,7 +33,7 @@ class LuceneSearchBundle extends AbstractPimcoreBundle
     }
 
     /**
-     * @return string[]
+     * {@inheritdoc}
      */
     public function getJsPaths()
     {
@@ -42,6 +43,9 @@ class LuceneSearchBundle extends AbstractPimcoreBundle
         ];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getCssPaths()
     {
         return [

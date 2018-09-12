@@ -25,7 +25,12 @@ use GuzzleHttp\Middleware;
 class CrawlerTask extends AbstractTask
 {
     /**
-     * @var array
+     * @var string
+     */
+    protected $prefix = 'task.crawler';
+
+    /**
+     * @var string
      */
     protected $seed;
 
@@ -158,14 +163,13 @@ class CrawlerTask extends AbstractTask
      */
     public function process($previousData)
     {
-        $this->logger->setPrefix('task.crawler');
+        $this->logger->setPrefix($this->prefix);
 
         $start = microtime(true);
 
         try {
             $spider = new Spider($this->seed);
         } catch (\Exception $e) {
-
             $this->log('error: ' . $e->getMessage(), 'error');
             return false;
         }

@@ -15,12 +15,17 @@ use VDB\Spider\Resource;
 class ParserTask extends AbstractTask
 {
     /**
-     * @var \Zend_Search_Lucene
+     * @var string
      */
-    protected $index = null;
+    protected $prefix = 'task.parser';
 
     /**
-     * @var
+     * @var \Zend_Search_Lucene
+     */
+    protected $index;
+
+    /**
+     * @var string
      */
     protected $assetTmpDir;
 
@@ -112,16 +117,16 @@ class ParserTask extends AbstractTask
      */
     public function process($crawlData)
     {
-        $this->logger->setPrefix('task.parser');
+        $this->logger->setPrefix($this->prefix);
 
+        $this->addSignalListener();
         $this->checkAndPrepareIndex();
 
         foreach ($crawlData as $resource) {
             if ($resource instanceof Resource) {
                 $this->parseResponse($resource);
             } else {
-                $this->log('crawler resource not a instance of \VDB\Spider\Resource. Given type: ' . gettype($resource),
-                    'notice');
+                $this->log('crawler resource not a instance of \VDB\Spider\Resource. Given type: ' . gettype($resource), 'notice');
             }
         }
 
@@ -157,8 +162,8 @@ class ParserTask extends AbstractTask
     }
 
     /**
-     * @param Resource             $resource
-     * @param                      $host
+     * @param Resource $resource
+     * @param string   $host
      *
      * @return bool
      */
@@ -321,7 +326,7 @@ class ParserTask extends AbstractTask
 
     /**
      * @param Resource $resource
-     * @param          $host
+     * @param string   $host
      *
      * @return bool
      */
@@ -791,9 +796,6 @@ class ParserTask extends AbstractTask
         return $data;
     }
 
-    /**
-     *
-     */
     protected function checkAndPrepareIndex()
     {
         if (!$this->index) {
@@ -817,10 +819,7 @@ class ParserTask extends AbstractTask
         }
     }
 
-    /**
-     *
-     */
-    public function optimizeIndex()
+    protected function optimizeIndex()
     {
         // optimize lucene index for better performance
         $this->index->optimize();
