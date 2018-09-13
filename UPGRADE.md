@@ -1,7 +1,8 @@
 # Upgrade Notes
 
 #### Update from Version 2.1.0 to Version 2.1.1
-- implemented [PackageVersionTrait](https://github.com/pimcore/pimcore/blob/master/lib/Extension/Bundle/Traits/PackageVersionTrait.php)
+- Implemented [PackageVersionTrait](https://github.com/pimcore/pimcore/blob/master/lib/Extension/Bundle/Traits/PackageVersionTrait.php)
+- Various bug fixes ([Milestone](https://github.com/dachcom-digital/pimcore-lucene-search/milestone/5?closed=1))
 
 #### Update from Version 2.0.x to Version 2.1.0
 - **[REMOVED FEATURE]**: The SiteMap Feature has been removed. Please remove the `lucene_search.sitemap.render` config element **before** updating!
