@@ -95,6 +95,10 @@ class StoreHandler extends AbstractHandler
 
     }
 
+    /**
+     * @param        $path
+     * @param string $pattern
+     */
     private function removeFolder($path, $pattern = '*')
     {
         $files = glob($path . "/$pattern");

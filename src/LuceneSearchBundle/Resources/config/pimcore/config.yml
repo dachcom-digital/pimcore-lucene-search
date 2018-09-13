@@ -6,6 +6,7 @@ lucene_search:
     search_suggestion: true
 
     own_host_only: true
+    allow_subdomains: false
 
     seeds: []
     categories: ~

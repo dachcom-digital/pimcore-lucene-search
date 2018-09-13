@@ -100,6 +100,11 @@ class CrawlerTask extends AbstractTask
     protected $ownHostOnly = true;
 
     /**
+     * @var bool
+     */
+    protected $allowSubDomains = false;
+
+    /**
      * @var int
      */
     protected $maxLinkDepth = 0;
@@ -127,6 +132,7 @@ class CrawlerTask extends AbstractTask
         $this->contentMaxSize = $crawlerConfig['content_max_size'];
 
         $this->ownHostOnly = $this->configuration->getConfig('own_host_only');
+        $this->allowSubDomains = $this->configuration->getConfig('allow_subdomains');
         $this->validMimeTypes = $this->configuration->getConfig('allowed_mime_types');
         $this->allowedSchemes = $this->configuration->getConfig('allowed_schemes');
         $this->downloadLimit = $crawlerConfig['max_download_limit'];
@@ -201,7 +207,7 @@ class CrawlerTask extends AbstractTask
         $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\AllowedSchemeFilter($this->allowedSchemes));
 
         if ($this->ownHostOnly === true) {
-            $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\AllowedHostsFilter([$this->seed], true));
+            $spider->getDiscovererSet()->addFilter(new Filter\Prefetch\AllowedHostsFilter([$this->seed], $this->allowSubDomains));
         }
 
         if ($this->allowHashInUrl === false) {

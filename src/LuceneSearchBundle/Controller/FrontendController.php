@@ -85,6 +85,11 @@ class FrontendController extends PimcoreFrontEndController
     /**
      * @var bool
      */
+    protected $allowSubDomains = false;
+
+    /**
+     * @var bool
+     */
     protected $fuzzySearchResults = false;
 
     /**
@@ -214,6 +219,11 @@ class FrontendController extends PimcoreFrontEndController
                 $this->ownHostOnly = true;
             }
 
+            //Set subdomain restriction
+            if ($this->configuration->getConfig('allow_subdomains') === true) {
+                $this->allowSubDomains = true;
+            }
+
             //Set Entries per Page
             $this->perPage = $viewConfig['max_per_page'];
             if (!empty($requestQuery->get('perPage'))) {
@@ -242,18 +252,35 @@ class FrontendController extends PimcoreFrontEndController
     {
         $validHits = [];
 
-        if ($this->ownHostOnly && $queryHits !== null) {
-            //get rid of hits from other hosts
-            $currentHost = \Pimcore\Tool::getHostname();
-
-            foreach ($queryHits as $hit) {
-                $url = $hit->getDocument()->getField('url');
-                if (strpos($url->value, '://' . $currentHost) !== false) {
-                    $validHits[] = $hit;
-                }
-            }
-        } else {
+        if ($this->ownHostOnly === false || $queryHits === null) {
             $validHits = $queryHits;
+            return $validHits;
+        }
+
+        $currentHost = \Pimcore\Tool::getHostname();
+
+        $allowedHosts = [];
+
+        if ($this->allowSubDomains === true) {
+            // only use hostname.tld for comparison
+            $allowedHosts[] = join('.', array_slice(explode('.', $currentHost), -2));
+        } else {
+            // user entire *.hostname.tld for comparison
+            $allowedHosts[] = $currentHost;
+        }
+
+        /** @var \Zend_Search_Lucene_Search_QueryHit $hit */
+        foreach ($queryHits as $hit) {
+            $url = $hit->getDocument()->getField('url');
+            $currentHostname = parse_url($url->value, PHP_URL_HOST);
+
+            if ($this->allowSubDomains) {
+                $currentHostname = join('.', array_slice(explode('.', $currentHostname), -2));
+            }
+
+            if (in_array($currentHostname, $allowedHosts)) {
+                $validHits[] = $hit;
+            }
         }
 
         return $validHits;
