@@ -9,6 +9,13 @@ For that we're providing a `DocumentModifier` which allows you to:
 - mark Lucene-Document as unavailable
 - mark Lucene-Document as deleted (remove from index unrecoverable)
 
+## Warning!
+Currently it's not possible to re-add fields with type `\Zend_Search_Lucene_Field::unStored` since they are not available in the query document!
+If you're changing the availability of documents with `Unstored` fields, they're gone after updating!
+Read more about field types [here](https://framework.zend.com/manual/1.10/en/zend.search.lucene.overview.html#zend.search.lucene.index-creation.understanding-field-types).
+
+## Implementation
+
 ```yaml
 AppBundle\EventListener\IndexManipulator:
     autowire: true
