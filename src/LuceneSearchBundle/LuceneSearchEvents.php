@@ -36,6 +36,12 @@ final class LuceneSearchEvents
     const LUCENE_SEARCH_FRONTEND_RESTRICTION_CONTEXT  = 'lucene_search.frontend.restriction_context';
 
     /**
+     * Triggers if a document gets modified during index manipulation (change availability for example).
+     * Use it if you need to add additional data which can't be handled during the modification (document or field boost, re-adding of unStored fields)
+     */
+    const LUCENE_SEARCH_DOCUMENT_MODIFICATION = 'lucene_search.modifier.document';
+
+    /**
      * @internal
      *
      * Triggers if the crawl task stops via command line cancelling signal

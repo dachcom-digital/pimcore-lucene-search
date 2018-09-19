@@ -10,9 +10,21 @@ For that we're providing a `DocumentModifier` which allows you to:
 - mark Lucene-Document as deleted (remove from index unrecoverable)
 
 ## Warning!
+There are some limitations while changing lucene documents. 
+If we change the availability of documents, we can't just update an existing document
+since Zend Lucene does not allow us to modify exiting documents. Instead we need to add them as new documents.
+Read more about it [here](https://framework.zend.com/manual/1.12/en/zend.search.lucene.index-creation.html#zend.search.lucene.index-creation.document-updating).
+
+### Boost
+Because of complex lucene indexing strategies, it's not possible to re-gather the boost factor of documents **and** fields.
+So you need to hook into the `lucene_search.modifier.document` event and add those boost values again.
+
+### UnStored Fields
 Currently it's not possible to re-add fields with type `\Zend_Search_Lucene_Field::unStored` since they are not available in the query document!
 If you're changing the availability of documents with `Unstored` fields, they're gone after updating!
 Read more about field types [here](https://framework.zend.com/manual/1.10/en/zend.search.lucene.overview.html#zend.search.lucene.index-creation.understanding-field-types).
+
+Solution: Hook into the `lucene_search.modifier.document` event and add them again.
 
 ## Implementation
 

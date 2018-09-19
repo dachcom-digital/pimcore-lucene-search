@@ -2,10 +2,13 @@
 
 namespace LuceneSearchBundle\Command;
 
+use LuceneSearchBundle\Event\DocumentModificationEvent;
+use LuceneSearchBundle\LuceneSearchEvents;
 use LuceneSearchBundle\Modifier\DocumentModifier;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class DocumentModifierCommand extends Command
 {
@@ -15,14 +18,21 @@ class DocumentModifierCommand extends Command
     protected $documentModifier;
 
     /**
+     * @var EventDispatcherInterface
+     */
+    protected $eventDispatcher;
+
+    /**
      * DocumentModifierCommand constructor.
      *
-     * @param DocumentModifier $documentModifier
+     * @param DocumentModifier         $documentModifier
+     * @param EventDispatcherInterface $eventDispatcher
      */
-    public function __construct(DocumentModifier $documentModifier)
+    public function __construct(DocumentModifier $documentModifier, EventDispatcherInterface $eventDispatcher)
     {
         parent::__construct();
         $this->documentModifier = $documentModifier;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
@@ -92,19 +102,25 @@ class DocumentModifierCommand extends Command
             $indexModified = true;
 
             foreach ($currentDocument->getFieldNames() as $name) {
+
                 if ($name === 'internalAvailability') {
                     continue;
                 }
 
                 $newDocument->addField($currentDocument->getField($name));
-                $newDocument->boost = $currentDocument->boost;
             }
 
             $newDocument->addField(\Zend_Search_Lucene_Field::keyword('internalAvailability', $marking));
 
+            $modificationEvent = new DocumentModificationEvent($newDocument, $marking);
+            $this->eventDispatcher->dispatch(
+                LuceneSearchEvents::LUCENE_SEARCH_DOCUMENT_MODIFICATION,
+                $modificationEvent
+            );
+
             $index->delete($documentId);
             $index->commit();
-            $index->addDocument($newDocument);
+            $index->addDocument($modificationEvent->getDocument());
 
         }
 

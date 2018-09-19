@@ -4,9 +4,8 @@ namespace LuceneSearchBundle\Event;
 
 use Symfony\Component\EventDispatcher\Event;
 
-class PdfParserEvent extends Event
+class DocumentModificationEvent extends Event
 {
-
     /**
      * @var \Zend_Search_Lucene_Document
      */
@@ -15,32 +14,18 @@ class PdfParserEvent extends Event
     /**
      * @var string
      */
-    private $content;
+    private $marking;
 
     /**
-     * @var array
-     */
-    private $assetMetaData;
-
-    /**
-     * @var array
-     */
-    private $params;
-
-    /**
-     * PdfParserEvent constructor.
+     * DocumentModificationEvent constructor.
      *
      * @param \Zend_Search_Lucene_Document $document
-     * @param                              $content
-     * @param                              $assetMetaData
-     * @param                              $params
+     * @param  string                      $marking
      */
-    public function __construct(\Zend_Search_Lucene_Document $document, $content, $assetMetaData, $params)
+    public function __construct(\Zend_Search_Lucene_Document $document, $marking)
     {
         $this->document = $document;
-        $this->content = $content;
-        $this->assetMetaData = $assetMetaData;
-        $this->params = $params;
+        $this->marking = $marking;
     }
 
     /**
@@ -64,25 +49,8 @@ class PdfParserEvent extends Event
     /**
      * @return string
      */
-    public function getContent()
+    public function getMarking()
     {
-        return $this->content;
+        return $this->marking;
     }
-
-    /**
-     * @return array
-     */
-    public function getAssetMetaData()
-    {
-        return $this->assetMetaData;
-    }
-
-    /**
-     * @return array
-     */
-    public function getParams()
-    {
-        return $this->params;
-    }
-
 }
