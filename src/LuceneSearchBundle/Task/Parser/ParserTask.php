@@ -417,26 +417,26 @@ class ParserTask extends AbstractTask
                 $text = preg_replace('/\n[\s]*/', "\n", $text); // remove all leading blanks
 
                 $title = $assetMeta['key'] !== false ? $assetMeta['key'] : basename($uri);
-                $doc->addField(\Zend_Search_Lucene_Field::Text('title', $title, 'utf-8'));
-                $doc->addField(\Zend_Search_Lucene_Field::Text('content', $text, 'utf-8'));
-                $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $assetMeta['language']));
-                $doc->addField(\Zend_Search_Lucene_Field::Keyword('country', $assetMeta['country']));
+                $doc->addField(\Zend_Search_Lucene_Field::text('title', $title, 'utf-8'));
+                $doc->addField(\Zend_Search_Lucene_Field::text('content', $text, 'utf-8'));
+                $doc->addField(\Zend_Search_Lucene_Field::keyword('lang', $assetMeta['language']));
+                $doc->addField(\Zend_Search_Lucene_Field::keyword('country', $assetMeta['country']));
 
-                $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $uri));
-                $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $params['host']));
+                $doc->addField(\Zend_Search_Lucene_Field::keyword('url', $uri));
+                $doc->addField(\Zend_Search_Lucene_Field::keyword('host', $params['host']));
 
                 if ($assetMeta['restrictions'] === false) {
-                    $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_default', true));
+                    $doc->addField(\Zend_Search_Lucene_Field::keyword('restrictionGroup_default', true));
                 } else {
                     if (is_array($assetMeta['restrictions'])) {
                         foreach ($assetMeta['restrictions'] as $restrictionGroup) {
-                            $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_' . $restrictionGroup, true));
+                            $doc->addField(\Zend_Search_Lucene_Field::keyword('restrictionGroup_' . $restrictionGroup, true));
                         }
                     }
                 }
 
                 // add internal availability flag
-                $doc->addField(\Zend_Search_Lucene_Field::Keyword('internalAvailability', 'available'));
+                $doc->addField(\Zend_Search_Lucene_Field::keyword('internalAvailability', 'available'));
 
                 $parserEvent = new PdfParserEvent($doc, $fileContent, $assetMeta, $params);
                 $this->eventDispatcher->dispatch(
@@ -501,7 +501,7 @@ class ParserTask extends AbstractTask
                 }
 
                 $h1 = strip_tags($h1);
-                $field = \Zend_Search_Lucene_Field::Text('h1', $h1, $params['encoding']);
+                $field = \Zend_Search_Lucene_Field::text('h1', $h1, $params['encoding']);
                 $field->boost = 10;
                 $doc->addField($field);
             }
@@ -515,28 +515,28 @@ class ParserTask extends AbstractTask
                 }
             }
 
-            $doc->addField(\Zend_Search_Lucene_Field::Keyword('charset', $params['encoding']));
-            $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $params['language']));
-            $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $params['uri']));
-            $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $params['host']));
+            $doc->addField(\Zend_Search_Lucene_Field::keyword('charset', $params['encoding']));
+            $doc->addField(\Zend_Search_Lucene_Field::keyword('lang', $params['language']));
+            $doc->addField(\Zend_Search_Lucene_Field::keyword('url', $params['uri']));
+            $doc->addField(\Zend_Search_Lucene_Field::keyword('host', $params['host']));
 
-            $doc->addField(\Zend_Search_Lucene_Field::Text('title', $params['title'], $params['encoding']));
-            $doc->addField(\Zend_Search_Lucene_Field::Text('description', $params['description'], $params['encoding']));
-            $doc->addField(\Zend_Search_Lucene_Field::Text('customMeta', strip_tags($params['custom_meta']), $params['encoding']));
+            $doc->addField(\Zend_Search_Lucene_Field::text('title', $params['title'], $params['encoding']));
+            $doc->addField(\Zend_Search_Lucene_Field::text('description', $params['description'], $params['encoding']));
+            $doc->addField(\Zend_Search_Lucene_Field::text('customMeta', strip_tags($params['custom_meta']), $params['encoding']));
 
-            $doc->addField(\Zend_Search_Lucene_Field::Text('content', $content, $params['encoding']));
-            $doc->addField(\Zend_Search_Lucene_Field::Text('imageTags', join(',', $tags)));
+            $doc->addField(\Zend_Search_Lucene_Field::text('content', $content, $params['encoding']));
+            $doc->addField(\Zend_Search_Lucene_Field::text('imageTags', join(',', $tags)));
 
             if ($params['country'] !== null) {
-                $doc->addField(\Zend_Search_Lucene_Field::Keyword('country', $params['country']));
+                $doc->addField(\Zend_Search_Lucene_Field::keyword('country', $params['country']));
             }
 
             if ($params['restrictions'] === false) {
-                $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_default', true));
+                $doc->addField(\Zend_Search_Lucene_Field::keyword('restrictionGroup_default', true));
             } else {
                 $restrictionGroups = explode(',', $params['restrictions']);
                 foreach ($restrictionGroups as $restrictionGroup) {
-                    $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_' . $restrictionGroup, true));
+                    $doc->addField(\Zend_Search_Lucene_Field::keyword('restrictionGroup_' . $restrictionGroup, true));
                 }
             }
 
@@ -551,18 +551,18 @@ class ParserTask extends AbstractTask
                         $key = array_search($categoryId, array_column($validCategories, 'id'));
                         if ($key !== false) {
                             $validIds[] = $categoryId;
-                            $doc->addField(\Zend_Search_Lucene_Field::Keyword('category_' . $categoryId, true));
+                            $doc->addField(\Zend_Search_Lucene_Field::keyword('category_' . $categoryId, true));
                         }
                     }
 
                     if (!empty($validIds)) {
-                        $doc->addField(\Zend_Search_Lucene_Field::Text('categories', implode(',', $validIds)));
+                        $doc->addField(\Zend_Search_Lucene_Field::text('categories', implode(',', $validIds)));
                     }
                 }
             }
 
             // add internal availability flag
-            $doc->addField(\Zend_Search_Lucene_Field::Keyword('internalAvailability', 'available'));
+            $doc->addField(\Zend_Search_Lucene_Field::keyword('internalAvailability', 'available'));
 
             $parserEvent = new HtmlParserEvent($doc, $html, $params);
             $this->eventDispatcher->dispatch(

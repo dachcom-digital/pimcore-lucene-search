@@ -100,7 +100,7 @@ class DocumentModifierCommand extends Command
                 $newDocument->boost = $currentDocument->boost;
             }
 
-            $newDocument->addField(\Zend_Search_Lucene_Field::Keyword('internalAvailability', $marking));
+            $newDocument->addField(\Zend_Search_Lucene_Field::keyword('internalAvailability', $marking));
 
             $index->delete($documentId);
             $index->commit();

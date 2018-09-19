@@ -44,7 +44,7 @@ class LuceneSearchParserListener implements EventSubscriberInterface {
             $object = DataObject::getById($params['object_id']);
         }
 
-        $field = \Zend_Search_Lucene_Field::Text('myCustomField', 'Custom field content', $params['encoding']);
+        $field = \Zend_Search_Lucene_Field::text('myCustomField', 'Custom field content', $params['encoding']);
         $field->boost = 5;
         $luceneDoc->addField($field);
         
@@ -58,7 +58,7 @@ class LuceneSearchParserListener implements EventSubscriberInterface {
         $assetMetaData = $event->getAssetMetaData();
         $params = $event->getParams();
         
-        $field = \Zend_Search_Lucene_Field::Text('myCustomField', 'Custom field content', $params['encoding']);
+        $field = \Zend_Search_Lucene_Field::text('myCustomField', 'Custom field content', $params['encoding']);
         $luceneDoc->addField($field);
         
         $event->setDocument($luceneDoc);
