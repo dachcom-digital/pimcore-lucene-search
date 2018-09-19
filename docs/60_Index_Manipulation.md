@@ -17,14 +17,14 @@ Read more about it [here](https://framework.zend.com/manual/1.12/en/zend.search.
 
 ### Boost
 Because of complex lucene indexing strategies, it's not possible to re-gather the boost factor of documents **and** fields.
-So you need to hook into the `lucene_search.modifier.document` event and add those boost values again.
+So you need to hook into the `lucene_search.modifier.document` event and add those boost values again (see example event below).
 
 ### UnStored Fields
 Currently it's not possible to re-add fields with type `\Zend_Search_Lucene_Field::unStored` since they are not available in the query document!
 If you're changing the availability of documents with `Unstored` fields, they're gone after updating!
 Read more about field types [here](https://framework.zend.com/manual/1.10/en/zend.search.lucene.overview.html#zend.search.lucene.index-creation.understanding-field-types).
 
-Solution: Hook into the `lucene_search.modifier.document` event and add them again.
+Solution: Hook into the `lucene_search.modifier.document` event and add them again (see example event below).
 
 ## Implementation
 
@@ -40,6 +40,8 @@ AppBundle\EventListener\IndexManipulator:
 
 namespace AppBundle\EventListener;
 
+use LuceneSearchBundle\LuceneSearchEvents;
+use LuceneSearchBundle\Event\DocumentModificationEvent;
 use LuceneSearchBundle\Modifier\DocumentModifier;
 use Pimcore\Event\DocumentEvents;
 use Pimcore\Event\Model\DocumentEvent;
@@ -59,6 +61,7 @@ class IndexManipulator implements EventSubscriberInterface
         return [
             DocumentEvents::POST_UPDATE => 'onPostUpdate',
             DocumentEvents::PRE_DELETE  => 'onPreDelete',
+            LuceneSearchEvents::LUCENE_SEARCH_DOCUMENT_MODIFICATION => 'onModification',
         ];
     }
 
@@ -93,6 +96,24 @@ class IndexManipulator implements EventSubscriberInterface
         $term = new \Zend_Search_Lucene_Index_Term($document->getProperty('yourCustomMetaIdentifierProperty'), 'yourIdentifier');
         $this->documentModifier->markDocumentsViaTerm($term, DocumentModifier::MARK_DELETED);
 
+    }
+    
+    /**
+    * You only need this method if you want to re-add boost values or unstored fields.
+    * 
+    * @param DocumentModificationEvent $event
+    */
+    public function onModification(DocumentModificationEvent $event)
+    {
+        $document = $event->getDocument();
+
+        $someConditionsAreTrue = false;
+
+        // use this event to re-add boost values
+        if ($someConditionsAreTrue === true) {
+            $document->boost = 999;
+            $event->setDocument($document);
+        }
     }
 }
 ```
