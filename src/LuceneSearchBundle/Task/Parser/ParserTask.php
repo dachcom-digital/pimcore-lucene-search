@@ -5,6 +5,7 @@ namespace LuceneSearchBundle\Task\Parser;
 use LuceneSearchBundle\Event\AssetResourceRestrictionEvent;
 use LuceneSearchBundle\Event\HtmlParserEvent;
 use LuceneSearchBundle\Event\PdfParserEvent;
+use LuceneSearchBundle\LuceneSearchEvents;
 use LuceneSearchBundle\Task\AbstractTask;
 use LuceneSearchBundle\Configuration\Configuration;
 use Pimcore\Document\Adapter\Ghostscript;
@@ -439,7 +440,7 @@ class ParserTask extends AbstractTask
 
                 $parserEvent = new PdfParserEvent($doc, $fileContent, $assetMeta, $params);
                 $this->eventDispatcher->dispatch(
-                    'lucene_search.task.parser.pdf_parser',
+                    LuceneSearchEvents::LUCENE_SEARCH_PARSER_PDF_DOCUMENT,
                     $parserEvent
                 );
 
@@ -565,7 +566,7 @@ class ParserTask extends AbstractTask
 
             $parserEvent = new HtmlParserEvent($doc, $html, $params);
             $this->eventDispatcher->dispatch(
-                'lucene_search.task.parser.html_parser',
+                LuceneSearchEvents::LUCENE_SEARCH_PARSER_HTML_DOCUMENT,
                 $parserEvent
             );
 
@@ -618,7 +619,7 @@ class ParserTask extends AbstractTask
 
             $event = new AssetResourceRestrictionEvent($resource);
             $this->eventDispatcher->dispatch(
-                'lucene_search.task.parser.asset_restriction',
+                LuceneSearchEvents::LUCENE_SEARCH_PARSER_ASSET_RESTRICTION,
                 $event
             );
 

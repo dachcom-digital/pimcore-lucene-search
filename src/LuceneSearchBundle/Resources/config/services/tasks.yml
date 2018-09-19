@@ -27,6 +27,8 @@ services:
         public: false
         tags:
             - { name: lucene_search.task, priority: 60 }
+        calls:
+            - ['setEventListener', ['@event_dispatcher']]
 
     LuceneSearchBundle\Task\Parser\ParserTask:
         parent: LuceneSearchBundle\Task\AbstractTask

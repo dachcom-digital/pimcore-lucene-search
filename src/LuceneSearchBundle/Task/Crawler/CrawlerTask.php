@@ -5,7 +5,7 @@ namespace LuceneSearchBundle\Task\Crawler;
 use GuzzleHttp\Client;
 use LuceneSearchBundle\Configuration\Configuration;
 use LuceneSearchBundle\Event\CrawlerRequestHeaderEvent;
-use LuceneSearchBundle\Event\Events;
+use LuceneSearchBundle\LuceneSearchEvents;
 use LuceneSearchBundle\Task\AbstractTask;
 use LuceneSearchBundle\Task\Crawler\Listener;
 use LuceneSearchBundle\Task\Crawler\Filter\Discovery;
@@ -14,6 +14,7 @@ use LuceneSearchBundle\Task\Crawler\Event\Logger;
 use LuceneSearchBundle\Task\Crawler\Event\Statistics;
 use LuceneSearchBundle\Task\Crawler\PersistenceHandler;
 use Psr\Http\Message\RequestInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use VDB\Spider\Spider;
 use VDB\Spider\QueueManager;
 use VDB\Spider\Filter;
@@ -113,6 +114,19 @@ class CrawlerTask extends AbstractTask
      * @var array
      */
     protected $clientOptions = [];
+
+    /**
+     * @var EventDispatcherInterface
+     */
+    protected $eventDispatcher;
+
+    /**
+     * @param EventDispatcherInterface $eventDispatcher
+     */
+    public function setEventListener(EventDispatcherInterface $eventDispatcher)
+    {
+        $this->eventDispatcher = $eventDispatcher;
+    }
 
     /**
      * @return bool
@@ -247,7 +261,7 @@ class CrawlerTask extends AbstractTask
         $spider->getDispatcher()->addSubscriber($logHandler);
 
         $spider->getDispatcher()->addListener(
-            Events::LUCENE_SEARCH_CRAWLER_INTERRUPTED,
+            LuceneSearchEvents::LUCENE_SEARCH_CRAWLER_INTERRUPTED,
             [$abortListener, 'stopCrawler']
         );
 
@@ -300,8 +314,8 @@ class CrawlerTask extends AbstractTask
         ];
 
         $event = new CrawlerRequestHeaderEvent();
-        \Pimcore::getEventDispatcher()->dispatch(
-            'lucene_search.task.crawler.request_header',
+        $this->eventDispatcher->dispatch(
+            LuceneSearchEvents::LUCENE_SEARCH_CRAWLER_REQUEST_HEADER,
             $event
         );
 

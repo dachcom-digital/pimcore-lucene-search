@@ -3,7 +3,7 @@
 namespace LuceneSearchBundle\Task\Crawler\Event;
 
 use LuceneSearchBundle\Logger\AbstractLogger;
-use LuceneSearchBundle\Event\Events;
+use LuceneSearchBundle\LuceneSearchEvents;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\GenericEvent;
@@ -36,14 +36,14 @@ class Logger implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            SpiderEvents::SPIDER_CRAWL_FILTER_POSTFETCH   => 'logFiltered',
-            SpiderEvents::SPIDER_CRAWL_FILTER_PREFETCH    => 'logFiltered',
-            SpiderEvents::SPIDER_CRAWL_POST_ENQUEUE       => 'logQueued',
-            SpiderEvents::SPIDER_CRAWL_RESOURCE_PERSISTED => 'logPersisted',
-            SpiderEvents::SPIDER_CRAWL_ERROR_REQUEST      => 'logFailed',
-            SpiderEvents::SPIDER_CRAWL_POST_REQUEST       => 'logCrawled',
-            SpiderEvents::SPIDER_CRAWL_USER_STOPPED       => 'logStoppedBySignal',
-            Events::LUCENE_SEARCH_CRAWLER_INTERRUPTED     => 'logStopped'
+            SpiderEvents::SPIDER_CRAWL_FILTER_POSTFETCH           => 'logFiltered',
+            SpiderEvents::SPIDER_CRAWL_FILTER_PREFETCH            => 'logFiltered',
+            SpiderEvents::SPIDER_CRAWL_POST_ENQUEUE               => 'logQueued',
+            SpiderEvents::SPIDER_CRAWL_RESOURCE_PERSISTED         => 'logPersisted',
+            SpiderEvents::SPIDER_CRAWL_ERROR_REQUEST              => 'logFailed',
+            SpiderEvents::SPIDER_CRAWL_POST_REQUEST               => 'logCrawled',
+            SpiderEvents::SPIDER_CRAWL_USER_STOPPED               => 'logStoppedBySignal',
+            LuceneSearchEvents::LUCENE_SEARCH_CRAWLER_INTERRUPTED => 'logStopped'
         ];
     }
 
@@ -132,7 +132,6 @@ class Logger implements EventSubscriberInterface
             $prefix = '[spider.' . $name . '] ';
 
             $message = $prefix;
-
             if (!empty($additionalMessage)) {
                 $message .= $additionalMessage . ' ';
             }

@@ -33,13 +33,14 @@ namespace AppBundle\EventListener;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use LuceneSearchBundle\Event\CrawlerRequestHeaderEvent;
+use LuceneSearchBundle\LuceneSearchEvents;
 
 class CrawlerHeader implements EventSubscriberInterface
 {
     public static function getSubscribedEvents()
     {
         return [
-            'lucene_search.task.crawler.request_header' => 'addHeaderToLuceneCrawler'
+            LuceneSearchEvents::LUCENE_SEARCH_CRAWLER_REQUEST_HEADER => 'addHeaderToLuceneCrawler'
         ];
     }
 

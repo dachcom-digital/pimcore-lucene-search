@@ -6,6 +6,7 @@ use LuceneSearchBundle\Configuration\Configuration;
 use LuceneSearchBundle\Event\RestrictionContextEvent;
 use LuceneSearchBundle\Helper\LuceneHelper;
 use LuceneSearchBundle\Helper\StringHelper;
+use LuceneSearchBundle\LuceneSearchEvents;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Pimcore\Controller\FrontendController as PimcoreFrontEndController;
 
@@ -399,7 +400,7 @@ class FrontendController extends PimcoreFrontEndController
 
         $event = new RestrictionContextEvent();
         \Pimcore::getEventDispatcher()->dispatch(
-            'lucene_search.frontend.restriction_context',
+            LuceneSearchEvents::LUCENE_SEARCH_FRONTEND_RESTRICTION_CONTEXT,
             $event
         );
 

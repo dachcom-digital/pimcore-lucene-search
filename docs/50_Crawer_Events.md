@@ -18,20 +18,15 @@ use Pimcore\Model\DataObject;
 use LuceneSearchBundle\Event\HtmlParserEvent;
 use LuceneSearchBundle\Event\PdfParserEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use LuceneSearchBundle\LuceneSearchEvents;
 
-/**
- * @package AppBundle\EventListener
- */
 class LuceneSearchParserListener implements EventSubscriberInterface {
 
-    /**
-     * @return array
-     */
     public static function getSubscribedEvents()
     {
         return [
-            'lucene_search.task.parser.html_parser' => 'parseHtml',
-            'lucene_search.task.parser.pdf_parser' => 'parsePdf',
+            LuceneSearchEvents::LUCENE_SEARCH_PARSER_HTML_DOCUMENT => 'parseHtml',
+            LuceneSearchEvents::LUCENE_SEARCH_PARSER_PDF_DOCUMENT => 'parsePdf',
         ];
     }
 
