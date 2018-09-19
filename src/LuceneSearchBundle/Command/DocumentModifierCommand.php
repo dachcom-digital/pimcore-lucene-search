@@ -72,11 +72,24 @@ class DocumentModifierCommand extends Command
         }
 
         $index = $this->documentModifier->getIndex();
+        $indexModified = false;
 
         foreach ($documentIds as $documentId) {
 
             $newDocument = new \Zend_Search_Lucene_Document();
             $currentDocument = $index->getDocument($documentId);
+
+            //check if state is same. if so, skip modification.
+            $currentInternalValue = null;
+            if (in_array('internalAvailability', $currentDocument->getFieldNames())) {
+                $currentInternalValue = $currentDocument->getField('internalAvailability')->value;
+            }
+
+            if ($currentInternalValue === $marking) {
+                continue;
+            }
+
+            $indexModified = true;
 
             foreach ($currentDocument->getFieldNames() as $name) {
                 if ($name === 'internalAvailability') {
@@ -95,6 +108,11 @@ class DocumentModifierCommand extends Command
 
         }
 
+        // no data has been modified, no need to optimize index.
+        if ($indexModified === false) {
+            return;
+        }
+
         $index->optimize();
     }
 
@@ -105,6 +123,10 @@ class DocumentModifierCommand extends Command
      */
     public function deleteDocuments(array $documentIds)
     {
+        if (count($documentIds) === 0) {
+            return;
+        }
+
         $index = $this->documentModifier->getIndex();
 
         foreach ($documentIds as $documentId) {
