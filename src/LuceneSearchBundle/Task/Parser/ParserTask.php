@@ -126,7 +126,7 @@ class ParserTask extends AbstractTask
             if ($resource instanceof Resource) {
                 $this->parseResponse($resource);
             } else {
-                $this->log('crawler resource not a instance of \VDB\Spider\Resource. Given type: ' . gettype($resource), 'notice');
+                $this->log(sprintf('crawler resource not a instance of \VDB\Spider\Resource. Given type: %s', gettype($resource)), 'notice');
             }
         }
 
@@ -144,6 +144,12 @@ class ParserTask extends AbstractTask
         $uri = $resource->getUri()->toString();
 
         $contentTypeInfo = $resource->getResponse()->getHeaderLine('Content-Type');
+        $statusCode = $resource->getResponse()->getStatusCode();
+
+        if ($statusCode !== 200) {
+            $this->log(sprintf('skip indexing [ %s ] because of wrong status code [ %s ]', $uri, $statusCode), 'debug');
+            return;
+        }
 
         if (!empty($contentTypeInfo)) {
             $parts = explode(';', $contentTypeInfo);
@@ -154,10 +160,10 @@ class ParserTask extends AbstractTask
             } elseif ($mimeType === 'application/pdf') {
                 $this->parsePdf($resource, $host);
             } else {
-                $this->log('cannot parse mime type [ ' . $mimeType . ' ] provided by uri [ ' . $uri . ' ]', 'debug');
+                $this->log(sprintf('cannot parse mime type [ %s ] provided by uri [ %s ]', $mimeType, $uri), 'debug');
             }
         } else {
-            $this->log('could not determine content type of [ ' . $uri . ' ]', 'debug');
+            $this->log(sprintf('could not determine content type of [ %s ]', $uri), 'debug');
         }
     }
 
@@ -189,7 +195,12 @@ class ParserTask extends AbstractTask
 
         if ($hasCanonicalLink === true) {
             if ($uri != $crawler->filterXpath('//link[@rel="canonical"]')->attr('href')) {
-                $this->log('skip indexing [ ' . $uri . ' ] because it has canonical link ' . $crawler->filterXpath('//link[@rel="canonical"]')->attr('href'));
+                $this->log(sprintf(
+                        'skip indexing [ %s ] because it has canonical link %s',
+                        $uri,
+                        $crawler->filterXpath('//link[@rel="canonical"]')->attr('href')
+                    )
+                );
                 return false;
             }
         }
@@ -198,7 +209,7 @@ class ParserTask extends AbstractTask
         $hasNoIndex = $crawler->filterXpath('//meta[contains(@content, "noindex")]')->count() > 0;
 
         if ($hasNoIndex === true) {
-            $this->log('skip indexing [ ' . $uri . ' ] because it has a noindex tag');
+            $this->log(sprintf('skip indexing [ %s ] because it has a noindex tag', $uri));
             return false;
         }
 
@@ -319,7 +330,7 @@ class ParserTask extends AbstractTask
 
         $this->addHtmlToIndex($html, $params);
 
-        $this->log('added html to indexer stack: ' . $uri);
+        $this->log(sprintf('added html to indexer stack: %s', $uri));
 
         return true;
     }
@@ -332,7 +343,7 @@ class ParserTask extends AbstractTask
      */
     private function parsePdf($resource, $host)
     {
-        $this->log('[parser] added pdf to indexer stack: ' . $resource->getUri()->toString());
+        $this->log(sprintf('added pdf to indexer stack: %s', $resource->getUri()->toString()));
 
         $params = [
             'host'         => $host,
@@ -371,7 +382,6 @@ class ParserTask extends AbstractTask
 
         $textFileTmp = uniqid('t2p-');
 
-        //@fixme: move to bundle tmp
         $tmpFile = $this->assetTmpDir . DIRECTORY_SEPARATOR . $textFileTmp . '.txt';
         $tmpPdfFile = $this->assetTmpDir . DIRECTORY_SEPARATOR . $textFileTmp . '.pdf';
 
@@ -406,7 +416,7 @@ class ParserTask extends AbstractTask
                 $text = preg_replace('/\n[\s]*/', "\n", $text); // remove all leading blanks
 
                 $title = $assetMeta['key'] !== false ? $assetMeta['key'] : basename($uri);
-                $doc->addField(\Zend_Search_Lucene_Field::Text('title', $title), 'utf-8');
+                $doc->addField(\Zend_Search_Lucene_Field::Text('title', $title, 'utf-8'));
                 $doc->addField(\Zend_Search_Lucene_Field::Text('content', $text, 'utf-8'));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $assetMeta['language']));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('country', $assetMeta['country']));
@@ -414,13 +424,18 @@ class ParserTask extends AbstractTask
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $uri));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $params['host']));
 
-                if (is_array($assetMeta['restrictions'])) {
-                    foreach ($assetMeta['restrictions'] as $restrictionGroup) {
-                        $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_' . $restrictionGroup, true));
-                    }
-                } elseif ($assetMeta['restrictions'] === null) {
+                if ($assetMeta['restrictions'] === false) {
                     $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_default', true));
+                } else {
+                    if (is_array($assetMeta['restrictions'])) {
+                        foreach ($assetMeta['restrictions'] as $restrictionGroup) {
+                            $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_' . $restrictionGroup, true));
+                        }
+                    }
                 }
+
+                // add internal availability flag
+                $doc->addField(\Zend_Search_Lucene_Field::Keyword('internalAvailability', 'available'));
 
                 $parserEvent = new PdfParserEvent($doc, $fileContent, $assetMeta, $params);
                 $this->eventDispatcher->dispatch(
@@ -515,7 +530,9 @@ class ParserTask extends AbstractTask
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('country', $params['country']));
             }
 
-            if ($params['restrictions'] !== false) {
+            if ($params['restrictions'] === false) {
+                $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_default', true));
+            } else {
                 $restrictionGroups = explode(',', $params['restrictions']);
                 foreach ($restrictionGroups as $restrictionGroup) {
                     $doc->addField(\Zend_Search_Lucene_Field::Keyword('restrictionGroup_' . $restrictionGroup, true));
@@ -542,6 +559,9 @@ class ParserTask extends AbstractTask
                     }
                 }
             }
+
+            // add internal availability flag
+            $doc->addField(\Zend_Search_Lucene_Field::Keyword('internalAvailability', 'available'));
 
             $parserEvent = new HtmlParserEvent($doc, $html, $params);
             $this->eventDispatcher->dispatch(
@@ -812,7 +832,7 @@ class ParserTask extends AbstractTask
             $this->index = $index;
 
             if (!$this->index instanceof \Zend_Search_Lucene_Proxy) {
-                $this->log('could not create/open index at ' . $indexDir, 'error', true);
+                $this->log(sprintf('could not create/open index at %s', $indexDir), 'error', true);
                 $this->handlerDispatcher->getStateHandler()->stopCrawler(true);
                 exit;
             }

@@ -32,7 +32,7 @@ class FrontendController extends PimcoreFrontEndController
     private $stringHelper;
 
     /**
-     * @var string
+     * @var \Zend_Search_Lucene_Interface
      */
     protected $frontendIndex;
 
@@ -271,7 +271,13 @@ class FrontendController extends PimcoreFrontEndController
 
         /** @var \Zend_Search_Lucene_Search_QueryHit $hit */
         foreach ($queryHits as $hit) {
-            $url = $hit->getDocument()->getField('url');
+
+            try {
+                $url = $hit->getDocument()->getField('url');
+            } catch (\Zend_Search_Lucene_Exception $e) {
+                continue;
+            }
+
             $currentHostname = parse_url($url->value, PHP_URL_HOST);
 
             if ($this->allowSubDomains) {
@@ -287,89 +293,108 @@ class FrontendController extends PimcoreFrontEndController
     }
 
     /**
-     * @param $query
-     *
-     * @return mixed
+     * @param \Zend_Search_Lucene_Search_Query_Boolean $query
      */
-    protected function addCountryQuery($query)
+    protected function addAvailabilityQuery(\Zend_Search_Lucene_Search_Query_Boolean $query)
     {
-        if (!empty($this->searchCountry)) {
+        try {
+            $availabilityQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm();
+        } catch (\Zend_Search_Lucene_Exception $e) {
+            return;
+        }
 
+        $availabilityQuery->addTerm(new \Zend_Search_Lucene_Index_Term('unavailable', 'internalAvailability'));
+        $query->addSubquery($availabilityQuery, false);
+
+    }
+
+    /**
+     * @param \Zend_Search_Lucene_Search_Query_Boolean $query
+     */
+    protected function addCountryQuery(\Zend_Search_Lucene_Search_Query_Boolean $query)
+    {
+        if (empty($this->searchCountry)) {
+            return;
+        }
+
+        try {
             $countryQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm();
-            $countryQuery->addTerm(new \Zend_Search_Lucene_Index_Term('all', 'country'));
-
-            $country = str_replace(['_', '-'], '', $this->searchCountry);
-            $countryQuery->addTerm(new \Zend_Search_Lucene_Index_Term($country, 'country'));
-
-            $query->addSubquery($countryQuery, true);
+        } catch (\Zend_Search_Lucene_Exception $e) {
+            return;
         }
 
-        return $query;
+        $countryQuery->addTerm(new \Zend_Search_Lucene_Index_Term('all', 'country'));
+
+        $country = str_replace(['_', '-'], '', $this->searchCountry);
+        $countryQuery->addTerm(new \Zend_Search_Lucene_Index_Term($country, 'country'));
+
+        $query->addSubquery($countryQuery, true);
+
     }
 
     /**
-     * @param $query
-     *
-     * @return mixed
+     * @param \Zend_Search_Lucene_Search_Query_Boolean $query
      */
-    protected function addCategoryQuery($query)
+    protected function addCategoryQuery(\Zend_Search_Lucene_Search_Query_Boolean $query)
     {
-        if (!empty($this->queryCategories) && is_array($this->categories)) {
+        if (empty($this->queryCategories) || !is_array($this->categories)) {
+            return;
+        }
 
-            $categoryTerms = [];
-            $signs = [];
+        try {
+            $categoryQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm();
+        } catch (\Zend_Search_Lucene_Exception $e) {
+            return;
+        }
 
-            foreach ($this->queryCategories as $categoryId) {
-                $key = array_search($categoryId, array_column($this->categories, 'id'));
-                if ($key !== false) {
-                    $categoryTerms[] = new \Zend_Search_Lucene_Index_Term(true, 'category_' . $categoryId);
-                    $signs[] = null;
-                }
+        foreach ($this->queryCategories as $categoryId) {
+            $key = array_search($categoryId, array_column($this->categories, 'id'));
+            if ($key !== false) {
+                $categoryQuery->addTerm(new \Zend_Search_Lucene_Index_Term(true, 'category_' . $categoryId));
             }
-
-            $categoryQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm($categoryTerms, $signs);
-            $query->addSubquery($categoryQuery, true);
         }
 
-        return $query;
+        $query->addSubquery($categoryQuery, true);
+
     }
 
     /**
-     * @param $query
+     * @param \Zend_Search_Lucene_Search_Query_Boolean $query
      *
-     * @return mixed
      */
-    protected function addLanguageQuery($query)
+    protected function addLanguageQuery(\Zend_Search_Lucene_Search_Query_Boolean $query)
     {
-        if (!empty($this->searchLanguage)) {
+        if (empty($this->searchLanguage)) {
+            return;
+        }
+
+        try {
             $languageQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm();
-            $languageQuery->addTerm(new \Zend_Search_Lucene_Index_Term('all', 'lang'));
-
-            if (is_object($this->searchLanguage)) {
-                $lang = $this->searchLanguage->toString();
-            } else {
-                $lang = $this->searchLanguage;
-            }
-
-            $lang = strtolower(str_replace('_', '-', $lang));
-            $languageQuery->addTerm(new \Zend_Search_Lucene_Index_Term($lang, 'lang'));
-
-            $query->addSubquery($languageQuery, true);
+        } catch (\Zend_Search_Lucene_Exception $e) {
+            return;
         }
 
-        return $query;
+        $languageQuery->addTerm(new \Zend_Search_Lucene_Index_Term('all', 'lang'));
+
+        if (is_object($this->searchLanguage)) {
+            $lang = $this->searchLanguage->toString();
+        } else {
+            $lang = $this->searchLanguage;
+        }
+
+        $lang = strtolower(str_replace('_', '-', $lang));
+        $languageQuery->addTerm(new \Zend_Search_Lucene_Index_Term($lang, 'lang'));
+
+        $query->addSubquery($languageQuery, true);
     }
 
     /**
-     * @param $query
-     *
-     * @return mixed
-     * @throws \Exception
+     * @param \Zend_Search_Lucene_Search_Query_Boolean $query
      */
-    protected function addRestrictionQuery($query)
+    protected function addRestrictionQuery(\Zend_Search_Lucene_Search_Query_Boolean $query)
     {
         if (!$this->checkRestriction) {
-            return $query;
+            return;
         }
 
         $event = new RestrictionContextEvent();
@@ -378,23 +403,22 @@ class FrontendController extends PimcoreFrontEndController
             $event
         );
 
-        $signs = [null];
-        $restrictionTerms = [
-            new \Zend_Search_Lucene_Index_Term(true, 'restrictionGroup_default')
-        ];
+        try {
+            $restrictionQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm();
+        } catch (\Zend_Search_Lucene_Exception $e) {
+            return;
+        }
+
+        $restrictionQuery->addTerm(new \Zend_Search_Lucene_Index_Term(true, 'restrictionGroup_default'));
 
         $allowedGroups = $event->getAllowedRestrictionGroups();
         if (is_array($allowedGroups)) {
             foreach ($allowedGroups as $groupId) {
-                $restrictionTerms[] = new \Zend_Search_Lucene_Index_Term(true, 'restrictionGroup_' . $groupId);
-                $signs[] = null;
+                $restrictionQuery->addTerm(new \Zend_Search_Lucene_Index_Term(true, 'restrictionGroup_' . $groupId));
             }
         }
 
-        $restrictionQuery = new \Zend_Search_Lucene_Search_Query_MultiTerm($restrictionTerms, $signs);
         $query->addSubquery($restrictionQuery, true);
-
-        return $query;
     }
 
 }

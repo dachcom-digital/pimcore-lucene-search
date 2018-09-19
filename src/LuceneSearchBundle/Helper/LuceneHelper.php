@@ -14,37 +14,49 @@ class LuceneHelper
      *
      * @return string[] $similarSearchTerms
      */
-    public function fuzzyFindTerms($queryStr, $index, $prefixLength = 0, $similarity = 0.5)
+    public function fuzzyFindTerms($queryStr, \Zend_Search_Lucene_Interface $index, $prefixLength = 0, $similarity = 0.5)
     {
-        if ($index != null) {
-            \Zend_Search_Lucene_Search_Query_Fuzzy::setDefaultPrefixLength($prefixLength);
-            $term = new \Zend_Search_Lucene_Index_Term($queryStr);
+        \Zend_Search_Lucene_Search_Query_Fuzzy::setDefaultPrefixLength($prefixLength);
+        $term = new \Zend_Search_Lucene_Index_Term($queryStr);
+
+        try {
             $fuzzyQuery = new \Zend_Search_Lucene_Search_Query_Fuzzy($term, $similarity);
-
-            $hits = $index->find($fuzzyQuery);
-            $terms = $fuzzyQuery->getQueryTerms();
-
-            return $terms;
+        } catch (\Zend_Search_Lucene_Exception $e) {
+            return [];
         }
+
+        try {
+            $terms = $fuzzyQuery->rewrite($index)->getQueryTerms();
+        } catch (\Zend_Search_Lucene_Exception $e) {
+            return [];
+        }
+
+        return $terms;
+
     }
 
     /**
+     * find matching terms beginning with query string
+     *
      * @param string                        $queryStr
      * @param \Zend_Search_Lucene_Interface $index
      *
      * @return array $hits
      */
-    public function wildcardFindTerms($queryStr, $index)
+    public function wildcardFindTerms($queryStr, \Zend_Search_Lucene_Interface $index)
     {
-        if ($index != null) {
-            $pattern = new \Zend_Search_Lucene_Index_Term($queryStr . '*');
-            $userQuery = new \Zend_Search_Lucene_Search_Query_Wildcard($pattern);
-            \Zend_Search_Lucene_Search_Query_Wildcard::setMinPrefixLength(2);
-            $index->find($userQuery);
-            $terms = $userQuery->getQueryTerms();
+        $pattern = new \Zend_Search_Lucene_Index_Term($queryStr . '*');
+        $userQuery = new \Zend_Search_Lucene_Search_Query_Wildcard($pattern);
+        \Zend_Search_Lucene_Search_Query_Wildcard::setMinPrefixLength(2);
 
-            return $terms;
+        try {
+            $terms = $userQuery->rewrite($index)->getQueryTerms();
+        } catch (\Zend_Search_Lucene_Exception $e) {
+            return [];
         }
+
+        return $terms;
+
     }
 
     /**

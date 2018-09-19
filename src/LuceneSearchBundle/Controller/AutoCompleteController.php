@@ -11,14 +11,13 @@ class AutoCompleteController extends FrontendController
      * @param Request $request
      *
      * @return JsonResponse
-     * @throws \Exception
      * @throws \Zend_Search_Lucene_Exception
-     * @throws \Zend_Search_Lucene_Search_QueryParserException
      */
     public function searchAction(Request $request)
     {
         $terms = $this->luceneHelper->wildcardFindTerms($this->query, $this->frontendIndex);
 
+        // try to find fuzzy related terms if not wildcard terms has been found
         if (empty($terms)) {
             $terms = $this->luceneHelper->fuzzyFindTerms($this->query, $this->frontendIndex);
         }
@@ -41,6 +40,11 @@ class AutoCompleteController extends FrontendController
             $this->addCountryQuery($query);
             $this->addRestrictionQuery($query);
 
+            // optimize boolean query before adding negative subquery
+            $query->rewrite($this->frontendIndex);
+
+            $this->addAvailabilityQuery($query);
+
             $validHits = $this->getValidHits($this->frontendIndex->find($query));
 
             if (count($validHits) > 0 and !in_array($t, $suggestions)) {
@@ -55,7 +59,6 @@ class AutoCompleteController extends FrontendController
         }
 
         $data = [];
-
         foreach ($suggestions as $suggestion) {
             $data[] = $suggestion;
         }

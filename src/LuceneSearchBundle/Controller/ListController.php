@@ -19,6 +19,9 @@ class ListController extends FrontendController
         $this->highlighterHelper = $highlighterHelper;
     }
 
+    /**
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
     public function getResultAction()
     {
         $requestQuery = $this->requestStack->getMasterRequest()->query;
@@ -51,6 +54,11 @@ class ListController extends FrontendController
                 $this->addCategoryQuery($query);
                 $this->addRestrictionQuery($query);
 
+                // optimize boolean query before adding negative subquery
+                $query->rewrite($this->frontendIndex);
+
+                $this->addAvailabilityQuery($query);
+
                 $validHits = $this->getValidHits($this->frontendIndex->find($query));
 
                 $start = $this->perPage * ($this->currentPage - 1);
@@ -61,46 +69,45 @@ class ListController extends FrontendController
                 }
 
                 for ($i = $start; $i <= $end; $i++) {
+
+                    /** @var \Zend_Search_Lucene_Search_QueryHit $hit */
                     $hit = $validHits[$i];
 
                     /** @var \Zend_Search_Lucene_Document $doc */
                     $doc = $hit->getDocument();
+                    $availableFieldNames = $doc->getFieldNames();
 
-                    $url = $doc->getField('url');
-                    $title = $doc->getField('title');
-                    $content = $doc->getField('content');
+                    $url = in_array('url', $availableFieldNames) ? $doc->getField('url')->value : null;
+                    $title = in_array('title', $availableFieldNames) ? $doc->getField('title')->value : null;
+                    $content = in_array('content', $availableFieldNames) ? $doc->getField('content')->value : null;
 
                     $searchResult['boost'] = $doc->boost;
-                    $searchResult['title'] = $title->value;
+                    $searchResult['title'] = $title;
 
-                    $searchResult['url'] = $url->value;
-                    $searchResult['summary'] = $this->highlighterHelper->getSummaryForUrl($content->value, $this->untouchedQuery);
+                    $searchResult['url'] = $url;
+                    $searchResult['summary'] = $this->highlighterHelper->getSummaryForUrl($content, $this->untouchedQuery);
 
                     //H1, description and imageTags are not available in pdf files.
-                    try {
-                        if ($doc->getField('h1')) {
-                            $searchResult['h1'] = $doc->getField('h1')->value;
-                        }
+                    if (in_array('h1', $availableFieldNames)) {
+                        $searchResult['h1'] = $doc->getField('h1')->value;
+                    }
 
-                        if ($doc->getField('description')) {
-                            $searchResult['description'] = $this->highlighterHelper->getSummaryForUrl($doc->getField('description')->value,
-                                $this->untouchedQuery);
-                        }
+                    if (in_array('description', $availableFieldNames)) {
+                        $searchResult['description'] = $this->highlighterHelper->getSummaryForUrl($doc->getField('description')->value,
+                            $this->untouchedQuery);
+                    }
 
-                        if ($doc->getField('imageTags')) {
-                            $searchResult['imageTags'] = $doc->getField('imageTags')->value;
-                        }
-                    } catch (\Zend_Search_Lucene_Exception $e) {
+                    if (in_array('imageTags', $availableFieldNames)) {
+                        $searchResult['imageTags'] = $doc->getField('imageTags')->value;
                     }
 
                     $searchResult['categories'] = [];
 
-                    try {
-                        $categories = $hit->getDocument()->getField('categories')->value;
+                    if (in_array('categories', $availableFieldNames)) {
+                        $categories = $doc->getField('categories')->value;
                         if (!empty($categories)) {
                             $searchResult['categories'] = $this->mapCategories($categories);
                         }
-                    } catch (\Zend_Search_Lucene_Exception $e) {
                     }
 
                     $searchResults[] = $searchResult;
@@ -127,7 +134,6 @@ class ListController extends FrontendController
             }
 
             $viewParams = [
-
                 'searchCurrentPage'            => $this->currentPage,
                 'searchAllPages'               => $pages,
                 'searchCategory'               => $this->queryCategories,
@@ -174,38 +180,55 @@ class ListController extends FrontendController
 
         $terms = $this->luceneHelper->fuzzyFindTerms($this->untouchedQuery, $this->frontendIndex, 3);
 
+        // reduce fuzzy prefix to 0 and try again
         if (empty($terms) || count($terms) < 1) {
             $terms = $this->luceneHelper->fuzzyFindTerms($this->untouchedQuery, $this->frontendIndex, 0);
         }
 
-        if (is_array($terms)) {
-            $counter = 0;
+        if (!is_array($terms)) {
+            return $suggestions;
+        }
 
-            foreach ($terms as $term) {
-                $t = $term->text;
+        $counter = 0;
 
-                $hits = null;
+        foreach ($terms as $term) {
 
-                $query = new \Zend_Search_Lucene_Search_Query_Boolean();
-                $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($t, 'utf-8');
-                $query->addSubquery($userQuery, true);
+            $query = new \Zend_Search_Lucene_Search_Query_Boolean();
 
-                $this->addLanguageQuery($query);
-                $this->addCategoryQuery($query);
-                $this->addCountryQuery($query);
-                $this->addRestrictionQuery($query);
+            $termText = $term->text;
 
+            try {
+                $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($termText, 'utf-8');
+            } catch (\Zend_Search_Lucene_Exception $e) {
+                continue;
+            }
+
+            $query->addSubquery($userQuery, true);
+
+            $this->addLanguageQuery($query);
+            $this->addCategoryQuery($query);
+            $this->addCountryQuery($query);
+            $this->addRestrictionQuery($query);
+
+            // optimize boolean query before adding negative subquery
+            $query->rewrite($this->frontendIndex);
+
+            $this->addAvailabilityQuery($query);
+
+            try {
                 $validHits = $this->getValidHits($this->frontendIndex->find($query));
+            } catch (\Zend_Search_Lucene_Exception $e) {
+                $validHits = [];
+            }
 
-                if (count($validHits) > 0 && !in_array($t, $suggestions)) {
-                    $suggestions[] = $t;
+            if (count($validHits) > 0 && !in_array($termText, $suggestions)) {
+                $suggestions[] = $termText;
 
-                    if ($counter >= $this->maxSuggestions) {
-                        break;
-                    }
-
-                    $counter++;
+                if ($counter >= $this->maxSuggestions) {
+                    break;
                 }
+
+                $counter++;
             }
         }
 

@@ -1,0 +1,5 @@
+services:
+
+    LuceneSearchBundle\Command\DocumentModifierCommand:
+        autowire: true
+        autoconfigure: true
