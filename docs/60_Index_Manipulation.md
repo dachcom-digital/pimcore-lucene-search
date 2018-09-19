@@ -60,7 +60,7 @@ class IndexManipulator implements EventSubscriberInterface
         $this->documentModifier->markDocumentsViaQuery($query, $marker);
 
         // way 2: use simple term index (faster but only one term possible)
-         // yourCustomMetaIdentifier: you need to add custom Keyword via the lucene_search.task.parser.html_parser event
+        // yourCustomMetaIdentifier: you need to add custom Keyword via the lucene_search.task.parser.html_parser event
         $term = new \Zend_Search_Lucene_Index_Term($document->getProperty('yourCustomMetaIdentifierProperty'), 'yourIdentifier');
         $this->documentModifier->markDocumentsViaTerm($term, $marker);
 
