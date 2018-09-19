@@ -10,6 +10,11 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 final class QueuedDocumentModifier
 {
     /**
+     * @var bool
+     */
+    protected $indexModified = false;
+
+    /**
      * @var DocumentModifier
      */
     protected $documentModifier;
@@ -99,7 +104,9 @@ final class QueuedDocumentModifier
 
         }
 
-        $this->index->optimize();
+        if ($this->indexModified === true) {
+            $this->index->optimize();
+        }
 
         TmpStore::delete('lucene_search_modifier_flag');
     }
@@ -136,6 +143,8 @@ final class QueuedDocumentModifier
                 continue;
             }
 
+            $this->indexModified = true;
+
             foreach ($currentDocument->getFieldNames() as $name) {
 
                 if ($name === 'internalAvailability') {
@@ -169,6 +178,8 @@ final class QueuedDocumentModifier
         if (count($documentIds) === 0) {
             return;
         }
+
+        $this->indexModified = true;
 
         foreach ($documentIds as $documentId) {
             $this->index->delete($documentId);
