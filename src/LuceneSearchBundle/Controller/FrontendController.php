@@ -296,6 +296,22 @@ class FrontendController extends PimcoreFrontEndController
     /**
      * @param \Zend_Search_Lucene_Search_Query_Boolean $query
      */
+    protected function addAdditionalSubQueries(\Zend_Search_Lucene_Search_Query_Boolean $query)
+    {
+        $this->addLanguageQuery($query);
+        $this->addCategoryQuery($query);
+        $this->addCountryQuery($query);
+        $this->addRestrictionQuery($query);
+
+        // optimize boolean query before adding negative subquery
+        $query->rewrite($this->frontendIndex);
+
+        $this->addAvailabilityQuery($query);
+    }
+
+    /**
+     * @param \Zend_Search_Lucene_Search_Query_Boolean $query
+     */
     protected function addAvailabilityQuery(\Zend_Search_Lucene_Search_Query_Boolean $query)
     {
         try {

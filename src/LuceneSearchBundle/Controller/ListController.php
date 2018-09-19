@@ -49,15 +49,7 @@ class ListController extends FrontendController
                 $userQuery = \Zend_Search_Lucene_Search_QueryParser::parse($this->query, 'utf-8');
                 $query->addSubquery($userQuery, true);
 
-                $this->addLanguageQuery($query);
-                $this->addCountryQuery($query);
-                $this->addCategoryQuery($query);
-                $this->addRestrictionQuery($query);
-
-                // optimize boolean query before adding negative subquery
-                $query->rewrite($this->frontendIndex);
-
-                $this->addAvailabilityQuery($query);
+                $this->addAdditionalSubQueries($query);
 
                 $validHits = $this->getValidHits($this->frontendIndex->find($query));
 
@@ -205,15 +197,7 @@ class ListController extends FrontendController
 
             $query->addSubquery($userQuery, true);
 
-            $this->addLanguageQuery($query);
-            $this->addCategoryQuery($query);
-            $this->addCountryQuery($query);
-            $this->addRestrictionQuery($query);
-
-            // optimize boolean query before adding negative subquery
-            $query->rewrite($this->frontendIndex);
-
-            $this->addAvailabilityQuery($query);
+            $this->addAdditionalSubQueries($query);
 
             try {
                 $validHits = $this->getValidHits($this->frontendIndex->find($query));
