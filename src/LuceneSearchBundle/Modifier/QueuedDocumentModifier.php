@@ -182,8 +182,10 @@ final class QueuedDocumentModifier
         $this->indexModified = true;
 
         foreach ($documentIds as $documentId) {
-            $this->index->delete($documentId);
-            $this->index->commit();
+            if (!$this->index->isDeleted($documentId)) {
+                $this->index->delete($documentId);
+                $this->index->commit();
+            }
         }
     }
 
