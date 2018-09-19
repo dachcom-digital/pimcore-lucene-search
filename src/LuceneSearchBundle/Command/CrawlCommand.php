@@ -4,13 +4,29 @@ namespace LuceneSearchBundle\Command;
 
 use LuceneSearchBundle\Logger\ConsoleLogger;
 use LuceneSearchBundle\Task\TaskManager;
-use Pimcore\Console\AbstractCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class CrawlCommand extends AbstractCommand
+class CrawlCommand extends Command
 {
+    /**
+     * @var TaskManager
+     */
+    protected $taskManager;
+
+    /**
+     * CrawlCommand constructor.
+     *
+     * @param TaskManager $taskManager
+     */
+    public function __construct(TaskManager $taskManager)
+    {
+        parent::__construct();
+        $this->taskManager = $taskManager;
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -32,15 +48,17 @@ class CrawlCommand extends AbstractCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        /** @var \LuceneSearchBundle\Task\TaskManager $taskManager */
-        $taskManager = $this->getContainer()->get(TaskManager::class);
-
         $consoleLogger = new ConsoleLogger();
         $consoleLogger->setConsoleOutput($output);
-        $taskManager->setLogger($consoleLogger);
-        $taskManager->processTaskChain(['force' => $input->getOption('force')]);
+        $this->taskManager->setLogger($consoleLogger);
 
-        $this->output->writeln('<fg=green>LuceneSearch: Finished crawl.</>');
+        try {
+            $this->taskManager->processTaskChain(['force' => $input->getOption('force')]);
+        } catch (\Exception $e) {
+            $output->writeln(sprintf('<fg=red>LuceneSearch: Error while crawling: %s.</>', $e->getMessage()));
+        }
+
+        $output->writeln('<fg=green>LuceneSearch: Finished crawl.</>');
 
     }
 

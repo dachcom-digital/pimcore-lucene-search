@@ -9,6 +9,8 @@ For that we're providing a `DocumentModifier` which allows you to:
 - mark Lucene-Document as unavailable
 - mark Lucene-Document as deleted (remove from index unrecoverable)
 
+**Note:**: The availability check works within the maintenance cycle!
+
 ## Warning!
 There are some limitations while changing lucene documents. 
 If we change the availability of documents, we can't just update an existing document

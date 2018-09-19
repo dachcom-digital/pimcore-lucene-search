@@ -1,5 +1,9 @@
 services:
 
+    LuceneSearchBundle\Command\CrawlCommand:
+        autowire: true
+        autoconfigure: true
+
     LuceneSearchBundle\Command\DocumentModifierCommand:
         autowire: true
         autoconfigure: true

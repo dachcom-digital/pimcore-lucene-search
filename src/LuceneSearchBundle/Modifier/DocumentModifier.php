@@ -3,6 +3,7 @@
 namespace LuceneSearchBundle\Modifier;
 
 use LuceneSearchBundle\Configuration\Configuration;
+use Pimcore\Model\Tool\TmpStore;
 
 final class DocumentModifier
 {
@@ -18,25 +19,8 @@ final class DocumentModifier
      */
     public function markDocumentsViaQuery(\Zend_Search_Lucene_Search_Query_Term $query, $marking = self::MARK_AVAILABLE)
     {
-        $hits = $this->getHits($query);
-
-        if (count($hits) === 0) {
-            return;
-        }
-
-        $documentIds = [];
-        foreach ($hits as $hit) {
-
-            if (!$hit instanceof \Zend_Search_Lucene_Search_QueryHit) {
-                continue;
-            }
-
-            $documentIds[] = $hit->id;
-        }
-
         // trigger command to run heavy processes in background
-        $this->triggerCommand($marking, $documentIds);
-
+        TmpStore::add($this->getJobId(), ['marking' => $marking, 'query' => $query, 'type' => 'query'], 'lucene_search_modifier');
     }
 
     /**
@@ -45,19 +29,8 @@ final class DocumentModifier
      */
     public function markDocumentsViaTerm(\Zend_Search_Lucene_Index_Term $term, $marking = self::MARK_AVAILABLE)
     {
-        try {
-            $docIds = $this->getIndex()->termDocs($term);
-        } catch (\Exception $e) {
-            $docIds = [];
-        }
-
-        $documentIds = [];
-        foreach ($docIds as $id) {
-            $documentIds[] = $id;
-        }
-
         // trigger command to run heavy processes in background
-        $this->triggerCommand($marking, $documentIds);
+        TmpStore::add($this->getJobId(), ['marking' => $marking, 'term' => $term, 'type' => 'term'], 'lucene_search_modifier');
     }
 
     /**
@@ -69,39 +42,10 @@ final class DocumentModifier
     }
 
     /**
-     * @param       $marking
-     * @param array $documentIds
+     * @return string
      */
-    private function triggerCommand($marking, array $documentIds)
+    private function getJobId()
     {
-        if (count($documentIds) === 0) {
-            return;
-        }
-
-        \Pimcore\Tool\Console::runPhpScriptInBackground(
-            realpath(PIMCORE_PROJECT_ROOT . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'console'),
-            'lucenesearch:modifier:resolve ' . escapeshellarg($marking) . ' ' . escapeshellarg(implode(',', $documentIds)),
-            PIMCORE_LOG_DIRECTORY . DIRECTORY_SEPARATOR . 'lucene-search-modifier-output.log'
-        );
-    }
-
-    /**
-     * @param \Zend_Search_Lucene_Search_Query_Term $query
-     *
-     * @return array
-     */
-    private function getHits(\Zend_Search_Lucene_Search_Query_Term $query)
-    {
-        try {
-            $hits = $this->getIndex()->find($query);
-        } catch (\Exception $e) {
-            return [];
-        }
-
-        if (!is_array($hits) || count($hits) === 0) {
-            return [];
-        }
-
-        return $hits;
+        return uniqid('lucene_modifier-job-');
     }
 }

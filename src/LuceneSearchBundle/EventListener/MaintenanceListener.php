@@ -3,13 +3,14 @@
 namespace LuceneSearchBundle\EventListener;
 
 use LuceneSearchBundle\Logger\Logger;
+use LuceneSearchBundle\Modifier\QueuedDocumentModifier;
 use LuceneSearchBundle\Organizer\Handler\StateHandler;
 use LuceneSearchBundle\Organizer\Dispatcher\HandlerDispatcher;
-
 use LuceneSearchBundle\Task\TaskManager;
 use Pimcore\Event\System\MaintenanceEvent;
+use Pimcore\Model\Schedule\Maintenance\Job;
 
-class CrawlListener
+class MaintenanceListener
 {
     /**
      * @var HandlerDispatcher
@@ -17,28 +18,56 @@ class CrawlListener
     protected $handlerDispatcher;
 
     /**
+     * @var QueuedDocumentModifier
+     */
+    protected $queuedDocumentModifier;
+
+    /**
      * @var TaskManager
      */
     protected $taskManager;
 
     /**
-     * Worker constructor.
+     * MaintenanceListener constructor.
      *
-     * @param HandlerDispatcher $handlerDispatcher
-     * @param TaskManager       $taskManager
+     * @param HandlerDispatcher      $handlerDispatcher
+     * @param QueuedDocumentModifier $queuedDocumentModifier
+     * @param TaskManager            $taskManager
      */
-    public function __construct(HandlerDispatcher $handlerDispatcher, TaskManager $taskManager)
+    public function __construct(HandlerDispatcher $handlerDispatcher, QueuedDocumentModifier $queuedDocumentModifier, TaskManager $taskManager)
     {
         $this->handlerDispatcher = $handlerDispatcher;
+        $this->queuedDocumentModifier = $queuedDocumentModifier;
         $this->taskManager = $taskManager;
     }
 
     /**
-     * @param MaintenanceEvent $ev
-     *
-     * @return void
+     * @param MaintenanceEvent $event
      */
-    public function run(MaintenanceEvent $ev)
+    public function runQueuedDocumentModifier(MaintenanceEvent $event)
+    {
+        $mainCrawlerIsActive = $this->handlerDispatcher->getStateHandler()->getCrawlerState() === StateHandler::CRAWLER_STATE_ACTIVE;
+
+        // new index is on its way. wait for new index arrival.
+        if ($mainCrawlerIsActive === true) {
+            return;
+        }
+
+        $event->getManager()->registerJob(new Job('lucene_search.maintenance.queued_modifier', [$this->queuedDocumentModifier, 'resolveQueue']));
+    }
+
+    /**
+     * @param MaintenanceEvent $event
+     */
+    public function runCrawler(MaintenanceEvent $event)
+    {
+        $event->getManager()->registerJob(new Job('lucene_search.maintenance.crawler', [$this, 'checkCrawlerCycle']));
+    }
+
+    /**
+     * Run Crawler in given time range
+     */
+    public function checkCrawlerCycle()
     {
         if ($this->handlerDispatcher->getStateHandler()->isCrawlerEnabled() === false) {
             return;
@@ -67,7 +96,12 @@ class CrawlListener
 
             $logger = new Logger();
             $this->taskManager->setLogger($logger);
-            $this->taskManager->processTaskChain(['force' => false]);
+
+            try {
+                $this->taskManager->processTaskChain(['force' => false]);
+            } catch (\Exception $e) {
+                \Pimcore\Logger::error('LuceneSearch: error while running crawler in maintenance.', $e->getTrace());
+            }
 
             /**
              * + If Crawler is Running

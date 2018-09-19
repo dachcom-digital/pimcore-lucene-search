@@ -6,9 +6,10 @@ services:
         public: false
 
     # event listener
-    LuceneSearchBundle\EventListener\CrawlListener:
+    LuceneSearchBundle\EventListener\MaintenanceListener:
         tags:
-            - { name: kernel.event_listener, event: pimcore.system.maintenance, method: run }
+            - { name: kernel.event_listener, event: pimcore.system.maintenance, method: runQueuedDocumentModifier }
+            - { name: kernel.event_listener, event: pimcore.system.maintenance, method: runCrawler }
 
     LuceneSearchBundle\EventListener\DocumentMetaDataListener:
         tags:
