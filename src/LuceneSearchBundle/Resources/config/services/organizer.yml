@@ -22,3 +22,5 @@ services:
         parent: LuceneSearchBundle\Organizer\Handler\AbstractHandler
         autowire: true
         public: true
+        calls:
+            - [setDocumentModifier, ['@LuceneSearchBundle\Modifier\DocumentModifier']]

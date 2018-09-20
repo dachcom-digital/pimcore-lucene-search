@@ -3,9 +3,23 @@
 namespace LuceneSearchBundle\Organizer\Handler;
 
 use LuceneSearchBundle\Configuration\Configuration;
+use LuceneSearchBundle\Modifier\DocumentModifier;
 
 class StoreHandler extends AbstractHandler
 {
+    /**
+     * @var DocumentModifier
+     */
+    protected $documentModifier;
+
+    /**
+     * @param DocumentModifier $documentModifier
+     */
+    public function setDocumentModifier(DocumentModifier $documentModifier)
+    {
+        $this->documentModifier = $documentModifier;
+    }
+
     public function resetGenesisIndex()
     {
         \Pimcore\Logger::debug('LuceneSearch: Reset Genesis Index');
@@ -61,6 +75,16 @@ class StoreHandler extends AbstractHandler
     }
 
     /**
+     * Remove existing modifier documents
+     */
+    public function clearQueuedDocumentModifiers()
+    {
+        \Pimcore\Logger::debug('LuceneSearch: Remove Queued Document Modifiers');
+
+        $this->documentModifier->clearActiveJobs();
+    }
+
+    /**
      * Rest Uri Filter Store
      */
     public function resetUriFilterPersistenceStore()
@@ -92,7 +116,6 @@ class StoreHandler extends AbstractHandler
         }
 
         $this->fileSystem->mirror($from, $to, null, ['override' => true, 'delete' => true]);
-
     }
 
     /**

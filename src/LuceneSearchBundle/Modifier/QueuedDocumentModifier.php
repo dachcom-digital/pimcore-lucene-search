@@ -9,6 +9,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 final class QueuedDocumentModifier
 {
+    const LOCK_ID = 'lucene_search_modifier_flag';
+
     /**
      * @var bool
      */
@@ -41,35 +43,24 @@ final class QueuedDocumentModifier
         $this->eventDispatcher = $eventDispatcher;
     }
 
+    /**
+     * Load all queued jobs, trigger lucene query and process given documents.
+     */
     public function resolveQueue()
     {
-        $processIds = TmpStore::getIdsByTag('lucene_search_modifier');
+        if ($this->documentModifier->hasActiveJobs() === false) {
+            return;
+        }
 
         // modifier is running, wait for next cycle.
-        if (TmpStore::get('lucene_search_modifier_flag') instanceof TmpStore) {
+        if ($this->queueIsLocked()) {
             return;
         }
 
-        TmpStore::add('lucene_search_modifier_flag', ['running' => true]);
+        $this->lockQueue();
 
         /** @var TmpStore[] $sortedProcesses */
-        $sortedProcesses = [];
-
-        foreach ($processIds as $processId) {
-            $process = TmpStore::get($processId);
-
-            if (!$process instanceof TmpStore) {
-                continue;
-            }
-
-            $sortedProcesses[] = $process;
-
-        }
-
-        if (count($sortedProcesses) === 0) {
-            TmpStore::delete('lucene_search_modifier_flag');
-            return;
-        }
+        $sortedProcesses = $this->documentModifier->getActiveJobs(true);
 
         usort($sortedProcesses, function ($a, $b) {
             /**
@@ -100,7 +91,7 @@ final class QueuedDocumentModifier
                 \Pimcore\Logger::error('LuceneSearch: Document Modifier Error: ' . $e->getMessage(), $e->getTrace());
             }
 
-            TmpStore::delete($process->getId());
+            $this->documentModifier->deleteJob($process->getId());
 
         }
 
@@ -108,7 +99,7 @@ final class QueuedDocumentModifier
             $this->index->optimize();
         }
 
-        TmpStore::delete('lucene_search_modifier_flag');
+        $this->unlockQueue();
     }
 
     /**
@@ -233,5 +224,33 @@ final class QueuedDocumentModifier
         }
 
         return $documentIds;
+    }
+
+    /**
+     * Lock Queue for cycle
+     */
+    protected function lockQueue()
+    {
+        if ($this->queueIsLocked() === true) {
+            return;
+        }
+
+        TmpStore::add(self::LOCK_ID, ['running' => true]);
+    }
+
+    /**
+     * Unlock Queue for cycle
+     */
+    protected function unlockQueue()
+    {
+        TmpStore::delete(self::LOCK_ID);
+    }
+
+    /**
+     * @return bool
+     */
+    protected function queueIsLocked()
+    {
+        return TmpStore::get(self::LOCK_ID) instanceof TmpStore;
     }
 }

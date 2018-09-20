@@ -38,6 +38,7 @@ class ShutDownTask extends AbstractTask
         $this->handlerDispatcher->getStoreHandler()->resetUriFilterPersistenceStore();
         $this->handlerDispatcher->getStoreHandler()->riseGenesisToStable();
         $this->handlerDispatcher->getStoreHandler()->resetAssetTmp();
+        $this->handlerDispatcher->getStoreHandler()->clearQueuedDocumentModifiers();
 
         $this->handlerDispatcher->getStateHandler()->stopCrawler();
 
