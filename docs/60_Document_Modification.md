@@ -1,15 +1,14 @@
-# Lucene Index Manipulation
+# Lucene Document Modification
 
-You can easily manipulate an existing index. 
-For example: Deleting instantly a document from index, after it has been removed or updated in pimcore.
+It's possible to modify an indexed document. 
 
-For that we're providing a `DocumentModifier` which allows you to:
+Use the `DocumentModifier` class to:
 
 - mark Lucene-Document as available
 - mark Lucene-Document as unavailable
-- mark Lucene-Document as deleted (remove from index unrecoverable)
+- mark Lucene-Document as deleted (remove from index until next crawl)
 
-**Note:**: The availability check works within the maintenance cycle!
+**Note:** The availability check works within the maintenance cycle so there is a dispatch delay up to 5 minutes depending on your maintenance cron settings!
 
 ## Warning!
 There are some limitations while changing lucene documents. 
@@ -47,6 +46,7 @@ use LuceneSearchBundle\Event\DocumentModificationEvent;
 use LuceneSearchBundle\Modifier\DocumentModifier;
 use Pimcore\Event\DocumentEvents;
 use Pimcore\Event\Model\DocumentEvent;
+use Pimcore\Model\Document;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class IndexManipulator implements EventSubscriberInterface
@@ -61,16 +61,30 @@ class IndexManipulator implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            DocumentEvents::POST_UPDATE => 'onPostUpdate',
+            DocumentEvents::PRE_UPDATE => 'onPreUpdate',
             DocumentEvents::PRE_DELETE  => 'onPreDelete',
             LuceneSearchEvents::LUCENE_SEARCH_DOCUMENT_MODIFICATION => 'onModification',
         ];
     }
 
-    public function onPostUpdate(DocumentEvent $event)
+    public function onPreUpdate(DocumentEvent $event)
     {
         $document = $event->getDocument();
 
+        try {
+            // get current document from db (without changed values)
+            $storedDocument = Document::getById($document->getId(), true);
+        } catch (\Exception $e) {
+            $storedDocument = null;
+        }
+
+        // check if untouched db entity has same status. if so = save resources and skip updating.
+        if ($storedDocument instanceof Document) {
+            if ($storedDocument->getPublished() === $document->getPublished()) {
+                return;
+            }
+        }
+        
         if ($document->isPublished() === true) {
             $marker = DocumentModifier::MARK_AVAILABLE;
         } else {
@@ -97,7 +111,6 @@ class IndexManipulator implements EventSubscriberInterface
         // yourCustomMetaIdentifier: you need to add custom Keyword via the lucene_search.task.parser.html_parser event
         $term = new \Zend_Search_Lucene_Index_Term($document->getProperty('yourCustomMetaIdentifierProperty'), 'yourIdentifier');
         $this->documentModifier->markDocumentsViaTerm($term, DocumentModifier::MARK_DELETED);
-
     }
     
     /**

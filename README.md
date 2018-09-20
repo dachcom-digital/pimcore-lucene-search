@@ -90,9 +90,9 @@ You'll find some logs from the last crawl in your backend (at the bottom on the 
 - [Custom Header](docs/29_Custom_Request_Header.md): Learn how to add custom headers to the crawler request (like a auth token).
 - [Restrictions](docs/30_Restrictions.md): Learn more about restricted crawling / indexing.
 - [Custom Meta Content](docs/40_Meta.md): Learn more about crawling / searching custom meta.
-- [Crawler Events](docs/50_Crawer_Events.md) Hook into crawler process to add custom fields to index.
-- [Index Manipulation](docs/60_Index_Manipulation.md) Remove documents from lucene index within a pimcore update/deletion event.
-- [Frontend Implementation](docs/90_Frontend_Implementation.md) Get a step by step walkthrough to implement lucene search into your website.
+- [Crawler Events](docs/50_Crawer_Events.md): Hook into crawler process to add custom fields to index.
+- [Lucene Document Modification](docs/60_Document_Modification.md): Remove or change availability of lucene documents within a pimcore update/deletion event.
+- [Frontend Implementation](docs/90_Frontend_Implementation.md): Get a step by step walkthrough to implement lucene search into your website.
 
 ## Copyright and license
 Copyright: [DACHCOM.DIGITAL](http://dachcom-digital.ch)  
