@@ -6,11 +6,10 @@ use LuceneSearchBundle\Tool\CrawlerState;
 use Pimcore\Http\Request\Resolver\DocumentResolver;
 use Pimcore\Model\Document\Page;
 use Pimcore\Templating\Helper\HeadMeta;
-use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 
-class DocumentMetaDataListener {
-
+class DocumentMetaDataListener
+{
     /**
      * @var CrawlerState
      */
@@ -22,9 +21,14 @@ class DocumentMetaDataListener {
     protected $documentResolver;
 
     /**
+     * @var HeadMeta
+     */
+    protected $headMeta;
+
+    /**
      * DocumentMetaDataListener constructor.
      *
-     * @param StateHandler     $stateHandler
+     * @param CrawlerState     $crawlerState
      * @param DocumentResolver $documentResolver
      * @param HeadMeta         $headMeta
      */
@@ -35,6 +39,9 @@ class DocumentMetaDataListener {
         $this->headMeta = $headMeta;
     }
 
+    /**
+     * @param GetResponseEvent $event
+     */
     public function onKernelRequest(GetResponseEvent $event)
     {
         if (!$this->crawlerState->isLuceneSearchCrawler()) {
@@ -53,5 +60,4 @@ class DocumentMetaDataListener {
             $this->headMeta->addRaw('<meta name="lucene-search:documentId" content="' . $document->getId() . '" />');
         }
     }
-
 }
