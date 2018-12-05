@@ -22,15 +22,16 @@ class CategoriesPass implements CompilerPassInterface
     {
         $categoryServiceName = $container->getParameter('lucene_search.categories');
 
-        if ($container->hasDefinition($categoryServiceName)) {
-
-            $categoriesService = $container->get($categoryServiceName);
-            if (!$categoriesService instanceof CategoriesInterface) {
-                throw new \Exception(get_class($categoriesService) . ' needs to implement the CategoriesInterface.');
-            }
-
-            $container->getDefinition(Configuration::class)->addMethodCall('setCategoryService',
-                [new Reference($categoryServiceName)]);
+        if (!$container->hasDefinition($categoryServiceName)) {
+            throw new \InvalidArgumentException(sprintf('Service "%s" not found'));
         }
+
+        $categoriesService = $container->get($categoryServiceName);
+        if (!$categoriesService instanceof CategoriesInterface) {
+            throw new \Exception(get_class($categoriesService) . ' needs to implement the CategoriesInterface.');
+        }
+
+        $container->getDefinition(Configuration::class)->addMethodCall('setCategoryService',
+            [new Reference($categoryServiceName)]);
     }
 }
