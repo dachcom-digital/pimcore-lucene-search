@@ -27,7 +27,7 @@ class CategoriesPass implements CompilerPassInterface
         }
         
         if (!$container->hasDefinition($categoryServiceName)) {
-            throw new \InvalidArgumentException(sprintf('Service "%s" not found'));
+            throw new \InvalidArgumentException(sprintf('Service "%s" not found', $categoriesServiceName));
         }
 
         $categoriesService = $container->get($categoryServiceName);
