@@ -22,6 +22,10 @@ class CategoriesPass implements CompilerPassInterface
     {
         $categoryServiceName = $container->getParameter('lucene_search.categories');
 
+        if (!$categoryServiceName) {
+            return;
+        }
+        
         if (!$container->hasDefinition($categoryServiceName)) {
             throw new \InvalidArgumentException(sprintf('Service "%s" not found'));
         }
