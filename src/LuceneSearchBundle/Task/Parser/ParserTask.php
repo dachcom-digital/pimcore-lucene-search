@@ -2,12 +2,12 @@
 
 namespace LuceneSearchBundle\Task\Parser;
 
+use LuceneSearchBundle\Configuration\Configuration;
 use LuceneSearchBundle\Event\AssetResourceRestrictionEvent;
 use LuceneSearchBundle\Event\HtmlParserEvent;
 use LuceneSearchBundle\Event\PdfParserEvent;
 use LuceneSearchBundle\LuceneSearchEvents;
 use LuceneSearchBundle\Task\AbstractTask;
-use LuceneSearchBundle\Configuration\Configuration;
 use Pimcore\Document\Adapter\Ghostscript;
 use Pimcore\Model\Asset;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -182,6 +182,7 @@ class ParserTask extends AbstractTask
         $stream = $resource->getResponse()->getBody();
         $stream->rewind();
         $html = $stream->getContents();
+        $originalHtml = $html;
 
         $contentTypeInfo = $resource->getResponse()->getHeaderLine('Content-Type');
         $contentLanguage = $resource->getResponse()->getHeaderLine('Content-Language');
@@ -329,7 +330,7 @@ class ParserTask extends AbstractTask
             'object_id'    => $objectId
         ];
 
-        $this->addHtmlToIndex($html, $params);
+        $this->addHtmlToIndex($html, $originalHtml, $params);
 
         $this->log(sprintf('added html to indexer stack: %s', $uri));
 
@@ -461,12 +462,13 @@ class ParserTask extends AbstractTask
     /**
      * adds a HTML page to lucene index and mysql table for search result summaries
      *
-     * @param  string $html
-     * @param  array  $params
+     * @param string $html
+     * @param string $originalHtml
+     * @param array  $params
      *
      * @return void
      */
-    protected function addHtmlToIndex($html, $params)
+    protected function addHtmlToIndex($html, $originalHtml, $params)
     {
         $defaults = [
             'title'        => null,
@@ -564,7 +566,7 @@ class ParserTask extends AbstractTask
             // add internal availability flag
             $doc->addField(\Zend_Search_Lucene_Field::keyword('internalAvailability', 'available'));
 
-            $parserEvent = new HtmlParserEvent($doc, $html, $params);
+            $parserEvent = new HtmlParserEvent($doc, $html, $originalHtml, $params);
             $this->eventDispatcher->dispatch(
                 LuceneSearchEvents::LUCENE_SEARCH_PARSER_HTML_DOCUMENT,
                 $parserEvent
