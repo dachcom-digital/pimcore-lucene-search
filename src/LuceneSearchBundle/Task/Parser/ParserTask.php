@@ -2,12 +2,12 @@
 
 namespace LuceneSearchBundle\Task\Parser;
 
+use LuceneSearchBundle\Configuration\Configuration;
 use LuceneSearchBundle\Event\AssetResourceRestrictionEvent;
 use LuceneSearchBundle\Event\HtmlParserEvent;
 use LuceneSearchBundle\Event\PdfParserEvent;
 use LuceneSearchBundle\LuceneSearchEvents;
 use LuceneSearchBundle\Task\AbstractTask;
-use LuceneSearchBundle\Configuration\Configuration;
 use Pimcore\Document\Adapter\Ghostscript;
 use Pimcore\Model\Asset;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -462,8 +462,9 @@ class ParserTask extends AbstractTask
     /**
      * adds a HTML page to lucene index and mysql table for search result summaries
      *
-     * @param  string $html
-     * @param  array  $params
+     * @param string $html
+     * @param string $originalHtml
+     * @param array  $params
      *
      * @return void
      */
