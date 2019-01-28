@@ -82,8 +82,8 @@ $(function() {
                 function(data) {
                     var result = { suggestions : [] };
                     if(data.length > 0) {
-                        $.each(data, function(index, suggession) {
-                            result.suggestions.push( {value : suggession });
+                        $.each(data, function(index, suggestion) {
+                            result.suggestions.push( {value : suggestion });
                         });
                     }
                     done(result);
