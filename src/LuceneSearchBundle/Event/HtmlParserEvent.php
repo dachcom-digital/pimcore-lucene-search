@@ -75,7 +75,7 @@ class HtmlParserEvent extends Event
      */
     public function getParsedHtml()
     {
-        return $this->html;
+        return $this->parsedHtml;
     }
 
     /**
