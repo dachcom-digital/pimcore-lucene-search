@@ -1,13 +1,16 @@
 services:
+    LuceneSearchBundle\Controller\Admin\SettingsController:
+        tags:
+            - { name: controller.service_arguments }
 
-   LuceneSearchBundle\Controller\FrontendController:
+    LuceneSearchBundle\Controller\FrontendController:
         autowire: true
 
-   LuceneSearchBundle\Controller\AutoCompleteController:
+    LuceneSearchBundle\Controller\AutoCompleteController:
         parent: LuceneSearchBundle\Controller\FrontendController
         autowire: true
 
-   LuceneSearchBundle\Controller\ListController:
+    LuceneSearchBundle\Controller\ListController:
         parent: LuceneSearchBundle\Controller\FrontendController
         autowire: true
         calls:

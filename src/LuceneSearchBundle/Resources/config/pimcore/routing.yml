@@ -1,16 +1,16 @@
 # backend
 lucene_search.controller.admin.get_state:
     path: /admin/lucene-search/settings/get/state
-    defaults: { _controller: LuceneSearchBundle:Admin\Settings:getState }
+    defaults: { _controller: LuceneSearchBundle\Controller\Admin\SettingsController::getStateAction }
 lucene_search.controller.admin.get_logs:
     path: /admin/lucene-search/settings/logs/get
-    defaults: { _controller: LuceneSearchBundle:Admin\Settings:getLog }
+    defaults: { _controller: LuceneSearchBundle\Controller\Admin\SettingsController::getLogAction }
 lucene_search.controller.admin.crawler.start:
     path: /admin/lucene-search/settings/crawler/start
-    defaults: { _controller: LuceneSearchBundle:Admin\Settings:startCrawler }
+    defaults: { _controller: LuceneSearchBundle\Controller\Admin\SettingsController::startCrawlerAction }
 lucene_search.controller.admin.crawler.stop:
     path: /admin/lucene-search/settings/crawler/stop
-    defaults: { _controller: LuceneSearchBundle:Admin\Settings:stopCrawler }
+    defaults: { _controller: LuceneSearchBundle\Controller\Admin\SettingsController::stopCrawlerAction }
 
 # frontend
 lucene_search.controller.auto_complete.search:

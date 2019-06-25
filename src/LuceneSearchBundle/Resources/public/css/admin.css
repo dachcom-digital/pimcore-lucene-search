@@ -6,6 +6,10 @@
     background-image: url(/bundles/lucenesearch/img/lucene.png) !important;
 }
 
+body.pimcore_version_6 .lucenesearch_icon {
+    background-image: url(/bundles/lucenesearch/img/lucene_white.png) !important;
+}
+
 .lucenesearch_icon_plugins {
     background: url(/bundles/lucenesearch/img/img/plugin.png) no-repeat scroll left center transparent !important;
 }

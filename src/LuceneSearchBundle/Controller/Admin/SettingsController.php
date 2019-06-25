@@ -20,14 +20,10 @@ class SettingsController extends AdminController
         return $this->json(['logData' => $data]);
     }
 
-    public function getStateAction()
+    public function getStateAction(Configuration $configManager, StateHandler $stateHandler)
     {
         $canStart = true;
 
-        /** @var Configuration $configManager */
-        $configManager = $this->container->get(Configuration::class);
-        /** @var StateHandler $stateHandler */
-        $stateHandler = $this->container->get(StateHandler::class);
         $currentState = $stateHandler->getCrawlerState();
 
         $configComplete = $stateHandler->getConfigCompletionState() === 'complete';
@@ -58,17 +54,15 @@ class SettingsController extends AdminController
         );
     }
 
-    public function startCrawlerAction()
+    public function startCrawlerAction(StateHandler $stateHandler)
     {
-        $stateHandler = $this->get(StateHandler::class);
-        $stateHandler->forceCrawlerStartOnNextMaintenance(true);
+        $stateHandler->forceCrawlerStartOnNextMaintenance();
 
         return $this->json(['success' => true]);
     }
 
-    public function stopCrawlerAction()
+    public function stopCrawlerAction(StateHandler $stateHandler)
     {
-        $stateHandler = $this->get(StateHandler::class);
         $stateHandler->stopCrawler(true);
 
         return $this->json(['success' => true]);
