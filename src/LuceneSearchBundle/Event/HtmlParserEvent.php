@@ -14,7 +14,12 @@ class HtmlParserEvent extends Event
     /**
      * @var string
      */
-    private $html;
+    private $parsedHtml;
+
+    /**
+     * @var string
+     */
+    private $fullHtml;
 
     /**
      * @var array
@@ -25,13 +30,15 @@ class HtmlParserEvent extends Event
      * HtmlParserEvent constructor.
      *
      * @param \Zend_Search_Lucene_Document $document
-     * @param                              $html
+     * @param                              $parsedHtml
+     * @param                              $fullHtml
      * @param                              $params
      */
-    public function __construct(\Zend_Search_Lucene_Document $document, $html, $params)
+    public function __construct(\Zend_Search_Lucene_Document $document, $parsedHtml, $fullHtml, $params)
     {
         $this->document = $document;
-        $this->html = $html;
+        $this->parsedHtml = $parsedHtml;
+        $this->fullHtml = $fullHtml;
         $this->params = $params;
     }
 
@@ -54,11 +61,29 @@ class HtmlParserEvent extends Event
     }
 
     /**
+     * @deprecated Use getParsedHtml() instead.
+     *
      * @return string
      */
     public function getHtml()
     {
-        return $this->html;
+        return $this->getParsedHtml();
+    }
+
+    /**
+     * @return string
+     */
+    public function getParsedHtml()
+    {
+        return $this->parsedHtml;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFullHtml()
+    {
+        return $this->fullHtml;
     }
 
     /**
