@@ -1,5 +1,9 @@
 # Upgrade Notes
 
+#### Update from Version 2.1.x to Version 2.2.0
+- Pimcore 6 Compatibility
+- Fix encoding in lucene url field
+
 #### Update from Version 2.1.1 to Version 2.1.2
 - Availability Flag implemented.
 - DocumentModifier implemented. See [Docs](https://github.com/dachcom-digital/pimcore-lucene-search/blob/master/docs/60_Index_Manipulation.md).
