@@ -5,7 +5,7 @@ services:
         autoconfigure: true
 
     # tool installer
-    LuceneSearchBundle\Tool\Install: ~
+    LuceneSearchBundle\Tool\Install:
         public: true
         
     # configuration
