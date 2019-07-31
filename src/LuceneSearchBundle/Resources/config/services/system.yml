@@ -6,7 +6,8 @@ services:
 
     # tool installer
     LuceneSearchBundle\Tool\Install: ~
-
+        public: true
+        
     # configuration
     LuceneSearchBundle\Configuration\Configuration: ~
 
