@@ -12,4 +12,5 @@ services:
     LuceneSearchBundle\Configuration\Configuration: ~
 
     # tool crawler state
-    LuceneSearchBundle\Tool\CrawlerState: ~
+    LuceneSearchBundle\Tool\CrawlerState:
+        public: true
