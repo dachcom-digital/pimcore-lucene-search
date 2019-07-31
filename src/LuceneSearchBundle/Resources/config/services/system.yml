@@ -5,10 +5,12 @@ services:
         autoconfigure: true
 
     # tool installer
-    LuceneSearchBundle\Tool\Install: ~
-
+    LuceneSearchBundle\Tool\Install:
+        public: true
+        
     # configuration
     LuceneSearchBundle\Configuration\Configuration: ~
 
     # tool crawler state
-    LuceneSearchBundle\Tool\CrawlerState: ~
+    LuceneSearchBundle\Tool\CrawlerState:
+        public: true
