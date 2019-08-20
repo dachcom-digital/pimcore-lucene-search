@@ -6,7 +6,7 @@ The Pimcore Lucene Search Bundle will be marked as abandoned as soon the [Dynami
 After that, bugfixing will be supported in some cases. However, PRs are always welcome.
 
 ### Requirements
-- Pimcore >= 5.4
+- Pimcore >= 5.8
 - Pimcore >= 6.0
 
 #### Pimcore 4 
@@ -18,7 +18,7 @@ Get the Pimcore4 Version [here](https://github.com/dachcom-digital/pimcore-lucen
 
 ```json
 "require" : {
-    "dachcom-digital/lucene-search" : "~2.2.0"
+    "dachcom-digital/lucene-search" : "~2.3.0"
 }
 ```
 

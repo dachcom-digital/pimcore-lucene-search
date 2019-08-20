@@ -27,7 +27,7 @@
         }
     },
     "require": {
-        "pimcore/pimcore": "^5.4.0 | ^6.0.0",
+        "pimcore/pimcore": "^5.8.0 | ^6.0.0",
         "vdb/php-spider": "^0.3 | ^0.4",
         "zf1/zend-search-lucene": "~1.12"
     }
