@@ -1,5 +1,8 @@
 # Upgrade Notes
 
+#### Update from Version 1.6.1 to Version 1.6.2
+- `assigned_categories` added to asset
+
 #### Update from Version 1.5.x to Version 1.6.0
 - category meta search implemented: restart the crawler to update your index.
 

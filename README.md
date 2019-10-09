@@ -72,6 +72,9 @@ If you add some additional language afterwards, you need to add this language to
 Because Assets does not have any country hierarchy, you need to add a property called `assigned_country`. This Property will be installed during the install process of LuceneSearch.
 If you add some additional countries afterwards, you need to add this country to the property. if you do not set any information at all, the asset will be found in any country context.
 
+## Category restriction
+Add `assigned_categories` as property, if you need an category assignment per asset. Use `,` to add multiple categories.
+
 ## Setup Search Page
 - Create a document, call it "search".
 - Define a new method in your Controller (eg. search). 

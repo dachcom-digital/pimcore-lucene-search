@@ -735,13 +735,30 @@ class Parser
                 $text = preg_replace('/\n[\s]*/', "\n", $text); // remove all leading blanks
 
                 $title = $assetMeta['key'] !== FALSE ? $assetMeta['key'] : basename($uri);
-                $doc->addField(\Zend_Search_Lucene_Field::Text('title', $title), 'utf-8');
+                $doc->addField(\Zend_Search_Lucene_Field::Text('title', $title, 'utf-8'));
                 $doc->addField(\Zend_Search_Lucene_Field::Text('content', $text, 'utf-8'));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('lang', $assetMeta['language']));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('country', $assetMeta['country']));
 
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('url', $uri));
                 $doc->addField(\Zend_Search_Lucene_Field::Keyword('host', $host));
+
+                if (is_array($assetMeta['categories'])) {
+                    $validCategories = \LuceneSearch\Model\Configuration::get('frontend.categories');
+                    if (!empty($validCategories)) {
+                        $validIds = [];
+                        $categoryIds = $assetMeta['categories'];
+                        foreach ($categoryIds as $categoryId) {
+                            if (in_array($categoryId, $validCategories)) {
+                                $validIds[] = $categoryId;
+                                $doc->addField(\Zend_Search_Lucene_Field::Keyword('category_' . $categoryId, 'category_' . $categoryId));
+                            }
+                        }
+                        if (!empty($validIds)) {
+                            $doc->addField(\Zend_Search_Lucene_Field::Text('categories', implode(',', $validIds)));
+                        }
+                    }
+                }
 
                 if (is_array($assetMeta['restrictions'])) {
                     foreach ($assetMeta['restrictions'] as $restrictionGroup) {
@@ -888,7 +905,8 @@ class Parser
             'language'     => 'all',
             'country'      => 'all',
             'key'          => FALSE,
-            'restrictions' => FALSE
+            'restrictions' => NULL,
+            'categories'   => NULL
         ];
 
         if (empty($link) || !is_string($link)) {
@@ -902,7 +920,8 @@ class Parser
         }
 
         $asset = FALSE;
-        $restrictions = FALSE;
+        $categories = NULL;
+        $restrictions = NULL;
 
         $pathFragments = parse_url($link);
         $assetPath = $pathFragments['path'];
@@ -942,6 +961,11 @@ class Parser
         $countryProperty = $asset->getProperty('assigned_country');
         if (!empty($countryProperty)) {
             $assetMetaData['country'] = $countryProperty;
+        }
+
+        $categoriesProperty = $asset->getProperty('assigned_categories');
+        if (!empty($categoriesProperty)) {
+            $assetMetaData['categories'] = explode(',', $categoriesProperty);
         }
 
         $assetMetaData['key'] = $asset->getKey();
