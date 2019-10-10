@@ -414,7 +414,7 @@ class ParserTask extends AbstractTask
                 $doc->boost = $params['custom_boost'] ? $params['custom_boost'] : $this->assetBoost;
 
                 $text = preg_replace("/\r|\n/", ' ', $fileContent);
-                $text = preg_replace('/[^\p{Latin}\d ]/u', '', $text);
+                $text = preg_replace('/[^\\p{L}\\d ]/u', '', $text);
                 $text = preg_replace('/\n[\s]*/', "\n", $text); // remove all leading blanks
 
                 $title = $assetMeta['key'] !== false ? $assetMeta['key'] : basename($uri);
