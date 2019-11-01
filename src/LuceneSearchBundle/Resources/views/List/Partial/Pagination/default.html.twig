@@ -8,7 +8,7 @@
         <a {{ currentSearchPage == i ? 'class="active"' : '' }} href="{{ searchUrl }}{{ searchUrlData }}&page={{ i }}">{{ i }}</a>
     {% endfor %}
 
-    {% if currentSearchPage > currentSearchPage %}
+    {% if searchPageEnd > currentSearchPage %}
         <a class="next icon-arrow-right" href="{{ searchUrl }}{{ searchUrlData }}&page={{ currentSearchPage + 1 }}"></a>
     {% endif %}
 
